@@ -1,12 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import AnimatedText from './ui-custom/AnimatedText';
 import AnimatedCard from './ui-custom/AnimatedCard';
 import Badge from './ui-custom/Badge';
 import Button from './ui-custom/Button';
 import { Store, Users, Truck, ChevronRight, Check } from 'lucide-react';
+import AuthModal from './modals/AuthModals';
 
 const UserTypes = () => {
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<'client' | 'commercant' | 'fournisseur'>('client');
+
+  const openRegisterModal = (role: 'client' | 'commercant' | 'fournisseur') => {
+    setSelectedRole(role);
+    setRegisterModalOpen(true);
+  };
+
   const userTypes = [
     {
       icon: <Store size={28} />,
@@ -22,7 +31,8 @@ const UserTypes = () => {
         "Stories de 30 secondes (vérifié)",
         "Badge de vérification (payant)",
       ],
-      buttonText: "Devenir commerçant"
+      buttonText: "Devenir commerçant",
+      role: "commercant" as const
     },
     {
       icon: <Users size={28} />,
@@ -38,7 +48,8 @@ const UserTypes = () => {
         "Abonnement aux boutiques favorites",
         "Notifications personnalisées",
       ],
-      buttonText: "Créer un compte client"
+      buttonText: "Créer un compte client",
+      role: "client" as const
     },
     {
       icon: <Truck size={28} />,
@@ -54,7 +65,8 @@ const UserTypes = () => {
         "Badge de vérification (payant)",
         "Visibilité accrue sur la plateforme",
       ],
-      buttonText: "S'inscrire comme fournisseur"
+      buttonText: "S'inscrire comme fournisseur",
+      role: "fournisseur" as const
     }
   ];
 
@@ -116,6 +128,7 @@ const UserTypes = () => {
                 icon={<ChevronRight size={16} />}
                 iconPosition="right"
                 className="w-full"
+                onClick={() => openRegisterModal(userType.role)}
               >
                 {userType.buttonText}
               </Button>
@@ -123,6 +136,14 @@ const UserTypes = () => {
           </AnimatedCard>
         ))}
       </div>
+
+      {/* Registration Modal with selected role */}
+      <AuthModal 
+        type="register"
+        isOpen={registerModalOpen} 
+        onClose={() => setRegisterModalOpen(false)}
+        initialRole={selectedRole}
+      />
     </section>
   );
 };

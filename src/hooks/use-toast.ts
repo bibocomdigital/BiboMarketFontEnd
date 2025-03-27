@@ -1,6 +1,4 @@
-
-// This file is importing React incorrectly which is causing the useState error
-import React from "react";
+import * as React from "react";
 
 import type {
   ToastActionElement,

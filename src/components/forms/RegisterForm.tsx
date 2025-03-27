@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,11 +7,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Le prénom doit contenir au moins 2 caractères' }),
   lastName: z.string().min(2, { message: 'Le nom doit contenir au moins 2 caractères' }),
-  phone: z.string().min(9, { message: 'Numéro de téléphone invalide' }),
+  phoneNumber: z.string().min(9, { message: 'Numéro de téléphone invalide' }),
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
   password: z.string().min(6, { message: 'Le mot de passe doit contenir au moins 6 caractères' }),
   country: z.string().min(2, { message: 'Veuillez entrer un pays valide' }),
@@ -25,39 +27,70 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const RegisterForm = ({ onClose }: { onClose?: () => void }) => {
+const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => void, initialRole?: 'client' | 'commercant' | 'fournisseur' }) => {
   const [step, setStep] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
+  const { toast } = useToast();
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
-      phone: '',
+      phoneNumber: '',
       email: '',
       password: '',
       country: 'Sénégal',
       city: '',
       department: '',
       commune: '',
-      role: 'client',
+      role: initialRole,
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log('Register data:', data);
-    // Ici, vous enverriez les données à votre API d'inscription
+  // Update role if initialRole prop changes
+  useEffect(() => {
+    form.setValue('role', initialRole);
+  }, [initialRole, form]);
+
+  const onSubmit = async (data: FormValues) => {
+    // Rename phoneNumber to match API expectations
+    const submitData = {
+      ...data,
+      phoneNumber: data.phoneNumber,
+    };
+
+    console.log('Register data:', submitData);
+    
+    // Simulate API call
+    toast({
+      title: "Inscription en cours",
+      description: "Un email de vérification vous sera envoyé pour confirmer votre compte.",
+    });
+    
+    // Here you would normally make the actual API call
+    // const response = await fetch('/api/register', {
+    //   method: 'POST',
+    //   headers: {'Content-Type': 'application/json'},
+    //   body: JSON.stringify(submitData)
+    // });
+    
     if (onClose) onClose();
   };
 
   const nextStep = async () => {
     if (step === 1) {
-      const isValid = await form.trigger(['firstName', 'lastName', 'email', 'password', 'phone']);
+      const isValid = await form.trigger(['firstName', 'lastName', 'email', 'password', 'phoneNumber']);
       if (isValid) setStep(2);
     }
   };
 
   const prevStep = () => {
     if (step === 2) setStep(1);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -108,7 +141,7 @@ const RegisterForm = ({ onClose }: { onClose?: () => void }) => {
             />
             <FormField
               control={form.control}
-              name="phone"
+              name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Téléphone</FormLabel>
@@ -126,7 +159,20 @@ const RegisterForm = ({ onClose }: { onClose?: () => void }) => {
                 <FormItem>
                   <FormLabel>Mot de passe</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Créez un mot de passe" {...field} />
+                    <div className="relative">
+                      <Input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Créez un mot de passe" 
+                        {...field} 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={togglePasswordVisibility}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -151,7 +197,7 @@ const RegisterForm = ({ onClose }: { onClose?: () => void }) => {
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                       className="flex flex-col space-y-1"
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
