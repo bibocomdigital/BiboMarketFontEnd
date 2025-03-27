@@ -10,7 +10,7 @@ const Hero = () => {
 
   useEffect(() => {
     const img = new Image();
-    img.src = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&q=80';
+    img.src = 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80';
     img.onload = () => {
       setIsImageLoaded(true);
     };
@@ -93,8 +93,8 @@ const Hero = () => {
             <div className={`relative w-full h-[480px] rounded-2xl overflow-hidden transform transition-all duration-1000 ${isImageLoaded ? 'scale-100 opacity-100' : 'scale-105 opacity-0'}`}>
               <div className="absolute inset-0 bg-gradient-to-br from-bibocom-primary/20 to-transparent rounded-2xl"></div>
               <img 
-                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&q=80" 
-                alt="Bibocom Market" 
+                src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80" 
+                alt="Bibocom Market - Vêtements à la mode" 
                 className="w-full h-full object-cover object-center rounded-2xl"
                 style={{ opacity: isImageLoaded ? 1 : 0, transition: 'opacity 1s ease-out' }}
               />
@@ -107,7 +107,7 @@ const Hero = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium">+5000</p>
-                    <p className="text-xs text-bibocom-primary/70">Produits</p>
+                    <p className="text-xs text-bibocom-primary/70">Vêtements</p>
                   </div>
                 </div>
               </div>
@@ -119,7 +119,7 @@ const Hero = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium">+2000</p>
-                    <p className="text-xs text-bibocom-primary/70">Commerçants</p>
+                    <p className="text-xs text-bibocom-primary/70">Boutiques de mode</p>
                   </div>
                 </div>
               </div>
