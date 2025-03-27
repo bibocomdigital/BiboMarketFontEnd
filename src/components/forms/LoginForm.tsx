@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +19,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const LoginForm = ({ onClose }: { onClose?: () => void }) => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
@@ -35,16 +37,7 @@ const LoginForm = ({ onClose }: { onClose?: () => void }) => {
     try {
       console.log('Login data:', data);
       
-      // Simuler l'appel API
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data),
-      // });
-      
-      // if (!response.ok) {
-      //   throw new Error('Identifiants incorrects');
-      // }
+      // À des fins de démo, nous redirigerons quels que soient les identifiants
       
       toast({
         title: "Connexion réussie",
@@ -52,6 +45,9 @@ const LoginForm = ({ onClose }: { onClose?: () => void }) => {
       });
       
       if (onClose) onClose();
+      
+      // Redirection vers la page de profil
+      navigate('/profile');
     } catch (error) {
       console.error('Erreur:', error);
       toast({
@@ -168,7 +164,10 @@ const LoginForm = ({ onClose }: { onClose?: () => void }) => {
             type="button" 
             variant="outline" 
             className="w-full flex items-center justify-center gap-2"
-            onClick={() => console.log('Google login')}
+            onClick={() => {
+              if (onClose) onClose();
+              navigate('/profile');
+            }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
