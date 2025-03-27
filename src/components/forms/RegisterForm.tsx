@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -12,8 +13,8 @@ import { Eye, EyeOff, Upload } from 'lucide-react';
 const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Le prénom doit contenir au moins 2 caractères' }),
   lastName: z.string().min(2, { message: 'Le nom doit contenir au moins 2 caractères' }),
-  phoneNumber: z.string().min(9, { message: 'Numéro de téléphone invalide' }),
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
+  phoneNumber: z.string().min(9, { message: 'Numéro de téléphone invalide' }),
   password: z.string().min(6, { message: 'Le mot de passe doit contenir au moins 6 caractères' }),
   country: z.string().min(2, { message: 'Veuillez entrer un pays valide' }),
   city: z.string().min(2, { message: 'Veuillez entrer une ville valide' }),
@@ -38,8 +39,8 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     defaultValues: {
       firstName: '',
       lastName: '',
-      phoneNumber: '',
       email: '',
+      phoneNumber: '',
       password: '',
       country: 'Sénégal',
       city: '',
@@ -67,6 +68,16 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       });
 
       console.log('Register data:', data);
+      
+      // Simulation d'un appel API
+      // const response = await fetch('/api/auth/register', {
+      //   method: 'POST',
+      //   body: formData,
+      // });
+      
+      // if (!response.ok) {
+      //   throw new Error('Erreur lors de l\'inscription');
+      // }
       
       toast({
         title: "Inscription en cours",
