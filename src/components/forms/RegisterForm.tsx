@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Upload } from 'lucide-react';
 
 const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Le prénom doit contenir au moins 2 caractères' }),
@@ -20,6 +20,7 @@ const formSchema = z.object({
   city: z.string().min(2, { message: 'Veuillez entrer une ville valide' }),
   department: z.string().min(2, { message: 'Veuillez entrer un département valide' }),
   commune: z.string().min(2, { message: 'Veuillez entrer une commune valide' }),
+  photo: z.any().optional(),
   role: z.enum(['client', 'commercant', 'fournisseur'], {
     required_error: 'Veuillez sélectionner un rôle',
   }),
@@ -30,6 +31,7 @@ type FormValues = z.infer<typeof formSchema>;
 const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => void, initialRole?: 'client' | 'commercant' | 'fournisseur' }) => {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const { toast } = useToast();
   
   const form = useForm<FormValues>({
@@ -44,6 +46,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       city: '',
       department: '',
       commune: '',
+      photo: undefined,
       role: initialRole,
     },
   });
@@ -54,15 +57,14 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
   }, [initialRole, form]);
 
   const onSubmit = async (data: FormValues) => {
-    // Rename phoneNumber to match API expectations
+    // Prepare form data for API
     const submitData = {
       ...data,
-      phoneNumber: data.phoneNumber,
+      // Handle file separately if needed
     };
 
     console.log('Register data:', submitData);
     
-    // Simulate API call
     toast({
       title: "Inscription en cours",
       description: "Un email de vérification vous sera envoyé pour confirmer votre compte.",
@@ -91,6 +93,18 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      form.setValue('photo', file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -172,6 +186,51 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                       >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="photo"
+              render={({ field: { value, onChange, ...field } }) => (
+                <FormItem>
+                  <FormLabel>Photo de profil</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-col items-center gap-4">
+                      {photoPreview && (
+                        <div className="relative w-24 h-24 rounded-full overflow-hidden border border-gray-200">
+                          <img 
+                            src={photoPreview} 
+                            alt="Photo de profil" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="flex items-center justify-center w-full">
+                        <label 
+                          htmlFor="photo-upload" 
+                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                        >
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-2 text-gray-500" />
+                            <p className="mb-2 text-sm text-gray-500">
+                              <span className="font-semibold">Cliquez pour ajouter</span> ou glissez et déposez
+                            </p>
+                            <p className="text-xs text-gray-500">PNG, JPG (MAX. 2MB)</p>
+                          </div>
+                          <Input 
+                            id="photo-upload" 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            {...field}
+                          />
+                        </label>
+                      </div>
                     </div>
                   </FormControl>
                   <FormMessage />
