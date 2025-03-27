@@ -37,17 +37,22 @@ const LoginForm = ({ onClose }: { onClose?: () => void }) => {
     try {
       console.log('Login data:', data);
       
-      // À des fins de démo, nous redirigerons quels que soient les identifiants
+      // Pour les besoins de démonstration, nous allons rediriger vers la page de profil
+      // quelle que soit l'entrée de l'utilisateur
       
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté",
       });
       
+      // Fermer la modale si elle existe
       if (onClose) onClose();
       
-      // Redirection vers la page de profil
-      navigate('/profile');
+      // Redirection vers la page de profil avec un délai pour permettre
+      // à la toast de s'afficher et à la modale de se fermer
+      setTimeout(() => {
+        navigate('/profile');
+      }, 500);
     } catch (error) {
       console.error('Erreur:', error);
       toast({
@@ -67,17 +72,6 @@ const LoginForm = ({ onClose }: { onClose?: () => void }) => {
     
     try {
       console.log('Password reset requested for:', resetEmail);
-      
-      // Simuler l'appel API
-      // const response = await fetch('/api/auth/reset-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email: resetEmail }),
-      // });
-      
-      // if (!response.ok) {
-      //   throw new Error('Erreur lors de la demande de réinitialisation');
-      // }
       
       toast({
         title: "Demande envoyée",
@@ -166,6 +160,7 @@ const LoginForm = ({ onClose }: { onClose?: () => void }) => {
             className="w-full flex items-center justify-center gap-2"
             onClick={() => {
               if (onClose) onClose();
+              // Redirection vers la page de profil
               navigate('/profile');
             }}
           >
