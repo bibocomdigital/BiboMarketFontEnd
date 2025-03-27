@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Eye, EyeOff } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
@@ -20,6 +21,7 @@ const LoginForm = ({ onClose }: { onClose?: () => void }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -29,21 +31,72 @@ const LoginForm = ({ onClose }: { onClose?: () => void }) => {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log('Login data:', data);
-    // Ici, vous enverriez les données à votre API d'authentification
-    if (onClose) onClose();
+  const onSubmit = async (data: FormValues) => {
+    try {
+      console.log('Login data:', data);
+      
+      // Simuler l'appel API
+      // const response = await fetch('/api/auth/login', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(data),
+      // });
+      
+      // if (!response.ok) {
+      //   throw new Error('Identifiants incorrects');
+      // }
+      
+      toast({
+        title: "Connexion réussie",
+        description: "Vous êtes maintenant connecté",
+      });
+      
+      if (onClose) onClose();
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast({
+        title: "Erreur de connexion",
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Password reset requested for:', resetEmail);
-    // Ici, vous enverriez un email de réinitialisation
-    setForgotPasswordOpen(false);
+    
+    try {
+      console.log('Password reset requested for:', resetEmail);
+      
+      // Simuler l'appel API
+      // const response = await fetch('/api/auth/reset-password', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ email: resetEmail }),
+      // });
+      
+      // if (!response.ok) {
+      //   throw new Error('Erreur lors de la demande de réinitialisation');
+      // }
+      
+      toast({
+        title: "Demande envoyée",
+        description: "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.",
+      });
+      
+      setForgotPasswordOpen(false);
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

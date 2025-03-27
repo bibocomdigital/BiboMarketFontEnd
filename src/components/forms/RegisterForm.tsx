@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -51,33 +50,38 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     },
   });
 
-  // Update role if initialRole prop changes
   useEffect(() => {
     form.setValue('role', initialRole);
   }, [initialRole, form]);
 
   const onSubmit = async (data: FormValues) => {
-    // Prepare form data for API
-    const submitData = {
-      ...data,
-      // Handle file separately if needed
-    };
+    try {
+      const formData = new FormData();
+      
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === 'photo' && value instanceof File) {
+          formData.append('photo', value);
+        } else if (key !== 'photo') {
+          formData.append(key, String(value));
+        }
+      });
 
-    console.log('Register data:', submitData);
-    
-    toast({
-      title: "Inscription en cours",
-      description: "Un email de vérification vous sera envoyé pour confirmer votre compte.",
-    });
-    
-    // Here you would normally make the actual API call
-    // const response = await fetch('/api/register', {
-    //   method: 'POST',
-    //   headers: {'Content-Type': 'application/json'},
-    //   body: JSON.stringify(submitData)
-    // });
-    
-    if (onClose) onClose();
+      console.log('Register data:', data);
+      
+      toast({
+        title: "Inscription en cours",
+        description: "Un email de vérification vous sera envoyé pour confirmer votre compte.",
+      });
+      
+      if (onClose) onClose();
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast({
+        title: "Erreur d'inscription",
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
   };
 
   const nextStep = async () => {
