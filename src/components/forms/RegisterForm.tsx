@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Upload } from 'lucide-react';
+import { Eye, EyeOff, Upload, User, Mail, Phone, Lock, MapPin } from 'lucide-react';
 
 const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Le prénom doit contenir au moins 2 caractères' }),
@@ -97,7 +97,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
 
   const nextStep = async () => {
     if (step === 1) {
-      const isValid = await form.trigger(['firstName', 'lastName', 'email', 'password', 'phoneNumber']);
+      const isValid = await form.trigger(['firstName', 'lastName', 'email', 'password', 'phoneNumber', 'photo']);
       if (isValid) setStep(2);
     }
   };
@@ -125,6 +125,11 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-semibold">Inscription</h2>
+          <p className="text-sm text-gray-500">Inscrivez-vous pour rejoindre notre marketplace</p>
+        </div>
+
         {step === 1 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,7 +140,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                   <FormItem>
                     <FormLabel>Prénom</FormLabel>
                     <FormControl>
-                      <Input placeholder="Votre prénom" {...field} />
+                      <div className="relative">
+                        <Input placeholder="Votre prénom" {...field} />
+                        <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,7 +156,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                   <FormItem>
                     <FormLabel>Nom</FormLabel>
                     <FormControl>
-                      <Input placeholder="Votre nom" {...field} />
+                      <div className="relative">
+                        <Input placeholder="Votre nom" {...field} />
+                        <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -162,7 +173,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="exemple@email.com" {...field} />
+                    <div className="relative">
+                      <Input placeholder="exemple@email.com" {...field} />
+                      <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,7 +189,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                 <FormItem>
                   <FormLabel>Téléphone</FormLabel>
                   <FormControl>
-                    <Input placeholder="Votre numéro de téléphone" {...field} />
+                    <div className="relative">
+                      <Input placeholder="Votre numéro de téléphone" {...field} />
+                      <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -197,9 +214,9 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                       <button 
                         type="button" 
                         onClick={togglePasswordVisibility}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                       >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
                   </FormControl>
@@ -305,7 +322,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                 <FormItem>
                   <FormLabel>Pays</FormLabel>
                   <FormControl>
-                    <Input placeholder="Votre pays" {...field} />
+                    <div className="relative">
+                      <Input placeholder="Votre pays" {...field} />
+                      <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -319,7 +339,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                   <FormItem>
                     <FormLabel>Ville</FormLabel>
                     <FormControl>
-                      <Input placeholder="Votre ville" {...field} />
+                      <div className="relative">
+                        <Input placeholder="Votre ville" {...field} />
+                        <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -332,7 +355,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                   <FormItem>
                     <FormLabel>Département</FormLabel>
                     <FormControl>
-                      <Input placeholder="Votre département" {...field} />
+                      <div className="relative">
+                        <Input placeholder="Votre département" {...field} />
+                        <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -346,7 +372,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
                 <FormItem>
                   <FormLabel>Commune</FormLabel>
                   <FormControl>
-                    <Input placeholder="Votre commune" {...field} />
+                    <div className="relative">
+                      <Input placeholder="Votre commune" {...field} />
+                      <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
