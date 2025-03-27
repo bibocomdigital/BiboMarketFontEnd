@@ -4,6 +4,8 @@ import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
 import UserTypes from '@/components/UserTypes';
+import Testimonials from '@/components/Testimonials';
+import CallToAction from '@/components/CallToAction';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -33,12 +35,14 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-bibocom-light">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-bibocom-light to-white">
       <Header />
       <main className="flex-grow">
         <Hero />
         <Features />
         <UserTypes />
+        <Testimonials />
+        <CallToAction />
       </main>
       <Footer />
     </div>
