@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader } from 'lucide-react';
+import { Loader, AlertCircle, Check } from 'lucide-react';
+import { z } from 'zod';
+
+// API URL configuration - matching the one in authService
+const API_URL = "http://localhost:3000/api";
 
 interface ForgotPasswordDialogProps {
   open: boolean;
@@ -14,31 +18,61 @@ interface ForgotPasswordDialogProps {
   setResetEmail: (email: string) => void;
 }
 
+// Define schemas for validation
+const emailSchema = z.string().email("Veuillez entrer une adresse email valide");
+const codeSchema = z.string().min(6, "Le code doit contenir au moins 6 caractères");
+const passwordSchema = z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères");
+
 const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }: ForgotPasswordDialogProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [step, setStep] = useState<'email' | 'code' | 'password' | 'success'>('email');
   const [verificationCode, setVerificationCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Function to request a password reset code
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
     
     try {
-      console.log('Password reset requested for:', resetEmail);
+      console.log('🔄 [PASSWORD RESET] Demande de réinitialisation pour:', resetEmail);
       
-      // Simuler un délai pour l'envoi d'email
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Validate email
+      const validationResult = emailSchema.safeParse(resetEmail);
+      if (!validationResult.success) {
+        console.error('❌ [PASSWORD RESET] Email invalide:', validationResult.error);
+        setError("Veuillez entrer une adresse email valide");
+        return;
+      }
+      
+      console.log('📤 [PASSWORD RESET] Envoi de la requête au serveur...');
+      const response = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail })
+      });
+      
+      const data = await response.json();
+      console.log('📥 [PASSWORD RESET] Réponse reçue:', data);
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Une erreur est survenue");
+      }
       
       toast({
-        title: "Demande envoyée",
+        title: "Code envoyé",
         description: "Si un compte existe avec cet email, vous recevrez un code de réinitialisation.",
       });
       
       setStep('code');
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('❌ [PASSWORD RESET] Erreur:', error);
+      setError(error instanceof Error ? error.message : "Une erreur est survenue lors de l'envoi du code");
       toast({
         title: "Erreur",
         description: error instanceof Error ? error.message : "Une erreur est survenue",
@@ -49,33 +83,116 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
     }
   };
 
+  // Function to verify the reset code
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
     
     try {
-      console.log('Verification code submitted:', verificationCode);
+      console.log('🔄 [PASSWORD RESET] Vérification du code:', verificationCode);
       
-      // Simuler un délai pour la vérification
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Validate code
+      const validationResult = codeSchema.safeParse(verificationCode);
+      if (!validationResult.success) {
+        console.error('❌ [PASSWORD RESET] Code invalide:', validationResult.error);
+        setError("Le code de vérification doit contenir au moins 6 caractères");
+        return;
+      }
       
-      // Pour la démonstration, on considère que le code est valide
-      toast({
-        title: "Code vérifié",
-        description: "Votre mot de passe a été réinitialisé avec succès.",
+      // Here we only validate the code format - actual verification happens with the new password
+      console.log('✅ [PASSWORD RESET] Format du code valide, passage à l\'étape du nouveau mot de passe');
+      setStep('password');
+    } catch (error) {
+      console.error('❌ [PASSWORD RESET] Erreur de validation du code:', error);
+      setError(error instanceof Error ? error.message : "Une erreur est survenue lors de la vérification du code");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to set a new password
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      console.log('🔄 [PASSWORD RESET] Configuration du nouveau mot de passe');
+      
+      // Validate password
+      const validationResult = passwordSchema.safeParse(newPassword);
+      if (!validationResult.success) {
+        console.error('❌ [PASSWORD RESET] Mot de passe invalide:', validationResult.error);
+        setError("Le mot de passe doit contenir au moins 8 caractères");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Check if passwords match
+      if (newPassword !== confirmPassword) {
+        console.error('❌ [PASSWORD RESET] Les mots de passe ne correspondent pas');
+        setError("Les mots de passe ne correspondent pas");
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('📤 [PASSWORD RESET] Envoi de la requête de réinitialisation au serveur...');
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: resetEmail,
+          resetCode: verificationCode,
+          newPassword: newPassword
+        })
       });
       
-      onOpenChange(false);
+      const data = await response.json();
+      console.log('📥 [PASSWORD RESET] Réponse reçue:', data);
       
-      // Redirection vers la page de profil avec un délai
+      if (!response.ok) {
+        console.error('❌ [PASSWORD RESET] Erreur serveur:', data);
+        throw new Error(data.message || "Une erreur est survenue");
+      }
+      
+      console.log('✅ [PASSWORD RESET] Mot de passe réinitialisé avec succès');
+      toast({
+        title: "Mot de passe réinitialisé",
+        description: "Votre mot de passe a été modifié avec succès.",
+      });
+      
+      setStep('success');
+      
+      // Redirection vers la page de connexion avec un délai
       setTimeout(() => {
-        navigate('/profile');
-      }, 500);
+        handleClose();
+        navigate('/login');
+      }, 2000);
+      
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('❌ [PASSWORD RESET] Erreur de réinitialisation:', error);
+      
+      // Handle specific error cases
+      if (error instanceof Error) {
+        if (error.message.includes("Code de réinitialisation incorrect")) {
+          setError("Code de vérification incorrect. Veuillez vérifier et réessayer.");
+          setStep('code'); // Return to code step
+          setVerificationCode(''); // Clear the code
+        } else if (error.message.includes("Code de réinitialisation expiré")) {
+          setError("Le code de réinitialisation a expiré. Veuillez demander un nouveau code.");
+          setStep('email'); // Return to email step
+          setVerificationCode(''); // Clear the code
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError("Une erreur est survenue lors de la réinitialisation du mot de passe");
+      }
+      
       toast({
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Le code de vérification est invalide",
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
         variant: "destructive",
       });
     } finally {
@@ -88,6 +205,9 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
     // Reset state when dialog closes
     setStep('email');
     setVerificationCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setError(null);
     setIsLoading(false);
   };
 
@@ -96,9 +216,19 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center mb-2">
-            {step === 'email' ? 'Mot de passe oublié' : 'Vérification du code'}
+            {step === 'email' && "Mot de passe oublié"}
+            {step === 'code' && "Vérification du code"}
+            {step === 'password' && "Nouveau mot de passe"}
+            {step === 'success' && "Réinitialisation réussie"}
           </DialogTitle>
         </DialogHeader>
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-center mb-4">
+            <AlertCircle size={16} className="mr-2 flex-shrink-0" />
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
         
         {step === 'email' ? (
           <form onSubmit={handleResetPassword} className="space-y-4">
@@ -138,7 +268,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
               </Button>
             </div>
           </form>
-        ) : (
+        ) : step === 'code' ? (
           <form onSubmit={handleVerifyCode} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="verification-code" className="text-sm font-medium">Code de vérification</label>
@@ -170,11 +300,68 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
                     Vérification...
                   </>
                 ) : (
-                  "Vérifier"
+                  "Continuer"
                 )}
               </Button>
             </div>
           </form>
+        ) : step === 'password' ? (
+          <form onSubmit={handleSetNewPassword} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="new-password" className="text-sm font-medium">Nouveau mot de passe</label>
+              <Input 
+                id="new-password" 
+                type="password"
+                placeholder="Votre nouveau mot de passe" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="confirm-password" className="text-sm font-medium">Confirmer le mot de passe</label>
+              <Input 
+                id="confirm-password" 
+                type="password"
+                placeholder="Confirmez votre mot de passe" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleClose}
+                disabled={isLoading}
+              >
+                Annuler
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader size={16} className="animate-spin mr-2" />
+                    Réinitialisation...
+                  </>
+                ) : (
+                  "Réinitialiser"
+                )}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="py-4 text-center">
+            <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <Check className="h-6 w-6 text-green-600" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">Mot de passe réinitialisé avec succès</h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Vous allez être redirigé vers la page de connexion dans quelques instants.
+            </p>
+          </div>
         )}
       </DialogContent>
     </Dialog>

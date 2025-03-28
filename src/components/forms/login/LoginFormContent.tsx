@@ -63,6 +63,9 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
       console.log('👤 [LOGIN] Rôle de l\'utilisateur (lowercase):', response.user.role.toLowerCase());
       console.log('👤 [LOGIN] Type de la valeur du rôle:', typeof response.user.role);
       
+      // Pre-fill the email for password reset if needed
+      setResetEmail(data.email);
+      
       // Show success toast
       toast({
         title: "Connexion réussie",
@@ -114,6 +117,14 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
     }
   };
 
+  const handleOpenForgotPassword = () => {
+    // Pre-fill email from login form if available
+    if (form.getValues().email) {
+      setResetEmail(form.getValues().email);
+    }
+    setForgotPasswordOpen(true);
+  };
+
   return (
     <>
       <Form {...form}>
@@ -124,7 +135,7 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
           <div className="flex justify-end">
             <button 
               type="button" 
-              onClick={() => setForgotPasswordOpen(true)}
+              onClick={handleOpenForgotPassword}
               className="text-sm text-bibocom-primary hover:underline"
             >
               Mot de passe oublié ?
