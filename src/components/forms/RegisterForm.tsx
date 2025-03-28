@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -306,6 +305,9 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       photo: data.photo instanceof File ? `File: ${data.photo.name}` : data.photo
     });
     
+    // Let's add a log to explicitly check if role is included in the form data
+    console.log('👤 [REGISTER] Role value at submission:', data.role);
+    
     setIsSubmitting(true);
     
     try {
@@ -320,6 +322,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
           formData.append(key, String(value));
         }
       });
+
+      // Make sure role is explicitly added to the FormData
+      console.log(`👤 [REGISTER] Explicitly adding role to FormData: ${data.role}`);
+      formData.append('role', data.role);
 
       // Simulate an API call
       console.log('🔄 [REGISTER] Simulating API registration call');
