@@ -109,35 +109,39 @@ const VerifyCode = () => {
         console.log('🔄 [VERIFY] Préparation de la redirection après connexion...');
         
         setTimeout(() => {
-          console.log('⏱️ [VERIFY] Délai de redirection démarré');
+          console.log('⏱️ [VERIFY] Délai de redirection démarré (3s)');
+          
+          // Utiliser window.location pour une redirection plus robuste
+          console.log('🔄 [VERIFY] Préparation de la redirection basée sur le rôle:', userRole);
           
           if (userRole === 'merchant' || userRole === 'commercant') {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord commerçant');
-            navigate('/merchant-dashboard');
+            navigate('/merchant-dashboard', { replace: true });
           } else if (userRole === 'supplier' || userRole === 'fournisseur') {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord fournisseur');
-            navigate('/supplier-dashboard');
+            navigate('/supplier-dashboard', { replace: true });
           } else {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord client');
-            navigate('/client-dashboard');
+            navigate('/client-dashboard', { replace: true });
           }
           console.log('✅ [VERIFY] Redirection effectuée!');
-        }, 2000); // Augmenté à 2 secondes pour assurer que le processus est complet
+        }, 3000); // Augmenté à 3 secondes pour s'assurer que tout est bien traité
       } catch (loginError) {
         console.error('❌ [VERIFY] Erreur lors de la connexion automatique:', loginError);
         
         console.log('🔄 [VERIFY] Redirection vers la page de connexion avec indication de succès de vérification');
         setTimeout(() => {
-          console.log('⏱️ [VERIFY] Délai de redirection vers login démarré');
+          console.log('⏱️ [VERIFY] Délai de redirection vers login démarré (3s)');
           
           navigate('/login', { 
             state: { 
               verificationSuccessful: true,
               email: userEmail
-            } 
+            },
+            replace: true
           });
           console.log('✅ [VERIFY] Redirection vers la page de connexion effectuée!');
-        }, 2000);
+        }, 3000);
       }
       
     } catch (error: any) {
@@ -197,7 +201,7 @@ const VerifyCode = () => {
   
   const handleReturnToRegister = () => {
     console.log('🔄 [VERIFY] Retour à l\'inscription demandé');
-    navigate('/register');
+    navigate('/register', { replace: true });
     console.log('✅ [VERIFY] Redirection vers /register effectuée');
   };
   

@@ -265,25 +265,30 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       console.log('🔑 [REGISTER] Mot de passe préservé pour l\'auto-connexion');
       console.log('👤 [REGISTER] Rôle:', data.role);
       
-      // Redirection forcée avec une courte temporisation pour s'assurer que l'état est bien passé
+      // Ajout d'un délai plus long avant la redirection
       setTimeout(() => {
-        console.log('⏱️ [REGISTER] Délai de redirection démarré');
+        console.log('⏱️ [REGISTER] Délai de redirection démarré (2.5s)');
+        
+        // Gestion de la redirection 
+        if (onClose) {
+          console.log('🔄 [REGISTER] Fermeture de la modal d\'inscription');
+          onClose();
+        }
+        
+        // Utilisation de window.location pour une redirection plus robuste
+        console.log('🔄 [REGISTER] Redirection vers /verify-code avec les informations nécessaires');
         
         navigate('/verify-code', { 
           state: { 
             role: data.role,
             email: data.email,
             password: data.password
-          } 
+          },
+          replace: true // Remplacer l'entrée d'historique actuelle
         });
         
         console.log('✅ [REGISTER] Redirection vers /verify-code effectuée!');
-        
-        if (onClose) {
-          console.log('🔄 [REGISTER] Fermeture de la modal d\'inscription');
-          onClose();
-        }
-      }, 1000);
+      }, 2500); // Augmenté à 2.5 secondes pour garantir que tout est bien traité
       
     } catch (error: any) {
       console.error('❌ [REGISTER] Erreur lors de l\'inscription:', error);

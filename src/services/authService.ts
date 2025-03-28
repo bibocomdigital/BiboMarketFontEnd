@@ -1,452 +1,238 @@
 
-// Types for authentication
-export interface User {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  country?: string;
-  city?: string;
-  department?: string;
-  commune?: string;
-  photo?: string;
-  role: "client" | "commercant" | "fournisseur" | "merchant" | "supplier";
-  createdAt?: string;
-  updatedAt?: string;
-}
+// Configuration de l'API
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-  message: string;
-}
-
-export interface ProfileData {
-  firstName?: string;
-  lastName?: string;
-  phoneNumber?: string;
-  address?: string;
-  email?: string;
-  bio?: string;
-  birthdate?: string;
-  photo?: File;
-}
-
-// API URL configuration
-const API_URL = "http://localhost:3000/api"; // Ajustez selon votre configuration
-console.log('🔄 [AUTH] API_URL configuré:', API_URL);
-
-// Function to store token in localStorage
-const setToken = (token: string): void => {
-  console.log('📝 [AUTH] Stockage du token dans localStorage', token.substring(0, 15) + '...');
-  localStorage.setItem('bibocom_token', token);
-};
-
-// Function to retrieve token from localStorage
-export const getToken = (): string | null => {
-  const token = localStorage.getItem('bibocom_token');
-  console.log('🔍 [AUTH] Récupération du token:', token ? `${token.substring(0, 15)}...` : 'Aucun token');
-  return token;
-};
-
-// Function to remove token from localStorage
-export const removeToken = (): void => {
-  console.log('🗑️ [AUTH] Suppression du token de localStorage');
-  localStorage.removeItem('bibocom_token');
-};
-
-// Function to store user in localStorage
-export const setUser = (user: User): void => {
-  console.log('📝 [AUTH] Stockage des informations utilisateur dans localStorage:', user);
-  console.log('👤 [AUTH] Rôle utilisateur stocké:', user.role);
-  localStorage.setItem('bibocom_user', JSON.stringify(user));
-};
-
-// Function to retrieve user from localStorage
-export const getUser = (): User | null => {
-  const userStr = localStorage.getItem('bibocom_user');
-  if (!userStr) {
-    console.log('❌ [AUTH] Aucun utilisateur trouvé dans localStorage');
-    return null;
-  }
-  
-  try {
-    const user = JSON.parse(userStr);
-    console.log('👤 [AUTH] Utilisateur récupéré depuis localStorage:', user);
-    console.log('👤 [AUTH] Rôle utilisateur récupéré:', user.role);
-    return user;
-  } catch (error) {
-    console.error('❌ [AUTH] Erreur lors du parsing des données utilisateur:', error);
-    return null;
-  }
-};
-
-// Function to remove user from localStorage
-export const removeUser = (): void => {
-  console.log('🗑️ [AUTH] Suppression des informations utilisateur de localStorage');
-  localStorage.removeItem('bibocom_user');
-};
-
-// Function to make API requests
-const apiRequest = async (url: string, method: string, data?: any) => {
-  console.log(`🌐 [AUTH API] Requête: ${method} ${API_URL}${url}`, data ? {
-    ...data, 
-    password: data.password ? '********' : undefined
-  } : 'sans données');
-  
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json'
-  };
-
-  // Add token to headers if available
-  const token = getToken();
-  if (token) {
-    console.log('🔑 [AUTH API] Token ajouté aux en-têtes de la requête');
-    headers['Authorization'] = `Bearer ${token}`;
-  } else {
-    console.log('⚠️ [AUTH API] Aucun token disponible pour la requête');
-  }
-
-  try {
-    console.log('📤 [AUTH API] Envoi de la requête...');
-    const startTime = performance.now();
-    
-    const response = await fetch(`${API_URL}${url}`, {
-      method,
-      headers,
-      body: data ? JSON.stringify(data) : undefined
-    });
-
-    const endTime = performance.now();
-    console.log(`⏱️ [AUTH API] Temps de réponse: ${(endTime - startTime).toFixed(2)}ms`);
-    console.log(`📥 [AUTH API] Réponse reçue avec statut: ${response.status}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ [AUTH API] Erreur API:', errorData);
-      throw new Error(errorData.message || 'Une erreur est survenue');
-    }
-
-    const responseData = await response.json();
-    console.log('✅ [AUTH API] Données de réponse:', responseData);
-    return responseData;
-  } catch (error) {
-    console.error('❌ [AUTH API] Erreur de requête API:', error);
-    throw error;
-  }
-};
-
-// Function to make API requests with FormData (for file uploads)
-const apiFormRequest = async (url: string, method: string, formData: FormData) => {
-  console.log(`🌐 [AUTH API FORM] Requête FormData: ${method} ${API_URL}${url}`);
-  
-  // Log FormData contents (excluding file content details)
-  const formDataEntries: Record<string, any> = {};
-  formData.forEach((value, key) => {
-    if (value instanceof File) {
-      formDataEntries[key] = `File: ${value.name} (${value.size} bytes)`;
-    } else {
-      formDataEntries[key] = value;
-    }
-  });
-  console.log('📦 [AUTH API FORM] Contenu du FormData:', formDataEntries);
-  
-  const headers: HeadersInit = {};
-
-  // Add token to headers if available
-  const token = getToken();
-  if (token) {
-    console.log('🔑 [AUTH API FORM] Token ajouté aux en-têtes de la requête');
-    headers['Authorization'] = `Bearer ${token}`;
-  } else {
-    console.log('⚠️ [AUTH API FORM] Aucun token disponible pour la requête');
-  }
-
-  try {
-    console.log('📤 [AUTH API FORM] Envoi de la requête avec FormData...');
-    const startTime = performance.now();
-    
-    const response = await fetch(`${API_URL}${url}`, {
-      method,
-      headers,
-      body: formData
-    });
-
-    const endTime = performance.now();
-    console.log(`⏱️ [AUTH API FORM] Temps de réponse: ${(endTime - startTime).toFixed(2)}ms`);
-    console.log(`📥 [AUTH API FORM] Réponse reçue avec statut: ${response.status}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ [AUTH API FORM] Erreur API:', errorData);
-      throw new Error(errorData.message || 'Une erreur est survenue');
-    }
-
-    const responseData = await response.json();
-    console.log('✅ [AUTH API FORM] Données de réponse:', responseData);
-    return responseData;
-  } catch (error) {
-    console.error('❌ [AUTH API FORM] Erreur de requête API:', error);
-    throw error;
-  }
-};
-
-// Login function
-export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  try {
-    console.log('🔐 [AUTH] Tentative de connexion avec email:', credentials.email);
-    console.log('📝 [AUTH] Données de connexion complètes:', { email: credentials.email, password: '********' });
-    
-    if (!credentials.email || !credentials.password) {
-      console.error('❌ [AUTH] Email ou mot de passe manquant');
-      throw new Error("Email et mot de passe requis");
-    }
-
-    const response = await apiRequest('/auth/login', 'POST', credentials);
-    
-    if (response.token && response.user) {
-      console.log('✅ [AUTH] Connexion réussie pour:', response.user.email);
-      console.log('👤 [AUTH] Rôle utilisateur:', response.user.role);
-      console.log('👤 [AUTH] ID utilisateur:', response.user.id);
-      console.log('🧾 [AUTH] Données utilisateur complètes:', response.user);
-      
-      // Store authentication data
-      setToken(response.token);
-      setUser(response.user);
-      return response;
-    } else {
-      console.error('❌ [AUTH] Réponse de connexion invalide:', response);
-      throw new Error("Réponse de connexion invalide");
-    }
-  } catch (error: any) {
-    console.error('❌ [AUTH] Erreur de connexion:', error);
-    throw error;
-  }
-};
-
-// ====== FONCTIONS D'INSCRIPTION INTÉGRÉES AU SERVICE D'AUTHENTIFICATION ======
-
-// Check if email exists in database
+/**
+ * Vérifie si un email existe déjà
+ */
 export const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
-  console.log('🔍 [AUTH] Vérification si l\'email existe déjà:', email);
   try {
-    const response = await apiRequest(`/auth/check-email?email=${encodeURIComponent(email)}`, 'GET');
-    console.log(`✅ [AUTH] Résultat de la vérification email: ${response.exists ? 'Existe' : 'N\'existe pas'}`);
-    return response;
-  } catch (error) {
-    console.error('❌ [AUTH] Erreur lors de la vérification de l\'email:', error);
-    throw error;
-  }
-};
-
-// Register new user
-export const registerUser = async (formData: FormData): Promise<any> => {
-  console.log('👤 [AUTH] Tentative d\'inscription d\'un nouvel utilisateur');
-  
-  try {
-    // Log form data for debugging
-    formData.forEach((value, key) => {
-      if (key === 'password') {
-        console.log(`📝 [AUTH REGISTER] FormData: ${key} = ********`);
-      } else if (value instanceof File) {
-        console.log(`📝 [AUTH REGISTER] FormData: ${key} = File (${value.name}, ${value.size} bytes)`);
-      } else {
-        console.log(`📝 [AUTH REGISTER] FormData: ${key} = ${value}`);
-      }
+    console.log('🔍 [API] Vérification si l\'email existe:', email);
+    const response = await fetch(`${API_URL}/auth/check-email?email=${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
-    
-    console.log('📤 [AUTH REGISTER] Envoi des données d\'inscription...');
-    const response = await apiFormRequest('/auth/register', 'POST', formData);
-    
-    console.log('✅ [AUTH REGISTER] Inscription réussie! Réponse:', response);
-    console.log('📧 [AUTH REGISTER] Email utilisé pour l\'inscription:', formData.get('email'));
-    console.log('👤 [AUTH REGISTER] Rôle sélectionné:', formData.get('role'));
-    
-    return response;
-  } catch (error) {
-    console.error('❌ [AUTH REGISTER] Erreur lors de l\'inscription:', error);
-    throw error;
-  }
-};
 
-// Verify registration code
-export const verifyCode = async (email: string, code: string): Promise<any> => {
-  console.log('🔑 [AUTH] Tentative de vérification du code pour:', email);
-  console.log('🔢 [AUTH] Code soumis:', code);
-  
-  try {
-    const response = await apiRequest('/auth/verify-code', 'POST', { email, verificationCode: code });
-    console.log('✅ [AUTH] Vérification du code réussie!');
-    console.log('👤 [AUTH] Utilisateur vérifié:', response.user?.email);
-    console.log('👤 [AUTH] Rôle de l\'utilisateur:', response.user?.role);
+    console.log('📊 [API] Statut de la réponse de vérification d\'email:', response.status);
     
-    return response;
-  } catch (error) {
-    console.error('❌ [AUTH] Erreur lors de la vérification du code:', error);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [API] Erreur lors de la vérification de l\'email:', errorData);
+      throw new Error(errorData.message || 'Erreur lors de la vérification de l\'email');
+    }
+
+    const data = await response.json();
+    console.log('✅ [API] Vérification de l\'email réussie:', data);
     
-    // Ajouter des détails sur l'erreur pour aider au débogage
-    if (error instanceof Error) {
-      console.error('🔍 [AUTH] Message d\'erreur détaillé:', error.message);
-      if (error.message.includes('incorrect')) {
-        console.error('🔍 [AUTH] Type d\'erreur: Code incorrect');
-      } else if (error.message.includes('expiré')) {
-        console.error('🔍 [AUTH] Type d\'erreur: Code expiré');
-      }
+    // Log supplémentaire pour indiquer si l'email existe
+    if (data.exists) {
+      console.warn('⚠️ [API] Cet email existe déjà dans la base de données');
+    } else {
+      console.log('✅ [API] Cet email est disponible');
     }
     
+    return data;
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la vérification de l\'email:', error);
     throw error;
   }
 };
 
-// Function to verify token validity
-export const verifyToken = async (): Promise<User | null> => {
-  console.log('🔍 [AUTH] Vérification de la validité du token');
+/**
+ * Enregistre un nouvel utilisateur
+ */
+export const registerUser = async (formData: FormData): Promise<{
+  message: string;
+  email: string;
+}> => {
   try {
-    const response = await apiRequest('/auth/verify-token', 'GET');
-    console.log('✅ [AUTH] Token valide, utilisateur:', response.user);
-    return response.user;
+    console.log('🔄 [API] Préparation des données d\'inscription');
+    
+    // Obtenir les valeurs du FormData pour les logs (sans mot de passe)
+    const formDataEntries = Object.fromEntries(formData.entries());
+    const safeLogData = { ...formDataEntries };
+    if (safeLogData.password) safeLogData.password = '[HIDDEN]';
+    
+    console.log('📤 [API] Envoi des données d\'inscription:', safeLogData);
+    console.log('📤 [API] URL d\'inscription:', `${API_URL}/auth/register`);
+    
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      body: formData,
+      // Ne pas définir Content-Type, il sera automatiquement défini avec le boundary pour FormData
+    });
+
+    console.log('📊 [API] Statut de la réponse d\'inscription:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [API] Erreur d\'inscription:', errorData);
+      
+      // Vérifier si l'erreur est due à un email déjà existant
+      if (errorData.message && errorData.message.includes('déjà enregistré')) {
+        console.error('❌ [API] Email déjà enregistré et vérifié');
+        throw new Error('Cet email est déjà enregistré et vérifié.');
+      }
+      
+      throw new Error(errorData.message || 'Erreur lors de l\'inscription');
+    }
+
+    const data = await response.json();
+    console.log('✅ [API] Inscription réussie:', data);
+    console.log('📧 [API] Un code de vérification a été envoyé à:', data.email);
+    
+    return data;
   } catch (error) {
-    console.error('❌ [AUTH] Erreur de vérification du token:', error);
-    // If token verification fails, clean up
-    logout();
+    console.error('❌ [API] Erreur lors de l\'inscription:', error);
+    throw error;
+  }
+};
+
+/**
+ * Vérifie le code envoyé par email et finalise l'inscription
+ */
+export const verifyCode = async (email: string, verificationCode: string): Promise<{
+  message: string;
+  user: {
+    id: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+  }
+}> => {
+  try {
+    console.log('🔄 [API] Début de la vérification du code');
+    console.log('📧 [API] Email:', email);
+    console.log('🔑 [API] Code de vérification:', verificationCode);
+    console.log('📤 [API] URL de vérification:', `${API_URL}/auth/verify-code`);
+    
+    const response = await fetch(`${API_URL}/auth/verify-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, verificationCode }),
+    });
+
+    console.log('📊 [API] Statut de la réponse de vérification:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [API] Erreur de vérification du code:', errorData);
+      
+      // Déterminer le type d'erreur pour personnaliser le message
+      if (errorData.message && errorData.message.includes('expiré')) {
+        console.error('⏰ [API] Code de vérification expiré');
+        throw new Error('Code de vérification expiré. Veuillez vous réinscrire.');
+      } else if (errorData.message && errorData.message.includes('incorrect')) {
+        console.error('❌ [API] Code de vérification incorrect');
+        throw new Error('Code de vérification incorrect. Veuillez réessayer.');
+      } else if (errorData.message && errorData.message.includes('non trouvé')) {
+        console.error('🔍 [API] Utilisateur non trouvé');
+        throw new Error('Utilisateur non trouvé. Veuillez vous inscrire.');
+      }
+      
+      throw new Error(errorData.message || 'Erreur lors de la vérification du code');
+    }
+
+    const data = await response.json();
+    console.log('✅ [API] Vérification réussie:', data);
+    console.log('👤 [API] Utilisateur vérifié:', data.user.email);
+    console.log('👤 [API] Rôle de l\'utilisateur:', data.user.role);
+    
+    return data;
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la vérification du code:', error);
+    throw error;
+  }
+};
+
+/**
+ * Connecte un utilisateur existant
+ */
+export const login = async (credentials: { email: string; password: string }): Promise<{
+  token: string;
+  user: {
+    id: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+  }
+}> => {
+  try {
+    console.log('🔄 [API] Tentative de connexion pour:', credentials.email);
+    
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+    });
+
+    console.log('📊 [API] Statut de la réponse de connexion:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [API] Erreur de connexion:', errorData);
+      throw new Error(errorData.message || 'Erreur lors de la connexion');
+    }
+
+    const data = await response.json();
+    console.log('✅ [API] Connexion réussie pour:', data.user.email);
+    
+    // Stocker le token dans le localStorage
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    return data;
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la connexion:', error);
+    throw error;
+  }
+};
+
+/**
+ * Déconnecte l'utilisateur
+ */
+export const logout = (): void => {
+  try {
+    console.log('🔄 [API] Déconnexion de l\'utilisateur');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    console.log('✅ [API] Utilisateur déconnecté avec succès');
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la déconnexion:', error);
+  }
+};
+
+/**
+ * Vérifie si l'utilisateur est connecté
+ */
+export const isAuthenticated = (): boolean => {
+  try {
+    const token = localStorage.getItem('token');
+    return !!token;
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la vérification de l\'authentification:', error);
+    return false;
+  }
+};
+
+/**
+ * Récupère l'utilisateur connecté
+ */
+export const getCurrentUser = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return null;
+    return JSON.parse(userStr);
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la récupération de l\'utilisateur:', error);
     return null;
   }
-};
-
-// Function to get user profile
-export const getUserProfile = async (): Promise<User> => {
-  console.log('👤 [AUTH] Récupération du profil utilisateur');
-  try {
-    const response = await apiRequest('/auth/profile', 'GET');
-    console.log('✅ [AUTH] Profil utilisateur récupéré:', response.user);
-    
-    // Update local storage with fresh user data
-    if (response.user) {
-      console.log('📝 [AUTH] Mise à jour des données utilisateur en localStorage');
-      setUser(response.user);
-    }
-    
-    return response.user;
-  } catch (error) {
-    console.error('❌ [AUTH] Erreur de récupération du profil:', error);
-    throw error;
-  }
-};
-
-// Function to update user profile
-export const updateUserProfile = async (profileData: ProfileData): Promise<User> => {
-  console.log('✏️ [AUTH] Mise à jour du profil utilisateur avec données:', {
-    ...profileData,
-    photo: profileData.photo ? `File: ${profileData.photo.name} (${profileData.photo.size} bytes)` : undefined
-  });
-  
-  try {
-    // If there's a photo, use FormData
-    if (profileData.photo) {
-      const formData = new FormData();
-      
-      // Add all profile fields to formData
-      Object.entries(profileData).forEach(([key, value]) => {
-        if (value !== undefined) {
-          if (key === 'photo' && value instanceof File) {
-            console.log(`📎 [AUTH] Ajout du fichier photo au FormData: ${value.name} (${value.size} bytes)`);
-            formData.append('photo', value);
-          } else if (typeof value === 'string') {
-            console.log(`📝 [AUTH] Ajout du champ ${key} au FormData: ${value}`);
-            formData.append(key, value);
-          }
-        }
-      });
-      
-      console.log('📤 [AUTH] Envoi des données de profil avec photo via FormData');
-      const response = await apiFormRequest('/auth/profile', 'PUT', formData);
-      
-      if (response.user) {
-        console.log('✅ [AUTH] Profil mis à jour avec succès (avec photo):', response.user);
-        setUser(response.user);
-        return response.user;
-      } else {
-        console.error('❌ [AUTH] Réponse de mise à jour du profil invalide:', response);
-        throw new Error('Réponse de mise à jour du profil invalide');
-      }
-    } else {
-      // No photo, use regular JSON
-      console.log('📤 [AUTH] Envoi des données de profil via JSON');
-      const response = await apiRequest('/auth/profile', 'PUT', profileData);
-      
-      if (response.user) {
-        console.log('✅ [AUTH] Profil mis à jour avec succès:', response.user);
-        setUser(response.user);
-        return response.user;
-      } else {
-        console.error('❌ [AUTH] Réponse de mise à jour du profil invalide:', response);
-        throw new Error('Réponse de mise à jour du profil invalide');
-      }
-    }
-  } catch (error) {
-    console.error('❌ [AUTH] Erreur de mise à jour du profil:', error);
-    throw error;
-  }
-};
-
-// Function to log out
-export const logout = (): void => {
-  console.log('🚪 [AUTH] Déconnexion de l\'utilisateur');
-  // Optionally call the backend to invalidate the token
-  try {
-    if (getToken()) {
-      console.log('🔄 [AUTH] Tentative d\'invalidation du token sur le serveur');
-      apiRequest('/auth/logout', 'POST').catch(error => {
-        console.error('⚠️ [AUTH] Erreur lors de l\'invalidation du token:', error);
-      });
-    }
-  } finally {
-    removeToken();
-    removeUser();
-    console.log('✅ [AUTH] Déconnexion terminée, données locales effacées');
-  }
-};
-
-// Function to check if user is authenticated
-export const isAuthenticated = (): boolean => {
-  const token = getToken();
-  const authenticated = token !== null;
-  console.log('🔍 [AUTH] Vérification de l\'authentification:', authenticated ? 'Authentifié' : 'Non authentifié');
-  if (authenticated) {
-    console.log('🔑 [AUTH] Token présent:', token ? `${token.substring(0, 15)}...` : 'Aucun token');
-    
-    const user = getUser();
-    if (user) {
-      console.log('👤 [AUTH] Utilisateur authentifié:', user.email);
-      console.log('👤 [AUTH] Rôle utilisateur:', user.role);
-    } else {
-      console.log('⚠️ [AUTH] Token présent mais aucun utilisateur en localStorage');
-    }
-  }
-  return authenticated;
-};
-
-// Function to get the current user's role
-export const getUserRole = (): string | null => {
-  const user = getUser();
-  const role = user ? user.role : null;
-  console.log('👤 [AUTH] Récupération du rôle utilisateur:', role);
-  
-  if (role) {
-    // Log additional role information for debugging
-    console.log('🔍 [AUTH] Type de la valeur du rôle:', typeof role);
-    console.log('🔍 [AUTH] Valeur exacte du rôle (minuscules):', role.toLowerCase());
-    console.log('🔍 [AUTH] Est-ce "merchant"?', role.toLowerCase() === 'merchant');
-    console.log('🔍 [AUTH] Est-ce "commercant"?', role.toLowerCase() === 'commercant');
-    console.log('🔍 [AUTH] Est-ce "supplier"?', role.toLowerCase() === 'supplier');
-    console.log('🔍 [AUTH] Est-ce "fournisseur"?', role.toLowerCase() === 'fournisseur');
-  }
-  
-  return role;
 };
