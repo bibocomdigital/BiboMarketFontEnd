@@ -33,20 +33,33 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
+    console.log('Début de la soumission du formulaire de connexion');
+    console.log('Données soumises:', { email: data.email, password: '********' });
+    
     setIsLoading(true);
     try {
       console.log('Tentative de connexion avec:', data.email);
       
       // Vérifier que email et password sont présents
       if (!data.email || !data.password) {
-        throw new Error("Email et mot de passe requis");
+        console.error('Email ou mot de passe manquant');
+        toast({
+          title: "Erreur de connexion",
+          description: "Email et mot de passe requis",
+          variant: "destructive",
+        });
+        return;
       }
       
       // Call the login service
+      console.log('Appel du service de connexion...');
       const response = await login({
         email: data.email,
         password: data.password
       });
+      
+      console.log('Connexion réussie:', response);
+      console.log('Rôle de l\'utilisateur:', response.user.role);
       
       // Show success toast
       toast({
@@ -55,29 +68,37 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
       });
       
       // Close the modal if it exists
-      if (onClose) onClose();
+      if (onClose) {
+        console.log('Fermeture de la modale');
+        onClose();
+      }
       
       // Redirect based on user role from the response
       const role = response.user.role;
-      console.log('Utilisateur connecté avec le rôle:', role);
+      console.log('Redirection basée sur le rôle:', role);
       
       setTimeout(() => {
         if (role === 'commercant') {
+          console.log('Redirection vers le tableau de bord commerçant');
           navigate('/merchant-dashboard');
         } else if (role === 'fournisseur') {
+          console.log('Redirection vers le tableau de bord fournisseur');
           navigate('/supplier-dashboard');
         } else {
+          console.log('Redirection vers le tableau de bord client');
           navigate('/client-dashboard');
         }
       }, 500);
     } catch (error: any) {
-      console.error('Erreur de connexion:', error);
+      console.error('Erreur détaillée de connexion:', error);
+      
       toast({
         title: "Erreur de connexion",
         description: error.message || "Email ou mot de passe incorrect",
         variant: "destructive",
       });
     } finally {
+      console.log('Fin du processus de connexion');
       setIsLoading(false);
     }
   };
