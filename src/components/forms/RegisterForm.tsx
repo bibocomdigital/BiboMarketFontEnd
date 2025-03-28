@@ -81,13 +81,16 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       
       toast({
         title: "Inscription réussie",
-        description: "Un email de vérification vous sera envoyé pour confirmer votre compte.",
+        description: "Un code de vérification a été envoyé à votre email.",
       });
       
-      // Navigate to home page after successful registration
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
+      // Rediriger vers la page de vérification du code
+      navigate('/verify-code', { 
+        state: { 
+          role: data.role,
+          email: data.email
+        } 
+      });
       
       if (onClose) onClose();
     } catch (error) {

@@ -9,6 +9,10 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import VerifyCode from "./pages/VerifyCode";
+import VerificationPending from "./pages/VerificationPending";
+import ClientDashboard from "./pages/ClientDashboard";
+import MerchantDashboard from "./pages/MerchantDashboard";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +26,10 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-code" element={<VerifyCode />} />
+          <Route path="/verification-pending" element={<VerificationPending />} />
+          <Route path="/client-dashboard" element={<ClientDashboard />} />
+          <Route path="/merchant-dashboard" element={<MerchantDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
