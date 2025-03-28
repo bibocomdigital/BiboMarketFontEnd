@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -10,7 +11,6 @@ import RegisterStep2 from './register/RegisterStep2';
 import { Country, getDefaultCountry } from '@/data/countries';
 import { UserRole } from '@/types/user';
 import { checkEmailExists, registerUser } from '@/services/registrationService';
-import { login } from '@/services/authService';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
@@ -54,10 +54,6 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   const navigate = useNavigate();
   const location = useLocation();
   
-  console.log('🔄 [REGISTER] RegisterForm component initialized');
-  console.log('👤 [REGISTER] Initial role:', initialRole);
-  console.log('🌍 [REGISTER] Initial country:', selectedCountry.name);
-  
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const roleParam = params.get('role');
@@ -91,32 +87,25 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   });
 
   useEffect(() => {
-    console.log('🔄 [REGISTER] Setting form role to:', initialRole);
     form.setValue('role', initialRole);
   }, [initialRole, form]);
 
   const handleCheckEmailExists = async (email: string) => {
     if (!email || !email.includes('@')) return;
     
-    console.log('🔍 [REGISTER] Vérification si email existe:', email);
     try {
       const response = await checkEmailExists(email);
-      console.log('📧 [REGISTER] Réponse vérification email:', response);
       
       setEmailExists(response.exists);
       
       if (response.exists) {
-        console.warn('⚠️ [REGISTER] Cet email existe déjà dans la base de données');
         toast({
           title: "Email déjà utilisé",
           description: "Cet email est déjà enregistré. Essayez de vous connecter.",
           variant: "destructive"
         });
-      } else {
-        console.log('✅ [REGISTER] Cet email est disponible pour l\'inscription');
       }
     } catch (error) {
-      console.error('❌ [REGISTER] Erreur lors de la vérification email:', error);
       toast({
         title: "Erreur",
         description: "Impossible de vérifier l'email. Veuillez réessayer.",
@@ -139,10 +128,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('🖼️ [REGISTER] Photo selected:', file.name, 'Size:', file.size, 'bytes');
-      
       if (file.size > 2 * 1024 * 1024) {
-        console.error('❌ [REGISTER] File size too large:', file.size);
         toast({
           title: "Fichier trop volumineux",
           description: "La taille de l'image ne doit pas dépasser 2MB",
@@ -152,7 +138,6 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       }
       
       if (!file.type.startsWith('image/')) {
-        console.error('❌ [REGISTER] Invalid file type:', file.type);
         toast({
           title: "Type de fichier invalide",
           description: "Veuillez sélectionner une image (JPG, PNG, etc.)",
@@ -164,7 +149,6 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       form.setValue('photo', file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        console.log('🖼️ [REGISTER] Photo preview created');
         setPhotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
@@ -185,7 +169,6 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       if (password !== confirmPassword) errors.push('Les mots de passe ne correspondent pas');
       
       if (errors.length > 0) {
-        console.warn('⚠️ [REGISTER] Step 1 validation failed:', errors);
         toast({
           title: "Formulaire incomplet",
           description: errors[0],
@@ -195,29 +178,25 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       }
       
       if (emailExists) {
-        console.warn('⚠️ [REGISTER] Email already exists, cannot proceed');
         toast({
           title: "Email déjà utilisé",
-          description: "Cet email est déjà enregistré et vérifi��.",
+          description: "Cet email est déjà enregistré et vérifié.",
           variant: "destructive",
         });
         return;
       }
       
-      console.log('✅ [REGISTER] Step 1 validation passed, moving to step 2');
       setCurrentStep(2);
     }
   };
 
   const prevStep = () => {
     if (currentStep > 1) {
-      console.log('🔙 [REGISTER] Moving back to step', currentStep - 1);
       setCurrentStep(currentStep - 1);
     }
   };
 
   const handleCountryChange = (countryName: string) => {
-    console.log('🌍 [REGISTER] Country changed in parent component:', countryName);
     const countries = [getDefaultCountry()];
     const country = countries.find(c => c.name === countryName) || getDefaultCountry();
     setSelectedCountry(country);
@@ -225,23 +204,12 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   };
 
   const onSubmit = async (data: RegisterFormValues) => {
-    console.log('📝 [REGISTER] Données du formulaire (soumission):', {
-      ...data,
-      password: '[HIDDEN]',
-      confirmPassword: '[HIDDEN]',
-      photo: data.photo instanceof File ? `File: ${data.photo.name}` : data.photo
-    });
-    
     let phoneWithCountryCode = data.phoneNumber;
     if (data.phoneNumber && selectedCountry && !data.phoneNumber.includes(selectedCountry.dialCode)) {
       phoneWithCountryCode = `${selectedCountry.dialCode} ${data.phoneNumber}`;
-      console.log('📱 [REGISTER] Adding country code to phone:', phoneWithCountryCode);
     }
     
-    console.log('👤 [REGISTER] Rôle sélectionné pour l\'inscription:', data.role);
-    
     if (!data.city || !data.department || !data.commune) {
-      console.error('❌ [REGISTER] Informations de localisation manquantes');
       toast({
         title: "Informations manquantes",
         description: "Veuillez remplir toutes les informations de localisation",
@@ -255,21 +223,12 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     try {
       const formData = new FormData();
       
-      console.log('🔄 [REGISTER] Préparation des données pour l\'API');
-      
       Object.entries(data).forEach(([key, value]) => {
         if (key === 'photo' && value instanceof File) {
-          console.log(`📎 [REGISTER] Ajout du fichier: ${value.name} (${value.size} octets)`);
           formData.append('photo', value);
         } else if (key === 'phoneNumber') {
-          console.log(`📱 [REGISTER] Ajout du téléphone:`, phoneWithCountryCode);
           formData.append('phoneNumber', phoneWithCountryCode);
         } else if (key !== 'photo' && key !== 'confirmPassword') {
-          if (key === 'password') {
-            console.log(`🔒 [REGISTER] Ajout du mot de passe: [CACHÉ]`);
-          } else {
-            console.log(`📝 [REGISTER] Ajout du champ: ${key}=${value}`);
-          }
           formData.append(key, String(value));
         }
       });
@@ -287,44 +246,25 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
           break;
       }
 
-      console.log(`👤 [REGISTER] Formatage du rôle pour l'API: ${data.role} -> ${backendRole}`);
       formData.set('role', backendRole);
 
-      console.log('🚀 [REGISTER] Envoi de la requête d\'inscription au serveur');
-      
       const response = await registerUser(formData);
-      console.log('✅ [REGISTER] Inscription réussie:', response);
       
       toast({
         title: "Inscription réussie",
         description: "Un code de vérification a été envoyé à votre email.",
       });
       
-      console.log('🔄 [REGISTER] Redirection vers la page de vérification du code');
-      
-      try {
-        console.log('🔐 [REGISTER] Tentative de connexion automatique après inscription');
-        const loginResult = await login({
-          email: data.email,
-          password: data.password
-        });
-        
-        console.log('✅ [REGISTER] Connexion automatique réussie:', loginResult);
-      } catch (loginError) {
-        console.log('ℹ️ [REGISTER] Connexion automatique impossible, poursuite du processus normal:', loginError);
-      }
-      
       navigate('/verify-code', { 
         state: { 
           role: data.role,
-          email: data.email
+          email: data.email,
+          password: data.password
         } 
       });
       
       if (onClose) onClose();
     } catch (error: any) {
-      console.error('❌ [REGISTER] Erreur d\'inscription:', error);
-      
       let errorMessage = "Une erreur est survenue lors de l'inscription";
       
       if (error.message) {
@@ -336,8 +276,6 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
           errorMessage = error.message;
         }
       }
-      
-      console.error('❌ [REGISTER] Message d\'erreur affiché:', errorMessage);
       
       toast({
         title: "Erreur d'inscription",

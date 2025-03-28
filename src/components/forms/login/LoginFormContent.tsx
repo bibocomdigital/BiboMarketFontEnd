@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -37,36 +38,26 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
 
   useEffect(() => {
     if (initialEmail) {
-      console.log('📧 [LOGIN] Setting initial email:', initialEmail);
       form.setValue('email', initialEmail);
     }
   }, [initialEmail, form]);
 
   const onSubmit = async (values: z.infer<typeof LoginFormSchema>) => {
-    console.log('📝 [LOGIN] Form submitted with data:', {
-      email: values.email,
-      password: '[HIDDEN]',
-    });
-    
     setIsSubmitting(true);
     
     try {
-      console.log('🔄 [LOGIN] Sending authentication request...');
       const response = await login({
         email: values.email,
         password: values.password
       });
       
-      console.log('✅ [LOGIN] Authentication successful', response);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté"
       });
       
-      console.log('🔄 [LOGIN] Redirecting to dashboard...');
       const userRole = response.user.role.toLowerCase();
       
-      console.log('👤 [LOGIN] User role for redirection:', userRole);
       if (userRole === 'merchant' || userRole === 'commercant') {
         navigate('/merchant-dashboard');
       } else if (userRole === 'supplier' || userRole === 'fournisseur') {
@@ -76,11 +67,9 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
       }
       
       if (onClose) {
-        console.log('🔄 [LOGIN] Closing dialog...');
         onClose();
       }
     } catch (error) {
-      console.error('❌ [LOGIN] Login error:', error);
       toast({
         title: "Erreur de connexion",
         description: "Email ou mot de passe incorrect",
@@ -140,7 +129,6 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
             type="button"
             className="text-sm text-bibocom-accent hover:underline"
             onClick={() => {
-              console.log('🔄 [LOGIN] Opening forgot password dialog...');
               setResetEmail(form.getValues().email);
               setShowForgotPassword(true);
             }}
