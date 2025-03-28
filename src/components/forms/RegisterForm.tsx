@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -44,6 +43,7 @@ const formSchema = z.object({
 export type RegisterFormValues = z.infer<typeof formSchema>;
 
 const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: () => void, initialRole?: UserRole }) => {
+  
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
