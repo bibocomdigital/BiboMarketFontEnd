@@ -1,10 +1,13 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, Upload, User, Mail, Phone, Lock } from 'lucide-react';
+import { Eye, EyeOff, Upload, User, Mail, Lock } from 'lucide-react';
 import { RegisterFormValues } from '../RegisterForm';
+import PhoneInput from './PhoneInput';
+import { Country, getDefaultCountry } from '@/data/countries';
 
 interface RegisterStep1Props {
   form: UseFormReturn<RegisterFormValues>;
@@ -12,15 +15,24 @@ interface RegisterStep1Props {
   handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   nextStep: () => void;
   emailExists: boolean;
+  selectedCountry: Country;
 }
 
-const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailExists }: RegisterStep1Props) => {
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+const RegisterStep1 = ({ 
+  form, 
+  photoPreview, 
+  handlePhotoChange, 
+  nextStep, 
+  emailExists,
+  selectedCountry = getDefaultCountry()
+}: RegisterStep1Props) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   console.log('📝 [REGISTER] Rendering RegisterStep1 component');
   console.log('👤 [REGISTER] Current form values:', form.getValues());
   console.log('📧 [REGISTER] Email exists status:', emailExists);
+  console.log('🌍 [REGISTER] Selected country:', selectedCountry.name);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -32,6 +44,65 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailE
 
   const handleNextStep = () => {
     console.log('👉 [REGISTER] Next button clicked, attempting to navigate to step 2');
+    
+    // Validation supplémentaire avant de passer à l'étape suivante
+    const { firstName, lastName, email, phoneNumber, password, confirmPassword } = form.getValues();
+    
+    if (!firstName || firstName.length < 2) {
+      console.error('❌ [REGISTER] First name validation failed');
+      form.setError('firstName', { 
+        type: 'manual', 
+        message: 'Le prénom doit contenir au moins 2 caractères' 
+      });
+      return;
+    }
+    
+    if (!lastName || lastName.length < 2) {
+      console.error('❌ [REGISTER] Last name validation failed');
+      form.setError('lastName', { 
+        type: 'manual', 
+        message: 'Le nom doit contenir au moins 2 caractères' 
+      });
+      return;
+    }
+    
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      console.error('❌ [REGISTER] Email validation failed');
+      form.setError('email', { 
+        type: 'manual', 
+        message: 'Veuillez entrer une adresse email valide' 
+      });
+      return;
+    }
+    
+    if (!phoneNumber || phoneNumber.length < 9) {
+      console.error('❌ [REGISTER] Phone number validation failed');
+      form.setError('phoneNumber', { 
+        type: 'manual', 
+        message: 'Numéro de téléphone invalide' 
+      });
+      return;
+    }
+    
+    if (!password || password.length < 6) {
+      console.error('❌ [REGISTER] Password validation failed');
+      form.setError('password', { 
+        type: 'manual', 
+        message: 'Le mot de passe doit contenir au moins 6 caractères' 
+      });
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      console.error('❌ [REGISTER] Password confirmation failed');
+      form.setError('confirmPassword', { 
+        type: 'manual', 
+        message: 'Les mots de passe ne correspondent pas' 
+      });
+      return;
+    }
+
+    console.log('✅ [REGISTER] Step 1 validation passed');
     nextStep();
   };
 
@@ -46,7 +117,14 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailE
               <FormLabel>Prénom</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input placeholder="Votre prénom" {...field} />
+                  <Input 
+                    placeholder="Votre prénom" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(e);
+                      console.log('👤 [REGISTER] First name changed:', e.target.value);
+                    }}
+                  />
                   <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 </div>
               </FormControl>
@@ -62,7 +140,14 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailE
               <FormLabel>Nom</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input placeholder="Votre nom" {...field} />
+                  <Input 
+                    placeholder="Votre nom" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(e);
+                      console.log('👤 [REGISTER] Last name changed:', e.target.value);
+                    }}
+                  />
                   <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 </div>
               </FormControl>
@@ -100,22 +185,9 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailE
           </FormItem>
         )}
       />
-      <FormField
-        control={form.control}
-        name="phoneNumber"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Téléphone</FormLabel>
-            <FormControl>
-              <div className="relative">
-                <Input placeholder="Votre numéro de téléphone" {...field} />
-                <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-              </div>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      
+      <PhoneInput form={form} selectedCountry={selectedCountry} />
+      
       <FormField
         control={form.control}
         name="password"
@@ -128,6 +200,10 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailE
                   type={showPassword ? "text" : "password"} 
                   placeholder="Créez un mot de passe" 
                   {...field} 
+                  onChange={(e) => {
+                    field.onChange(e);
+                    console.log('🔒 [REGISTER] Password changed:', '*'.repeat(e.target.value.length));
+                  }}
                 />
                 <button 
                   type="button" 
@@ -154,6 +230,10 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailE
                   type={showConfirmPassword ? "text" : "password"} 
                   placeholder="Confirmez votre mot de passe" 
                   {...field} 
+                  onChange={(e) => {
+                    field.onChange(e);
+                    console.log('🔒 [REGISTER] Confirm password changed:', '*'.repeat(e.target.value.length));
+                  }}
                 />
                 <button 
                   type="button" 

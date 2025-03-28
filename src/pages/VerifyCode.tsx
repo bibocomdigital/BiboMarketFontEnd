@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   InputOTP, 
@@ -145,6 +145,16 @@ const VerifyCode = () => {
     if (error) {
       setError(null);
       setIsExpired(false);
+    }
+    
+    // Si le code a 6 caractères, vérifier automatiquement
+    if (value.length === 6) {
+      console.log('🔍 [VERIFY] Code complete, auto-verifying...');
+      setTimeout(() => {
+        if (!isVerifying && !success) {
+          handleVerify();
+        }
+      }, 500);
     }
   };
   

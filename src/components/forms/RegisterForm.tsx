@@ -1,14 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RegisterStep1 from './register/RegisterStep1';
 import RegisterStep2 from './register/RegisterStep2';
+import { Country, getDefaultCountry } from '@/data/countries';
 
 // Schéma Zod avec validation améliorée
 const formSchema = z.object({
@@ -16,7 +17,20 @@ const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Le prénom doit contenir au moins 2 caractères' }),
   lastName: z.string().min(2, { message: 'Le nom doit contenir au moins 2 caractères' }),
   phoneNumber: z.string().min(9, { message: 'Numéro de téléphone invalide' }),
-  password: z.string().min(6, { message: 'Le mot de passe doit contenir au moins 6 caractères' }),
+  password: z.string()
+    .min(6, { message: 'Le mot de passe doit contenir au moins 6 caractères' })
+    .refine(password => {
+      // Au moins une lettre majuscule
+      const hasUpperCase = /[A-Z]/.test(password);
+      // Au moins une lettre minuscule
+      const hasLowerCase = /[a-z]/.test(password);
+      // Au moins un chiffre
+      const hasDigit = /\d/.test(password);
+      // Au moins un caractère spécial
+      const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
+      
+      return hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar;
+    }, { message: 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial' }),
   confirmPassword: z.string().min(1, { message: 'Veuillez confirmer votre mot de passe' }),
   country: z.string().min(2, { message: 'Veuillez entrer un pays valide' }),
   city: z.string().min(2, { message: 'Veuillez entrer une ville valide' }),
@@ -38,19 +52,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [emailExists, setEmailExists] = useState<boolean>(false);
-  const [verificationState, setVerificationState] = useState<{
-    isVerifying: boolean;
-    code: string;
-    error: string | null;
-    success: boolean;
-    isExpired: boolean;
-  }>({
-    isVerifying: false,
-    code: '',
-    error: null,
-    success: false,
-    isExpired: false
-  });
+  const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -58,6 +60,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
   
   console.log('🔄 [REGISTER] RegisterForm component initialized');
   console.log('👤 [REGISTER] Initial role:', initialRole);
+  console.log('🌍 [REGISTER] Initial country:', selectedCountry.name);
   
   // Check URL for role parameter
   useEffect(() => {
@@ -99,27 +102,47 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     console.log('🔍 [REGISTER] Checking if email exists:', email);
     try {
       // Simulate API call to check email
-      // In a real implementation, you would call your API
-      // const response = await fetch('/api/check-email', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email })
-      // });
-      // const data = await response.json();
-      // setEmailExists(data.exists);
+      // Pour démonstration, nous simulons un appel API
+      const mockCheckEmail = () => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            // Pour test, on pourrait retourner true ici
+            resolve({ exists: false });
+          }, 500);
+        });
+      };
       
-      // For demo purposes, we'll just log
-      console.log('📧 [REGISTER] Email check completed for:', email);
-      // setEmailExists(false); // Set to true to test the UI
+      const response = await mockCheckEmail();
+      console.log('📧 [REGISTER] Email check response:', response);
+      
+      // @ts-ignore - Mock response
+      setEmailExists(response.exists);
+      
+      // Si l'email existe, afficher un toast
+      // @ts-ignore - Mock response
+      if (response.exists) {
+        toast({
+          title: "Email déjà utilisé",
+          description: "Cet email est déjà enregistré. Essayez de vous connecter.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('❌ [REGISTER] Error checking email:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de vérifier l'email. Veuillez réessayer.",
+        variant: "destructive"
+      });
     }
   };
 
   useEffect(() => {
     const email = form.watch('email');
     const debounceTimer = setTimeout(() => {
-      if (email) checkEmailExists(email);
+      if (email && email.includes('@')) {
+        checkEmailExists(email);
+      }
     }, 500);
     
     return () => clearTimeout(debounceTimer);
@@ -129,6 +152,29 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     const file = e.target.files?.[0];
     if (file) {
       console.log('🖼️ [REGISTER] Photo selected:', file.name, 'Size:', file.size, 'bytes');
+      
+      // Vérifier la taille du fichier (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        console.error('❌ [REGISTER] File size too large:', file.size);
+        toast({
+          title: "Fichier trop volumineux",
+          description: "La taille de l'image ne doit pas dépasser 2MB",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        console.error('❌ [REGISTER] Invalid file type:', file.type);
+        toast({
+          title: "Type de fichier invalide",
+          description: "Veuillez sélectionner une image (JPG, PNG, etc.)",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       form.setValue('photo', file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -184,119 +230,12 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       setCurrentStep(currentStep - 1);
     }
   };
-
-  const handleVerificationCodeChange = (code: string) => {
-    console.log('🔑 [REGISTER] Verification code changed:', code);
-    setVerificationState(prev => ({ ...prev, code, error: null }));
-  };
-
-  const verifyCode = async () => {
-    const { email } = form.getValues();
-    const { code } = verificationState;
-    
-    if (!code || code.length !== 6) {
-      console.warn('⚠️ [REGISTER] Invalid verification code format');
-      toast({
-        title: "Code incomplet",
-        description: "Veuillez entrer les 6 caractères du code",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    console.log('🔍 [REGISTER] Verifying code for email:', email);
-    setVerificationState(prev => ({ ...prev, isVerifying: true, error: null }));
-    
-    try {
-      // Simulate API call to verify the code
-      // In a real implementation, you would call your API
-      // const response = await fetch('/api/verify', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, verificationCode: code })
-      // });
-      
-      // const data = await response.json();
-      // if (response.ok) {
-      //   setVerificationState(prev => ({ ...prev, success: true, error: null }));
-      // } else {
-      //   setVerificationState(prev => ({ 
-      //     ...prev, 
-      //     error: data.message,
-      //     isExpired: data.message.includes('expiré')
-      //   }));
-      // }
-      
-      // For demo purposes, we'll simulate different responses
-      const simulatedResponses = [
-        { ok: true, message: 'Vérification réussie' },
-        { ok: false, message: 'Code de vérification incorrect' },
-        { ok: false, message: 'Code de vérification expiré. Veuillez vous réinscrire.' }
-      ];
-      
-      // Uncomment one of these to test different scenarios
-      const simulatedResponse = simulatedResponses[0]; // Success case
-      // const simulatedResponse = simulatedResponses[1]; // Incorrect code case
-      // const simulatedResponse = simulatedResponses[2]; // Expired code case
-      
-      if (simulatedResponse.ok) {
-        console.log('✅ [REGISTER] Verification successful');
-        setVerificationState(prev => ({ ...prev, success: true, error: null }));
-        
-        setTimeout(() => {
-          toast({
-            title: "Vérification réussie",
-            description: "Votre compte a été vérifié avec succès!",
-          });
-          
-          navigate('/login', { state: { verifiedEmail: email } });
-        }, 1500);
-      } else {
-        console.error('❌ [REGISTER] Verification failed:', simulatedResponse.message);
-        setVerificationState(prev => ({ 
-          ...prev, 
-          error: simulatedResponse.message,
-          isExpired: simulatedResponse.message.includes('expiré')
-        }));
-      }
-    } catch (error) {
-      console.error('❌ [REGISTER] Error during verification:', error);
-      setVerificationState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : "Une erreur est survenue"
-      }));
-    } finally {
-      setVerificationState(prev => ({ ...prev, isVerifying: false }));
-    }
-  };
-
-  const resendVerificationCode = async () => {
-    const { email } = form.getValues();
-    
-    console.log('🔄 [REGISTER] Resending verification code to:', email);
-    
-    try {
-      // Simulate API call to resend verification code
-      // const response = await fetch('/api/resend-verification', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email })
-      // });
-      
-      // For demo purposes
-      console.log('✉️ [REGISTER] New verification code sent to:', email);
-      toast({
-        title: "Code renvoyé",
-        description: "Un nouveau code a été envoyé à votre adresse email",
-      });
-    } catch (error) {
-      console.error('❌ [REGISTER] Error resending verification code:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible d'envoyer un nouveau code de vérification",
-        variant: "destructive",
-      });
-    }
+  
+  // Fonction pour gérer le changement de pays
+  const handleCountryChange = (countryName: string) => {
+    console.log('🌍 [REGISTER] Country changed in parent component:', countryName);
+    const country = getDefaultCountry(); // À remplacer par une recherche réelle
+    setSelectedCountry(country);
   };
 
   const onSubmit = async (data: RegisterFormValues) => {
@@ -309,6 +248,17 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     
     // Let's add a log to explicitly check if role is included in the form data
     console.log('👤 [REGISTER] Role value at submission:', data.role);
+    
+    // Vérifications supplémentaires avant soumission
+    if (!data.city || !data.department || !data.commune) {
+      console.error('❌ [REGISTER] Missing location data');
+      toast({
+        title: "Informations manquantes",
+        description: "Veuillez remplir toutes les informations de localisation",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -332,14 +282,31 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       // Simulate an API call
       console.log('🔄 [REGISTER] Simulating API registration call');
       
-      // In a real implementation, you would call your API
-      // const response = await fetch('/api/register', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
-      // const result = await response.json();
+      // Simuler un appel API pour l'inscription
+      const mockRegister = () => {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            // Pour test, on pourrait simuler une erreur ici
+            // reject(new Error("Erreur de serveur simulée"));
+            
+            // Success
+            resolve({
+              success: true,
+              message: "Inscription réussie",
+              user: {
+                id: 123,
+                email: data.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                role: data.role
+              }
+            });
+          }, 1500);
+        });
+      };
       
-      console.log('✅ [REGISTER] Registration successful');
+      const response = await mockRegister();
+      console.log('✅ [REGISTER] Registration successful:', response);
       
       toast({
         title: "Inscription réussie",
@@ -379,6 +346,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
             handlePhotoChange={handlePhotoChange} 
             nextStep={nextStep}
             emailExists={emailExists}
+            selectedCountry={selectedCountry}
           />
         );
       case 2:
@@ -387,6 +355,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
             form={form} 
             prevStep={prevStep} 
             isSubmitting={isSubmitting}
+            onCountryChange={handleCountryChange}
           />
         );
       default:
