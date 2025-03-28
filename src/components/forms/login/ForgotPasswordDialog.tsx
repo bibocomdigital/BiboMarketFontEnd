@@ -47,23 +47,30 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
       if (!validationResult.success) {
         console.error('❌ [PASSWORD RESET] Email invalide:', validationResult.error);
         setError("Veuillez entrer une adresse email valide");
+        setIsLoading(false);
         return;
       }
       
       console.log('📤 [PASSWORD RESET] Envoi de la requête au serveur...');
+      console.log('📤 [PASSWORD RESET] URL:', `${API_URL}/auth/forgot-password`);
+      console.log('📤 [PASSWORD RESET] Données:', { email: resetEmail });
+      
       const response = await fetch(`${API_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail })
       });
       
+      console.log('📥 [PASSWORD RESET] Status de la réponse:', response.status);
       const data = await response.json();
       console.log('📥 [PASSWORD RESET] Réponse reçue:', data);
       
       if (!response.ok) {
+        console.error('❌ [PASSWORD RESET] Erreur serveur:', data);
         throw new Error(data.message || "Une erreur est survenue");
       }
       
+      console.log('✅ [PASSWORD RESET] Code de réinitialisation envoyé avec succès');
       toast({
         title: "Code envoyé",
         description: "Si un compte existe avec cet email, vous recevrez un code de réinitialisation.",
@@ -71,7 +78,10 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
       
       setStep('code');
     } catch (error) {
-      console.error('❌ [PASSWORD RESET] Erreur:', error);
+      console.error('❌ [PASSWORD RESET] Erreur détaillée:', error);
+      console.error('❌ [PASSWORD RESET] Type d\'erreur:', typeof error);
+      console.error('❌ [PASSWORD RESET] Est-ce une Error?', error instanceof Error);
+      
       setError(error instanceof Error ? error.message : "Une erreur est survenue lors de l'envoi du code");
       toast({
         title: "Erreur",
@@ -91,12 +101,16 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
     
     try {
       console.log('🔄 [PASSWORD RESET] Vérification du code:', verificationCode);
+      console.log('🔄 [PASSWORD RESET] Format du code:', `${verificationCode.length} caractères`);
+      console.log('🔄 [PASSWORD RESET] Contenu du code (premier caractère):', verificationCode.charAt(0));
+      console.log('🔄 [PASSWORD RESET] Email associé:', resetEmail);
       
       // Validate code
       const validationResult = codeSchema.safeParse(verificationCode);
       if (!validationResult.success) {
         console.error('❌ [PASSWORD RESET] Code invalide:', validationResult.error);
         setError("Le code de vérification doit contenir au moins 6 caractères");
+        setIsLoading(false);
         return;
       }
       
@@ -119,6 +133,10 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
     
     try {
       console.log('🔄 [PASSWORD RESET] Configuration du nouveau mot de passe');
+      console.log('🔄 [PASSWORD RESET] Email:', resetEmail);
+      console.log('🔄 [PASSWORD RESET] Code utilisé:', verificationCode);
+      console.log('🔄 [PASSWORD RESET] Longueur du nouveau mot de passe:', newPassword.length);
+      console.log('🔄 [PASSWORD RESET] Les mots de passe correspondent:', newPassword === confirmPassword);
       
       // Validate password
       const validationResult = passwordSchema.safeParse(newPassword);
@@ -138,6 +156,8 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
       }
       
       console.log('📤 [PASSWORD RESET] Envoi de la requête de réinitialisation au serveur...');
+      console.log('📤 [PASSWORD RESET] URL:', `${API_URL}/auth/reset-password`);
+      
       const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,6 +168,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
         })
       });
       
+      console.log('📥 [PASSWORD RESET] Status de la réponse:', response.status);
       const data = await response.json();
       console.log('📥 [PASSWORD RESET] Réponse reçue:', data);
       
@@ -165,21 +186,27 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
       setStep('success');
       
       // Redirection vers la page de connexion avec un délai
+      console.log('🔄 [PASSWORD RESET] Préparation de la redirection dans 2 secondes...');
       setTimeout(() => {
+        console.log('🔄 [PASSWORD RESET] Exécution de la redirection...');
         handleClose();
         navigate('/login');
       }, 2000);
       
     } catch (error) {
-      console.error('❌ [PASSWORD RESET] Erreur de réinitialisation:', error);
+      console.error('❌ [PASSWORD RESET] Erreur détaillée de réinitialisation:', error);
+      console.error('❌ [PASSWORD RESET] Type d\'erreur:', typeof error);
+      console.error('❌ [PASSWORD RESET] Message d\'erreur:', error instanceof Error ? error.message : String(error));
       
       // Handle specific error cases
       if (error instanceof Error) {
         if (error.message.includes("Code de réinitialisation incorrect")) {
+          console.log('🔄 [PASSWORD RESET] Code incorrect détecté, retour à l\'étape de saisie du code');
           setError("Code de vérification incorrect. Veuillez vérifier et réessayer.");
           setStep('code'); // Return to code step
           setVerificationCode(''); // Clear the code
         } else if (error.message.includes("Code de réinitialisation expiré")) {
+          console.log('🔄 [PASSWORD RESET] Code expiré détecté, retour à l\'étape de demande de code');
           setError("Le code de réinitialisation a expiré. Veuillez demander un nouveau code.");
           setStep('email'); // Return to email step
           setVerificationCode(''); // Clear the code
@@ -201,6 +228,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
   };
 
   const handleClose = () => {
+    console.log('🔄 [PASSWORD RESET] Fermeture de la boîte de dialogue');
     onOpenChange(false);
     // Reset state when dialog closes
     setStep('email');
@@ -209,6 +237,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
     setConfirmPassword('');
     setError(null);
     setIsLoading(false);
+    console.log('🔄 [PASSWORD RESET] État de la boîte de dialogue réinitialisé');
   };
 
   return (
@@ -239,7 +268,10 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
                 placeholder="Votre adresse email" 
                 type="email" 
                 value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
+                onChange={(e) => {
+                  console.log('🔄 [PASSWORD RESET] Mise à jour de l\'email:', e.target.value);
+                  setResetEmail(e.target.value);
+                }}
                 required
                 disabled={isLoading}
               />
@@ -276,7 +308,10 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
                 id="verification-code" 
                 placeholder="Entrez le code reçu par email" 
                 value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
+                onChange={(e) => {
+                  console.log('🔄 [PASSWORD RESET] Mise à jour du code:', e.target.value);
+                  setVerificationCode(e.target.value);
+                }}
                 required
                 disabled={isLoading}
               />
@@ -314,7 +349,10 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
                 type="password"
                 placeholder="Votre nouveau mot de passe" 
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => {
+                  console.log('🔄 [PASSWORD RESET] Mise à jour du nouveau mot de passe (longueur):', e.target.value.length);
+                  setNewPassword(e.target.value);
+                }}
                 required
                 disabled={isLoading}
               />
@@ -326,7 +364,11 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
                 type="password"
                 placeholder="Confirmez votre mot de passe" 
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  console.log('🔄 [PASSWORD RESET] Mise à jour de la confirmation du mot de passe');
+                  console.log('🔄 [PASSWORD RESET] Les mots de passe correspondent:', newPassword === e.target.value);
+                  setConfirmPassword(e.target.value);
+                }}
                 required
                 disabled={isLoading}
               />

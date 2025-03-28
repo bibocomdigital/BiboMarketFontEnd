@@ -118,11 +118,19 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
   };
 
   const handleOpenForgotPassword = () => {
+    console.log('🔄 [LOGIN FORM] Ouverture de la boîte de dialogue "Mot de passe oublié"');
+    
     // Pre-fill email from login form if available
-    if (form.getValues().email) {
-      setResetEmail(form.getValues().email);
+    const emailValue = form.getValues().email;
+    if (emailValue) {
+      console.log('📝 [LOGIN FORM] Pré-remplissage du champ email:', emailValue);
+      setResetEmail(emailValue);
+    } else {
+      console.log('📝 [LOGIN FORM] Aucun email à pré-remplir');
     }
+    
     setForgotPasswordOpen(true);
+    console.log('✅ [LOGIN FORM] Boîte de dialogue ouverte avec email:', emailValue || 'non défini');
   };
 
   return (
@@ -167,9 +175,15 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
 
       <ForgotPasswordDialog 
         open={forgotPasswordOpen}
-        onOpenChange={setForgotPasswordOpen}
+        onOpenChange={(open) => {
+          console.log('🔄 [LOGIN FORM] Changement d\'état de la boîte de dialogue:', open ? 'ouvert' : 'fermé');
+          setForgotPasswordOpen(open);
+        }}
         resetEmail={resetEmail}
-        setResetEmail={setResetEmail}
+        setResetEmail={(email) => {
+          console.log('📝 [LOGIN FORM] Mise à jour de l\'email de réinitialisation:', email);
+          setResetEmail(email);
+        }}
       />
     </>
   );
