@@ -33,16 +33,16 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    console.log('Début de la soumission du formulaire de connexion');
-    console.log('Données soumises:', { email: data.email, password: '********' });
+    console.log('🚀 [LOGIN] Début de la soumission du formulaire de connexion');
+    console.log('📝 [LOGIN] Données soumises:', { email: data.email, password: '********' });
     
     setIsLoading(true);
     try {
-      console.log('Tentative de connexion avec:', data.email);
+      console.log('🔄 [LOGIN] Tentative de connexion avec:', data.email);
       
       // Vérifier que email et password sont présents
       if (!data.email || !data.password) {
-        console.error('Email ou mot de passe manquant');
+        console.error('❌ [LOGIN] Email ou mot de passe manquant');
         toast({
           title: "Erreur de connexion",
           description: "Email et mot de passe requis",
@@ -52,14 +52,16 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
       }
       
       // Call the login service
-      console.log('Appel du service de connexion...');
+      console.log('🔄 [LOGIN] Appel du service de connexion...');
       const response = await login({
         email: data.email,
         password: data.password
       });
       
-      console.log('Connexion réussie:', response);
-      console.log('Rôle de l\'utilisateur:', response.user.role);
+      console.log('✅ [LOGIN] Connexion réussie:', response);
+      console.log('👤 [LOGIN] Rôle de l\'utilisateur (exact):', response.user.role);
+      console.log('👤 [LOGIN] Rôle de l\'utilisateur (lowercase):', response.user.role.toLowerCase());
+      console.log('👤 [LOGIN] Type de la valeur du rôle:', typeof response.user.role);
       
       // Show success toast
       toast({
@@ -69,35 +71,37 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
       
       // Close the modal if it exists
       if (onClose) {
-        console.log('Fermeture de la modale');
+        console.log('🔄 [LOGIN] Fermeture de la modale');
         onClose();
       }
       
       // Redirect based on user role from the response
       const role = response.user.role.toLowerCase(); // Convertir en minuscules pour s'assurer que la comparaison fonctionne
-      console.log('Redirection basée sur le rôle (en minuscules):', role);
+      console.log('🔄 [LOGIN] Redirection basée sur le rôle (en minuscules):', role);
+      
+      // Vérifier exactement les valeurs des rôles pour le debugging
+      console.log('🔍 [LOGIN] Vérification du rôle exact pour la redirection:');
+      console.log('🔍 [LOGIN] Est-ce "merchant"?', role === 'merchant');
+      console.log('🔍 [LOGIN] Est-ce "commercant"?', role === 'commercant');
+      console.log('🔍 [LOGIN] Est-ce "supplier"?', role === 'supplier');
+      console.log('🔍 [LOGIN] Est-ce "fournisseur"?', role === 'fournisseur');
+      console.log('🔍 [LOGIN] Est-ce "client"?', role === 'client');
       
       setTimeout(() => {
-        // Vérifier précisément les valeurs des rôles
-        console.log('Vérification du rôle exact:', role);
-        console.log('Est-ce "merchant"?', role === 'merchant');
-        console.log('Est-ce "commercant"?', role === 'commercant');
-        console.log('Est-ce "supplier"?', role === 'supplier');
-        console.log('Est-ce "fournisseur"?', role === 'fournisseur');
-        
+        // Implémentation robuste de la redirection qui gère les variations linguistiques des rôles
         if (role === 'merchant' || role === 'commercant') {
-          console.log('Redirection vers le tableau de bord commerçant');
+          console.log('🔄 [LOGIN] Redirection vers le tableau de bord commerçant');
           navigate('/merchant-dashboard');
         } else if (role === 'supplier' || role === 'fournisseur') {
-          console.log('Redirection vers le tableau de bord fournisseur');
+          console.log('🔄 [LOGIN] Redirection vers le tableau de bord fournisseur');
           navigate('/supplier-dashboard');
         } else {
-          console.log('Redirection vers le tableau de bord client');
+          console.log('🔄 [LOGIN] Redirection vers le tableau de bord client');
           navigate('/client-dashboard');
         }
       }, 500);
     } catch (error: any) {
-      console.error('Erreur détaillée de connexion:', error);
+      console.error('❌ [LOGIN] Erreur détaillée de connexion:', error);
       
       toast({
         title: "Erreur de connexion",
@@ -105,7 +109,7 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
         variant: "destructive",
       });
     } finally {
-      console.log('Fin du processus de connexion');
+      console.log('🏁 [LOGIN] Fin du processus de connexion');
       setIsLoading(false);
     }
   };
