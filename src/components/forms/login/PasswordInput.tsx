@@ -1,50 +1,40 @@
 
-import React, { useState } from 'react';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import React, { useState, forwardRef } from 'react';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff } from 'lucide-react';
-import { UseFormReturn } from 'react-hook-form';
-import { LoginFormValues } from './LoginFormTypes';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 
-interface PasswordInputProps {
-  form: UseFormReturn<LoginFormValues>;
-}
+export interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-const PasswordInput = ({ form }: PasswordInputProps) => {
+const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>((props, ref) => {
   const [showPassword, setShowPassword] = useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   return (
-    <FormField
-      control={form.control}
-      name="password"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Mot de passe</FormLabel>
-          <FormControl>
-            <div className="relative">
-              <Input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="Votre mot de passe" 
-                {...field} 
-              />
-              <button 
-                type="button" 
-                onClick={togglePasswordVisibility}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        <Lock className="h-4 w-4 text-gray-400" />
+      </div>
+      <Input
+        type={showPassword ? 'text' : 'password'}
+        className="pl-10 pr-10"
+        placeholder="Mot de passe"
+        ref={ref}
+        {...props}
+      />
+      <button
+        type="button"
+        className="absolute inset-y-0 right-0 flex items-center pr-3"
+        onClick={() => setShowPassword(!showPassword)}
+      >
+        {showPassword ? (
+          <EyeOff className="h-4 w-4 text-gray-400" />
+        ) : (
+          <Eye className="h-4 w-4 text-gray-400" />
+        )}
+      </button>
+    </div>
   );
-};
+});
+
+PasswordInput.displayName = 'PasswordInput';
 
 export default PasswordInput;

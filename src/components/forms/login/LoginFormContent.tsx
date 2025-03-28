@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,11 +16,13 @@ import { useNavigate } from 'react-router-dom';
 
 type LoginFormContentProps = {
   initialEmail?: string;
+  onClose?: () => void;
 };
 
-const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '' }) => {
+const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -32,9 +35,16 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '' }
     },
   });
 
+  useEffect(() => {
+    if (initialEmail) {
+      console.log('📧 [LOGIN] Setting initial email:', initialEmail);
+      form.setValue('email', initialEmail);
+    }
+  }, [initialEmail, form]);
+
   const onSubmit = async (values: z.infer<typeof LoginFormSchema>) => {
     console.log('📝 [LOGIN] Form submitted with data:', {
-      ...values,
+      email: values.email,
       password: '[HIDDEN]',
     });
     
@@ -42,15 +52,23 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '' }
     
     try {
       // Simulation d'une requête d'authentification
+      console.log('🔄 [LOGIN] Sending authentication request...');
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      console.log('✅ [LOGIN] Authentication successful');
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté"
       });
       
       // Redirect to appropriate dashboard based on user role
+      console.log('🔄 [LOGIN] Redirecting to dashboard...');
       navigate('/client-dashboard');
+      
+      if (onClose) {
+        console.log('🔄 [LOGIN] Closing dialog...');
+        onClose();
+      }
     } catch (error) {
       console.error('❌ [LOGIN] Login error:', error);
       toast({
@@ -73,7 +91,7 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '' }
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <EmailInput placeholder="exemple@email.com" {...field} />
+                <EmailInput {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,7 +104,7 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '' }
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <PasswordInput placeholder="Mot de passe" {...field} />
+                <PasswordInput {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -111,7 +129,11 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '' }
           <button
             type="button"
             className="text-sm text-bibocom-accent hover:underline"
-            onClick={() => setShowForgotPassword(true)}
+            onClick={() => {
+              console.log('🔄 [LOGIN] Opening forgot password dialog...');
+              setResetEmail(form.getValues().email);
+              setShowForgotPassword(true);
+            }}
           >
             Mot de passe oublié?
           </button>
@@ -132,9 +154,14 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '' }
             <span className="px-2 bg-white text-gray-500">Ou connectez-vous avec</span>
           </div>
         </div>
-        <SocialLoginButton provider="google" />
+        <SocialLoginButton />
       </form>
-      <ForgotPasswordDialog open={showForgotPassword} onOpenChange={setShowForgotPassword} />
+      <ForgotPasswordDialog 
+        open={showForgotPassword} 
+        onOpenChange={setShowForgotPassword} 
+        resetEmail={resetEmail}
+        setResetEmail={setResetEmail}
+      />
     </Form>
   );
 };

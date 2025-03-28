@@ -1,30 +1,27 @@
 
-import React from 'react';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import React, { forwardRef } from 'react';
 import { Input } from '@/components/ui/input';
-import { UseFormReturn } from 'react-hook-form';
-import { LoginFormValues } from './LoginFormTypes';
+import { AtSign } from 'lucide-react';
 
-interface EmailInputProps {
-  form: UseFormReturn<LoginFormValues>;
-}
+export interface EmailInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-const EmailInput = ({ form }: EmailInputProps) => {
+const EmailInput = forwardRef<HTMLInputElement, EmailInputProps>((props, ref) => {
   return (
-    <FormField
-      control={form.control}
-      name="email"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Email</FormLabel>
-          <FormControl>
-            <Input placeholder="exemple@email.com" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        <AtSign className="h-4 w-4 text-gray-400" />
+      </div>
+      <Input
+        type="email"
+        className="pl-10"
+        placeholder="exemple@email.com"
+        ref={ref}
+        {...props}
+      />
+    </div>
   );
-};
+});
+
+EmailInput.displayName = 'EmailInput';
 
 export default EmailInput;
