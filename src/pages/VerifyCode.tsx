@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/input-otp";
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { UserRole } from '@/types/user';
 
 // Définition correcte du type pour le scénario de vérification
 type VerificationScenario = 'success' | 'incorrect' | 'expired';
@@ -25,7 +26,7 @@ const VerifyCode = () => {
   const { toast } = useToast();
   
   // Récupérer le type d'utilisateur depuis la navigation
-  const userRole = location.state?.role || 'client';
+  const userRole = location.state?.role || UserRole.CLIENT;
   const userEmail = location.state?.email || '';
   
   console.log('🔄 [VERIFY] VerifyCode component initialized');
