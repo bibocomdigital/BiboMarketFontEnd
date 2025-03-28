@@ -5,7 +5,15 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'client' | 'commercant' | 'fournisseur';
+  phoneNumber?: string;
+  country?: string;
+  city?: string;
+  department?: string;
+  commune?: string;
+  photo?: string;
+  role: 'client' | 'commercant' | 'fournisseur' | 'merchant' | 'supplier';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoginCredentials {
@@ -17,6 +25,17 @@ export interface AuthResponse {
   token: string;
   user: User;
   message: string;
+}
+
+export interface ProfileData {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  address?: string;
+  email?: string;
+  bio?: string;
+  birthdate?: string;
+  photo?: File;
 }
 
 // API URL configuration
@@ -102,6 +121,44 @@ const apiRequest = async (url: string, method: string, data?: any) => {
   }
 };
 
+// Function to make API requests with FormData (for file uploads)
+const apiFormRequest = async (url: string, method: string, formData: FormData) => {
+  console.log(`Requête API FormData: ${method} ${API_URL}${url}`);
+  
+  const headers: HeadersInit = {};
+
+  // Add token to headers if available
+  const token = getToken();
+  if (token) {
+    console.log('Token ajouté aux en-têtes de la requête');
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  try {
+    console.log('Envoi de la requête avec FormData...');
+    const response = await fetch(`${API_URL}${url}`, {
+      method,
+      headers,
+      body: formData
+    });
+
+    console.log(`Réponse reçue avec statut: ${response.status}`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Erreur API:', errorData);
+      throw new Error(errorData.message || 'Une erreur est survenue');
+    }
+
+    const responseData = await response.json();
+    console.log('Données de réponse:', responseData);
+    return responseData;
+  } catch (error) {
+    console.error('Erreur de requête API:', error);
+    throw error;
+  }
+};
+
 // Login function
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
@@ -144,6 +201,73 @@ export const verifyToken = async (): Promise<User | null> => {
     // If token verification fails, clean up
     logout();
     return null;
+  }
+};
+
+// Function to get user profile
+export const getUserProfile = async (): Promise<User> => {
+  console.log('Récupération du profil utilisateur');
+  try {
+    const response = await apiRequest('/auth/profile', 'GET');
+    console.log('Profil utilisateur récupéré:', response.user);
+    
+    // Update local storage with fresh user data
+    if (response.user) {
+      setUser(response.user);
+    }
+    
+    return response.user;
+  } catch (error) {
+    console.error('Erreur de récupération du profil:', error);
+    throw error;
+  }
+};
+
+// Function to update user profile
+export const updateUserProfile = async (profileData: ProfileData): Promise<User> => {
+  console.log('Mise à jour du profil utilisateur avec données:', profileData);
+  try {
+    // If there's a photo, use FormData
+    if (profileData.photo) {
+      const formData = new FormData();
+      
+      // Add all profile fields to formData
+      Object.entries(profileData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          if (key === 'photo' && value instanceof File) {
+            formData.append('photo', value);
+          } else if (typeof value === 'string') {
+            formData.append(key, value);
+          }
+        }
+      });
+      
+      console.log('Envoi des données de profil avec photo via FormData');
+      const response = await apiFormRequest('/auth/profile', 'PUT', formData);
+      
+      if (response.user) {
+        console.log('Profil mis à jour avec succès:', response.user);
+        setUser(response.user);
+        return response.user;
+      } else {
+        throw new Error('Réponse de mise à jour du profil invalide');
+      }
+    } else {
+      // No photo, use regular JSON
+      console.log('Envoi des données de profil via JSON');
+      const response = await apiRequest('/auth/profile', 'PUT', profileData);
+      
+      if (response.user) {
+        console.log('Profil mis à jour avec succès:', response.user);
+        setUser(response.user);
+        return response.user;
+      } else {
+        throw new Error('Réponse de mise à jour du profil invalide');
+      }
+    }
+  } catch (error) {
+    console.error('Erreur de mise à jour du profil:', error);
+    throw error;
   }
 };
 
