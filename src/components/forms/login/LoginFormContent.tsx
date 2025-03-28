@@ -35,7 +35,7 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      console.log('Login data:', data);
+      console.log('Tentative de connexion avec:', data.email);
       
       // Vérifier que email et password sont présents
       if (!data.email || !data.password) {
@@ -58,8 +58,10 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
       if (onClose) onClose();
       
       // Redirect based on user role from the response
+      const role = response.user.role;
+      console.log('Utilisateur connecté avec le rôle:', role);
+      
       setTimeout(() => {
-        const role = response.user.role;
         if (role === 'commercant') {
           navigate('/merchant-dashboard');
         } else if (role === 'fournisseur') {
@@ -68,11 +70,11 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
           navigate('/client-dashboard');
         }
       }, 500);
-    } catch (error) {
-      console.error('Erreur:', error);
+    } catch (error: any) {
+      console.error('Erreur de connexion:', error);
       toast({
         title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect",
+        description: error.message || "Email ou mot de passe incorrect",
         variant: "destructive",
       });
     } finally {

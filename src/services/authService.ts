@@ -1,6 +1,4 @@
 
-import { toast } from "@/hooks/use-toast";
-
 // Types for authentication
 export interface User {
   id: number;
@@ -21,24 +19,8 @@ export interface AuthResponse {
   message: string;
 }
 
-// API URL configuration - replace with your actual backend URL when deployed
-const API_URL = "http://localhost:3000/api";
-
-// Helper function to handle API errors
-const handleApiError = (error: any): string => {
-  console.error("API Error:", error);
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    return error.response.data.message || "Une erreur est survenue lors de la communication avec le serveur";
-  } else if (error.request) {
-    // The request was made but no response was received
-    return "Impossible de joindre le serveur. Veuillez vérifier votre connexion internet.";
-  } else {
-    // Something happened in setting up the request that triggered an Error
-    return "Une erreur est survenue lors de la préparation de la requête";
-  }
-};
+// API URL configuration
+const API_URL = "http://localhost:3000/api"; // Ajustez selon votre configuration
 
 // Function to store token in localStorage
 const setToken = (token: string): void => {
@@ -71,69 +53,84 @@ export const removeUser = (): void => {
   localStorage.removeItem('bibocom_user');
 };
 
-// Mock login function for testing - replace with actual API call when backend is ready
-export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  // For now, we'll create a mock response
-  try {
-    // This is where you would normally make the API call:
-    // const response = await axios.post(`${API_URL}/auth/login`, credentials);
-    // return response.data;
+// Function to make API requests
+const apiRequest = async (url: string, method: string, data?: any) => {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json'
+  };
 
-    // Instead, let's simulate the API response based on the provided email
-    // This is for testing purposes only
+  // Add token to headers if available
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}${url}`, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Une erreur est survenue');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
+};
+
+// Login function
+export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  try {
     if (!credentials.email || !credentials.password) {
       throw new Error("Email et mot de passe requis");
     }
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const response = await apiRequest('/auth/login', 'POST', credentials);
     
-    // Vérification simple pour simuler l'échec d'authentification
-    if (credentials.email !== 'client@example.com' && 
-        credentials.email !== 'commercant@example.com' && 
-        credentials.email !== 'fournisseur@example.com') {
-      throw new Error("Email ou mot de passe incorrect");
+    if (response.token && response.user) {
+      // Store authentication data
+      setToken(response.token);
+      setUser(response.user);
+      return response;
+    } else {
+      throw new Error("Réponse de connexion invalide");
     }
-    
-    if (credentials.password !== 'password123') {
-      throw new Error("Email ou mot de passe incorrect");
-    }
-
-    // Déterminer le rôle en fonction de l'email pour la simulation
-    let role: 'client' | 'commercant' | 'fournisseur' = 'client';
-    if (credentials.email === 'commercant@example.com') {
-      role = 'commercant';
-    } else if (credentials.email === 'fournisseur@example.com') {
-      role = 'fournisseur';
-    }
-
-    const mockResponse: AuthResponse = {
-      token: "mock_jwt_token_for_testing_purposes_" + role,
-      user: {
-        id: 1,
-        email: credentials.email,
-        firstName: "Utilisateur",
-        lastName: "Test",
-        role: role
-      },
-      message: "Connexion réussie"
-    };
-
-    // Store authentication data
-    setToken(mockResponse.token);
-    setUser(mockResponse.user);
-
-    return mockResponse;
   } catch (error: any) {
-    const errorMessage = handleApiError(error);
-    throw new Error(errorMessage);
+    console.error('Erreur de connexion:', error);
+    throw error;
+  }
+};
+
+// Function to verify token validity
+export const verifyToken = async (): Promise<User | null> => {
+  try {
+    const response = await apiRequest('/auth/verify-token', 'GET');
+    return response.user;
+  } catch (error) {
+    console.error('Token verification error:', error);
+    // If token verification fails, clean up
+    logout();
+    return null;
   }
 };
 
 // Function to log out
 export const logout = (): void => {
-  removeToken();
-  removeUser();
+  // Optionally call the backend to invalidate the token
+  try {
+    if (getToken()) {
+      apiRequest('/auth/logout', 'POST').catch(console.error);
+    }
+  } finally {
+    removeToken();
+    removeUser();
+  }
 };
 
 // Function to check if user is authenticated
@@ -145,11 +142,4 @@ export const isAuthenticated = (): boolean => {
 export const getUserRole = (): string | null => {
   const user = getUser();
   return user ? user.role : null;
-};
-
-// Function to verify auth token with the backend
-export const verifyToken = async (): Promise<boolean> => {
-  // For now, we'll just check if the token exists in localStorage
-  // In a real implementation, you would verify the token with the backend
-  return isAuthenticated();
 };
