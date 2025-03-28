@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   InputOTP, 
@@ -9,25 +10,26 @@ import {
 } from "@/components/ui/input-otp";
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { UserRole } from '@/types/user';
+import { UserRole, mapStringToUserRole } from '@/types/user';
 import { verifyCode } from '@/services/registrationService';
 
-// Définition correcte du type pour le scénario de vérification
-type VerificationScenario = 'success' | 'incorrect' | 'expired';
+// Définition du type pour le scénario de vérification
+type VerificationScenario = 'success' | 'incorrect' | 'expired' | 'error';
 
 const VerifyCode = () => {
   const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isExpired, setIsExpired] = useState(false);
+  const [errorType, setErrorType] = useState<VerificationScenario | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   
-  // Récupérer le type d'utilisateur depuis la navigation
-  const userRole = location.state?.role || UserRole.CLIENT;
+  // Récupérer l'email et le rôle depuis la navigation
   const userEmail = location.state?.email || '';
+  const userRoleString = location.state?.role || 'CLIENT';
+  const userRole = mapStringToUserRole(userRoleString);
   
   console.log('🔄 [VERIFY] VerifyCode component initialized');
   console.log('👤 [VERIFY] User role:', userRole);
@@ -60,9 +62,9 @@ const VerifyCode = () => {
     
     setIsVerifying(true);
     setError(null);
-    setIsExpired(false);
+    setErrorType(null);
     
-    console.log('🔍 [VERIFY] Verifying code:', code, 'for email:', userEmail);
+    console.log('🔍 [VERIFY] Vérification du code:', code, 'pour email:', userEmail);
     
     toast({
       title: "Vérification en cours",
@@ -79,16 +81,16 @@ const VerifyCode = () => {
         description: "Votre compte a été vérifié avec succès!"
       });
       
-      // Redirect after successful verification
+      // Redirect to login after successful verification
       setTimeout(() => {
-        console.log('🔄 [VERIFY] Redirecting to verification pending page');
-        navigate('/verification-pending', { 
+        console.log('🔄 [VERIFY] Redirecting to login page');
+        navigate('/login', { 
           state: { 
-            role: userRole, 
-            email: userEmail 
+            verificationSuccessful: true,
+            email: userEmail
           } 
         });
-      }, 1500);
+      }, 2000);
       
     } catch (error: any) {
       console.error('❌ [VERIFY] Verification error:', error);
@@ -96,19 +98,29 @@ const VerifyCode = () => {
       // Détecter le type d'erreur basé sur le message
       if (error.message.includes('expiré')) {
         console.error('⏰ [VERIFY] Verification code expired');
-        setError("Code de vérification expiré");
-        setIsExpired(true);
+        setError("Code de vérification expiré. Veuillez vous réinscrire.");
+        setErrorType('expired');
         toast({
           title: "Code expiré",
           description: "Votre code de vérification a expiré",
           variant: "destructive"
         });
-      } else {
+      } else if (error.message.includes('incorrect')) {
         console.error('❌ [VERIFY] Incorrect verification code');
-        setError("Code de vérification incorrect");
+        setError("Code de vérification incorrect. Veuillez réessayer.");
+        setErrorType('incorrect');
         toast({
           title: "Code incorrect",
           description: "Le code de vérification est incorrect",
+          variant: "destructive"
+        });
+      } else {
+        console.error('❌ [VERIFY] General verification error');
+        setError("Une erreur est survenue lors de la vérification");
+        setErrorType('error');
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la vérification",
           variant: "destructive"
         });
       }
@@ -130,7 +142,7 @@ const VerifyCode = () => {
       
       // Reset error states
       setError(null);
-      setIsExpired(false);
+      setErrorType(null);
       setCode("");
     } catch (error) {
       console.error('❌ [VERIFY] Error resending code:', error);
@@ -142,6 +154,11 @@ const VerifyCode = () => {
     }
   };
   
+  const handleReturnToRegister = () => {
+    console.log('🔄 [VERIFY] Returning to registration page');
+    navigate('/register');
+  };
+  
   const handleCodeChange = (value: string) => {
     console.log('🔑 [VERIFY] Code updated:', value);
     setCode(value);
@@ -149,7 +166,7 @@ const VerifyCode = () => {
     // Clear any error when user starts typing a new code
     if (error) {
       setError(null);
-      setIsExpired(false);
+      setErrorType(null);
     }
     
     // Si le code a 6 caractères, vérifier automatiquement
@@ -188,6 +205,9 @@ const VerifyCode = () => {
                 <p className="text-gray-600 text-center mt-2">
                   Votre compte a été vérifié avec succès!
                 </p>
+                <p className="text-gray-600 text-center mt-2">
+                  Vous allez être redirigé vers la page de connexion...
+                </p>
               </div>
             ) : (
               <>
@@ -215,11 +235,31 @@ const VerifyCode = () => {
                     </div>
                   )}
                   
-                  {isExpired ? (
+                  {errorType === 'expired' ? (
                     <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mt-4">
                       <p className="text-sm text-amber-800">
-                        Votre code a expiré. Cliquez sur "Renvoyer" pour obtenir un nouveau code.
+                        Votre code a expiré. Cliquez sur "Retourner à l'inscription" pour vous réinscrire.
                       </p>
+                      <Button 
+                        className="w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white" 
+                        onClick={handleReturnToRegister}
+                      >
+                        Retourner à l'inscription
+                      </Button>
+                    </div>
+                  ) : errorType === 'incorrect' ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mt-4">
+                      <p className="text-sm text-amber-800">
+                        Code incorrect. Vous pouvez réessayer ou demander un nouveau code.
+                      </p>
+                      <Button 
+                        className="w-full mt-2 flex items-center justify-center"
+                        variant="outline" 
+                        onClick={handleResendCode}
+                      >
+                        <RefreshCw size={16} className="mr-2" />
+                        Demander un nouveau code
+                      </Button>
                     </div>
                   ) : (
                     <p className="text-center text-sm text-gray-500 mt-4">

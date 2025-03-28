@@ -1,10 +1,26 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import LoginFormContent from '@/components/forms/login/LoginFormContent';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
+  const location = useLocation();
+  const { toast } = useToast();
+  const verificationSuccessful = location.state?.verificationSuccessful || false;
+  const verifiedEmail = location.state?.email || '';
+  
+  useEffect(() => {
+    if (verificationSuccessful) {
+      console.log('✅ [LOGIN] User redirected after successful verification');
+      toast({
+        title: "Inscription réussie",
+        description: "Votre compte a été vérifié avec succès. Vous pouvez maintenant vous connecter.",
+      });
+    }
+  }, [verificationSuccessful, toast]);
+  
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Decorative side */}
@@ -39,13 +55,26 @@ const Login = () => {
             Retour à l'accueil
           </Link>
           
+          {verificationSuccessful && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-start">
+              <CheckCircle className="text-green-500 mr-3 mt-0.5 flex-shrink-0" size={20} />
+              <div>
+                <h3 className="font-medium text-green-800">Inscription réussie!</h3>
+                <p className="text-sm text-green-700 mt-1">
+                  Votre compte a été vérifié avec succès. Vous pouvez maintenant vous connecter
+                  {verifiedEmail ? ` avec ${verifiedEmail}` : ''}.
+                </p>
+              </div>
+            </div>
+          )}
+          
           <div className="bg-white shadow-xl rounded-2xl p-8 mb-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-bibocom-primary">Connexion</h2>
               <p className="text-gray-500 mt-2">Accédez à votre compte BibocomMarket</p>
             </div>
             
-            <LoginFormContent />
+            <LoginFormContent initialEmail={verifiedEmail} />
           </div>
           
           <div className="text-center">

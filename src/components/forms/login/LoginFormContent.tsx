@@ -1,191 +1,141 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
 import EmailInput from './EmailInput';
 import PasswordInput from './PasswordInput';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
 import SocialLoginButton from './SocialLoginButton';
-import { loginFormSchema, LoginFormValues } from './LoginFormTypes';
-import { login } from '@/services/authService';
+import { LoginFormSchema } from './LoginFormTypes';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
-interface LoginFormContentProps {
-  onClose?: () => void;
-}
+type LoginFormContentProps = {
+  initialEmail?: string;
+};
 
-const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
-  const navigate = useNavigate();
-  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '' }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
+  const form = useForm<z.infer<typeof LoginFormSchema>>({
+    resolver: zodResolver(LoginFormSchema),
     defaultValues: {
-      email: '',
+      email: initialEmail,
       password: '',
+      rememberMe: true,
     },
   });
 
-  const onSubmit = async (data: LoginFormValues) => {
-    console.log('🚀 [LOGIN] Début de la soumission du formulaire de connexion');
-    console.log('📝 [LOGIN] Données soumises:', { email: data.email, password: '********' });
+  const onSubmit = async (values: z.infer<typeof LoginFormSchema>) => {
+    console.log('📝 [LOGIN] Form submitted with data:', {
+      ...values,
+      password: '[HIDDEN]',
+    });
     
-    setIsLoading(true);
+    setIsSubmitting(true);
+    
     try {
-      console.log('🔄 [LOGIN] Tentative de connexion avec:', data.email);
+      // Simulation d'une requête d'authentification
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Vérifier que email et password sont présents
-      if (!data.email || !data.password) {
-        console.error('❌ [LOGIN] Email ou mot de passe manquant');
-        toast({
-          title: "Erreur de connexion",
-          description: "Email et mot de passe requis",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Call the login service
-      console.log('🔄 [LOGIN] Appel du service de connexion...');
-      const response = await login({
-        email: data.email,
-        password: data.password
-      });
-      
-      console.log('✅ [LOGIN] Connexion réussie:', response);
-      console.log('👤 [LOGIN] Rôle de l\'utilisateur (exact):', response.user.role);
-      console.log('👤 [LOGIN] Rôle de l\'utilisateur (lowercase):', response.user.role.toLowerCase());
-      console.log('👤 [LOGIN] Type de la valeur du rôle:', typeof response.user.role);
-      
-      // Pre-fill the email for password reset if needed
-      setResetEmail(data.email);
-      
-      // Show success toast
       toast({
         title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté",
+        description: "Vous êtes maintenant connecté"
       });
       
-      // Close the modal if it exists
-      if (onClose) {
-        console.log('🔄 [LOGIN] Fermeture de la modale');
-        onClose();
-      }
-      
-      // Redirect based on user role from the response
-      const role = response.user.role.toLowerCase(); // Convertir en minuscules pour s'assurer que la comparaison fonctionne
-      console.log('🔄 [LOGIN] Redirection basée sur le rôle (en minuscules):', role);
-      
-      // Vérifier exactement les valeurs des rôles pour le debugging
-      console.log('🔍 [LOGIN] Vérification du rôle exact pour la redirection:');
-      console.log('🔍 [LOGIN] Est-ce "merchant"?', role === 'merchant');
-      console.log('🔍 [LOGIN] Est-ce "commercant"?', role === 'commercant');
-      console.log('🔍 [LOGIN] Est-ce "supplier"?', role === 'supplier');
-      console.log('🔍 [LOGIN] Est-ce "fournisseur"?', role === 'fournisseur');
-      console.log('🔍 [LOGIN] Est-ce "client"?', role === 'client');
-      
-      setTimeout(() => {
-        // Implémentation robuste de la redirection qui gère les variations linguistiques des rôles
-        if (role === 'merchant' || role === 'commercant') {
-          console.log('🔄 [LOGIN] Redirection vers le tableau de bord commerçant');
-          navigate('/merchant-dashboard');
-        } else if (role === 'supplier' || role === 'fournisseur') {
-          console.log('🔄 [LOGIN] Redirection vers le tableau de bord fournisseur');
-          navigate('/supplier-dashboard');
-        } else {
-          console.log('🔄 [LOGIN] Redirection vers le tableau de bord client');
-          navigate('/client-dashboard');
-        }
-      }, 500);
-    } catch (error: any) {
-      console.error('❌ [LOGIN] Erreur détaillée de connexion:', error);
-      
+      // Redirect to appropriate dashboard based on user role
+      navigate('/client-dashboard');
+    } catch (error) {
+      console.error('❌ [LOGIN] Login error:', error);
       toast({
         title: "Erreur de connexion",
-        description: error.message || "Email ou mot de passe incorrect",
-        variant: "destructive",
+        description: "Email ou mot de passe incorrect",
+        variant: "destructive"
       });
     } finally {
-      console.log('🏁 [LOGIN] Fin du processus de connexion');
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
-  };
-
-  const handleOpenForgotPassword = () => {
-    console.log('🔄 [LOGIN FORM] Ouverture de la boîte de dialogue "Mot de passe oublié"');
-    
-    // Pre-fill email from login form if available
-    const emailValue = form.getValues().email;
-    if (emailValue) {
-      console.log('📝 [LOGIN FORM] Pré-remplissage du champ email:', emailValue);
-      setResetEmail(emailValue);
-    } else {
-      console.log('📝 [LOGIN FORM] Aucun email à pré-remplir');
-    }
-    
-    setForgotPasswordOpen(true);
-    console.log('✅ [LOGIN FORM] Boîte de dialogue ouverte avec email:', emailValue || 'non défini');
   };
 
   return (
-    <>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <EmailInput form={form} />
-          <PasswordInput form={form} />
-          
-          <div className="flex justify-end">
-            <button 
-              type="button" 
-              onClick={handleOpenForgotPassword}
-              className="text-sm text-bibocom-primary hover:underline"
-            >
-              Mot de passe oublié ?
-            </button>
-          </div>
-          
-          <div className="pt-2">
-            <Button 
-              type="submit" 
-              className="w-full bg-bibocom-primary text-white"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Connexion en cours...' : 'Se connecter'}
-            </Button>
-          </div>
-          
-          <div className="relative mt-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Ou continuez avec</span>
-            </div>
-          </div>
-          
-          <SocialLoginButton onClose={onClose} />
-        </form>
-      </Form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <EmailInput placeholder="exemple@email.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mot de passe</FormLabel>
+              <FormControl>
+                <PasswordInput placeholder="Mot de passe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex items-center justify-between">
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="text-sm font-normal">Se souvenir de moi</FormLabel>
+              </FormItem>
+            )}
+          />
+          <button
+            type="button"
+            className="text-sm text-bibocom-accent hover:underline"
+            onClick={() => setShowForgotPassword(true)}
+          >
+            Mot de passe oublié?
+          </button>
+        </div>
+        <Button
+          type="submit"
+          className="w-full bg-bibocom-primary text-white"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
+        </Button>
 
-      <ForgotPasswordDialog 
-        open={forgotPasswordOpen}
-        onOpenChange={(open) => {
-          console.log('🔄 [LOGIN FORM] Changement d\'état de la boîte de dialogue:', open ? 'ouvert' : 'fermé');
-          setForgotPasswordOpen(open);
-        }}
-        resetEmail={resetEmail}
-        setResetEmail={(email) => {
-          console.log('📝 [LOGIN FORM] Mise à jour de l\'email de réinitialisation:', email);
-          setResetEmail(email);
-        }}
-      />
-    </>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">Ou connectez-vous avec</span>
+          </div>
+        </div>
+        <SocialLoginButton provider="google" />
+      </form>
+      <ForgotPasswordDialog open={showForgotPassword} onOpenChange={setShowForgotPassword} />
+    </Form>
   );
 };
 
