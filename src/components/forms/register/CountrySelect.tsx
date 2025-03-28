@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Country, countries, getDefaultCountry } from '@/data/countries';
 import { 
   Select, 
@@ -21,12 +21,14 @@ interface CountrySelectProps {
 const CountrySelect = ({ form, onCountryChange }: CountrySelectProps) => {
   const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
   
-  console.log('🌍 [REGISTER] CountrySelect component initialized with default:', selectedCountry.name);
+  // Set the form country value on component initialization
+  useEffect(() => {
+    form.setValue('country', selectedCountry.name);
+  }, []);
 
   const handleCountryChange = (value: string) => {
     const country = countries.find(c => c.code === value);
     if (country) {
-      console.log('🌍 [REGISTER] Country selected:', country.name, country.dialCode);
       setSelectedCountry(country);
       form.setValue('country', country.name);
       

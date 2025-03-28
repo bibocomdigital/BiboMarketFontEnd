@@ -95,7 +95,6 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     
     try {
       const response = await checkEmailExists(email);
-      
       setEmailExists(response.exists);
       
       if (response.exists) {
@@ -196,9 +195,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     }
   };
 
-  const handleCountryChange = (countryName: string) => {
-    const countries = [getDefaultCountry()];
-    const country = countries.find(c => c.name === countryName) || getDefaultCountry();
+  const handleCountryChange = (country: Country) => {
     setSelectedCountry(country);
     form.setValue('country', country.name);
   };
