@@ -97,22 +97,25 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   const handleCheckEmailExists = async (email: string) => {
     if (!email || !email.includes('@')) return;
     
-    console.log('🔍 [REGISTER] Checking if email exists:', email);
+    console.log('🔍 [REGISTER] Vérification si email existe:', email);
     try {
       const response = await checkEmailExists(email);
-      console.log('📧 [REGISTER] Email check response:', response);
+      console.log('📧 [REGISTER] Réponse vérification email:', response);
       
       setEmailExists(response.exists);
       
       if (response.exists) {
+        console.warn('⚠️ [REGISTER] Cet email existe déjà dans la base de données');
         toast({
           title: "Email déjà utilisé",
           description: "Cet email est déjà enregistré. Essayez de vous connecter.",
           variant: "destructive"
         });
+      } else {
+        console.log('✅ [REGISTER] Cet email est disponible pour l\'inscription');
       }
     } catch (error) {
-      console.error('❌ [REGISTER] Error checking email:', error);
+      console.error('❌ [REGISTER] Erreur lors de la vérification email:', error);
       toast({
         title: "Erreur",
         description: "Impossible de vérifier l'email. Veuillez réessayer.",
@@ -194,7 +197,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
         console.warn('⚠️ [REGISTER] Email already exists, cannot proceed');
         toast({
           title: "Email déjà utilisé",
-          description: "Cet email est déjà enregistré et vérifié.",
+          description: "Cet email est déjà enregistré et vérifi��.",
           variant: "destructive",
         });
         return;
@@ -221,7 +224,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   };
 
   const onSubmit = async (data: RegisterFormValues) => {
-    console.log('📝 [REGISTER] Form submitted with data:', {
+    console.log('📝 [REGISTER] Données du formulaire (soumission):', {
       ...data,
       password: '[HIDDEN]',
       confirmPassword: '[HIDDEN]',
@@ -234,10 +237,10 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       console.log('📱 [REGISTER] Adding country code to phone:', phoneWithCountryCode);
     }
     
-    console.log('👤 [REGISTER] Role value at submission:', data.role);
+    console.log('👤 [REGISTER] Rôle sélectionné pour l\'inscription:', data.role);
     
     if (!data.city || !data.department || !data.commune) {
-      console.error('❌ [REGISTER] Missing location data');
+      console.error('❌ [REGISTER] Informations de localisation manquantes');
       toast({
         title: "Informations manquantes",
         description: "Veuillez remplir toutes les informations de localisation",
@@ -251,15 +254,21 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     try {
       const formData = new FormData();
       
+      console.log('🔄 [REGISTER] Préparation des données pour l\'API');
+      
       Object.entries(data).forEach(([key, value]) => {
         if (key === 'photo' && value instanceof File) {
-          console.log(`📎 [REGISTER] Adding file to FormData: ${value.name} (${value.size} bytes)`);
+          console.log(`📎 [REGISTER] Ajout du fichier: ${value.name} (${value.size} octets)`);
           formData.append('photo', value);
         } else if (key === 'phoneNumber') {
-          console.log(`📱 [REGISTER] Adding phone with country code:`, phoneWithCountryCode);
+          console.log(`📱 [REGISTER] Ajout du téléphone:`, phoneWithCountryCode);
           formData.append('phoneNumber', phoneWithCountryCode);
         } else if (key !== 'photo' && key !== 'confirmPassword') {
-          console.log(`📝 [REGISTER] Adding field to FormData: ${key}=${key === 'password' ? '[HIDDEN]' : value}`);
+          if (key === 'password') {
+            console.log(`🔒 [REGISTER] Ajout du mot de passe: [CACHÉ]`);
+          } else {
+            console.log(`📝 [REGISTER] Ajout du champ: ${key}=${value}`);
+          }
           formData.append(key, String(value));
         }
       });
@@ -277,19 +286,20 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
           break;
       }
 
-      console.log(`👤 [REGISTER] Explicitly adding role to FormData: ${backendRole}`);
-      formData.append('role', backendRole);
+      console.log(`👤 [REGISTER] Formatage du rôle pour l'API: ${data.role} -> ${backendRole}`);
+      formData.set('role', backendRole);
 
-      console.log('🔄 [REGISTER] Sending registration data to API');
+      console.log('🚀 [REGISTER] Envoi de la requête d\'inscription au serveur');
       
       const response = await registerUser(formData);
-      console.log('✅ [REGISTER] Registration successful:', response);
+      console.log('✅ [REGISTER] Inscription réussie:', response);
       
       toast({
         title: "Inscription réussie",
         description: "Un code de vérification a été envoyé à votre email.",
       });
       
+      console.log('🔄 [REGISTER] Redirection vers la page de vérification du code');
       navigate('/verify-code', { 
         state: { 
           role: data.role,
@@ -299,10 +309,25 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       
       if (onClose) onClose();
     } catch (error: any) {
-      console.error('❌ [REGISTER] Registration error:', error);
+      console.error('❌ [REGISTER] Erreur d\'inscription:', error);
+      
+      let errorMessage = "Une erreur est survenue lors de l'inscription";
+      
+      if (error.message) {
+        if (error.message.includes('déjà enregistré')) {
+          errorMessage = "Cet email est déjà enregistré et vérifié.";
+        } else if (error.message.includes('réseau')) {
+          errorMessage = "Problème de connexion au serveur. Vérifiez votre connexion Internet.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      console.error('❌ [REGISTER] Message d\'erreur affiché:', errorMessage);
+      
       toast({
         title: "Erreur d'inscription",
-        description: error.message || "Une erreur est survenue lors de l'inscription",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

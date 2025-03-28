@@ -1,8 +1,44 @@
 
-import { RegisterFormValues } from "@/components/forms/RegisterForm";
-
 // Configuration de l'API
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
+/**
+ * Vérifie si un email existe déjà
+ */
+export const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
+  try {
+    console.log('🔍 [API] Vérification si l\'email existe:', email);
+    const response = await fetch(`${API_URL}/auth/check-email?email=${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('📊 [API] Statut de la réponse de vérification d\'email:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [API] Erreur lors de la vérification de l\'email:', errorData);
+      throw new Error(errorData.message || 'Erreur lors de la vérification de l\'email');
+    }
+
+    const data = await response.json();
+    console.log('✅ [API] Vérification de l\'email réussie:', data);
+    
+    // Log supplémentaire pour indiquer si l'email existe
+    if (data.exists) {
+      console.warn('⚠️ [API] Cet email existe déjà dans la base de données');
+    } else {
+      console.log('✅ [API] Cet email est disponible');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la vérification de l\'email:', error);
+    throw error;
+  }
+};
 
 /**
  * Enregistre un nouvel utilisateur
@@ -12,14 +48,23 @@ export const registerUser = async (formData: FormData): Promise<{
   email: string;
 }> => {
   try {
-    console.log('🌐 [API] Envoi des données d\'inscription au backend', Object.fromEntries(formData.entries()));
+    console.log('🔄 [API] Préparation des données d\'inscription');
+    
+    // Obtenir les valeurs du FormData pour les logs (sans mot de passe)
+    const formDataEntries = Object.fromEntries(formData.entries());
+    const safeLogData = { ...formDataEntries };
+    if (safeLogData.password) safeLogData.password = '[HIDDEN]';
+    
+    console.log('📤 [API] Envoi des données d\'inscription:', safeLogData);
+    console.log('📤 [API] URL d\'inscription:', `${API_URL}/auth/register`);
+    
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       body: formData,
       // Ne pas définir Content-Type, il sera automatiquement défini avec le boundary pour FormData
     });
 
-    console.log('🌐 [API] Statut de la réponse:', response.status);
+    console.log('📊 [API] Statut de la réponse d\'inscription:', response.status);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -27,6 +72,7 @@ export const registerUser = async (formData: FormData): Promise<{
       
       // Vérifier si l'erreur est due à un email déjà existant
       if (errorData.message && errorData.message.includes('déjà enregistré')) {
+        console.error('❌ [API] Email déjà enregistré et vérifié');
         throw new Error('Cet email est déjà enregistré et vérifié.');
       }
       
@@ -35,6 +81,8 @@ export const registerUser = async (formData: FormData): Promise<{
 
     const data = await response.json();
     console.log('✅ [API] Inscription réussie:', data);
+    console.log('📧 [API] Un code de vérification a été envoyé à:', data.email);
+    
     return data;
   } catch (error) {
     console.error('❌ [API] Erreur lors de l\'inscription:', error);
@@ -56,7 +104,11 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
   }
 }> => {
   try {
-    console.log('🌐 [API] Vérification du code:', verificationCode, 'pour email:', email);
+    console.log('🔄 [API] Début de la vérification du code');
+    console.log('📧 [API] Email:', email);
+    console.log('🔑 [API] Code de vérification:', verificationCode);
+    console.log('📤 [API] URL de vérification:', `${API_URL}/auth/verify-code`);
+    
     const response = await fetch(`${API_URL}/auth/verify-code`, {
       method: 'POST',
       headers: {
@@ -65,17 +117,22 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
       body: JSON.stringify({ email, verificationCode }),
     });
 
-    console.log('🌐 [API] Statut de la réponse de vérification:', response.status);
+    console.log('📊 [API] Statut de la réponse de vérification:', response.status);
     
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ [API] Erreur de vérification:', errorData);
+      console.error('❌ [API] Erreur de vérification du code:', errorData);
       
       // Déterminer le type d'erreur pour personnaliser le message
       if (errorData.message && errorData.message.includes('expiré')) {
+        console.error('⏰ [API] Code de vérification expiré');
         throw new Error('Code de vérification expiré. Veuillez vous réinscrire.');
       } else if (errorData.message && errorData.message.includes('incorrect')) {
+        console.error('❌ [API] Code de vérification incorrect');
         throw new Error('Code de vérification incorrect. Veuillez réessayer.');
+      } else if (errorData.message && errorData.message.includes('non trouvé')) {
+        console.error('🔍 [API] Utilisateur non trouvé');
+        throw new Error('Utilisateur non trouvé. Veuillez vous inscrire.');
       }
       
       throw new Error(errorData.message || 'Erreur lors de la vérification du code');
@@ -83,47 +140,11 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
 
     const data = await response.json();
     console.log('✅ [API] Vérification réussie:', data);
+    console.log('👤 [API] Utilisateur vérifié:', data.user.email);
+    
     return data;
   } catch (error) {
     console.error('❌ [API] Erreur lors de la vérification du code:', error);
-    throw error;
-  }
-};
-
-/**
- * Vérifie si un email existe déjà
- */
-export const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
-  try {
-    console.log('🌐 [API] Vérification si l\'email existe:', email);
-    const response = await fetch(`${API_URL}/auth/check-email?email=${encodeURIComponent(email)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log('🌐 [API] Statut de la réponse de vérification d\'email:', response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ [API] Erreur lors de la vérification de l\'email:', errorData);
-      throw new Error(errorData.message || 'Erreur lors de la vérification de l\'email');
-    }
-
-    const data = await response.json();
-    console.log('✅ [API] Vérification de l\'email réussie:', data);
-    
-    // Log supplémentaire pour indiquer si l'email existe
-    if (data.exists) {
-      console.warn('⚠️ [API] Cet email existe déjà dans la base de données');
-    } else {
-      console.log('✅ [API] Cet email est disponible');
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('❌ [API] Erreur lors de la vérification de l\'email:', error);
     throw error;
   }
 };

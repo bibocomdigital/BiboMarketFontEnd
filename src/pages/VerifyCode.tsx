@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { 
   InputOTP, 
   InputOTPGroup, 
@@ -31,27 +30,27 @@ const VerifyCode = () => {
   const userRoleString = location.state?.role || 'CLIENT';
   const userRole = mapStringToUserRole(userRoleString);
   
-  console.log('🔄 [VERIFY] VerifyCode component initialized');
-  console.log('👤 [VERIFY] User role:', userRole);
-  console.log('📧 [VERIFY] User email:', userEmail || 'Not provided');
+  console.log('🔄 [VERIFY] Initialisation du composant VerifyCode');
+  console.log('📧 [VERIFY] Email de l\'utilisateur:', userEmail || 'Non fourni');
+  console.log('👤 [VERIFY] Rôle de l\'utilisateur:', userRole);
   
   useEffect(() => {
     if (!userEmail) {
-      console.warn('⚠️ [VERIFY] No email provided, redirecting to register');
+      console.warn('⚠️ [VERIFY] Aucun email fourni, redirection vers la page d\'inscription');
       toast({
         title: "Données manquantes",
         description: "L'email est requis pour la vérification",
         variant: "destructive"
       });
       
-      // Redirect to register if no email
+      // Redirection vers la page d'inscription si aucun email n'est fourni
       navigate('/register');
     }
   }, [userEmail, navigate, toast]);
   
   const handleVerify = async () => {
     if (code.length !== 6) {
-      console.warn('⚠️ [VERIFY] Code incomplete:', code.length, 'digits provided');
+      console.warn('⚠️ [VERIFY] Code incomplet:', code.length, 'caractères fournis sur 6 requis');
       toast({
         title: "Code incomplet",
         description: "Veuillez entrer les 6 caractères du code",
@@ -64,7 +63,8 @@ const VerifyCode = () => {
     setError(null);
     setErrorType(null);
     
-    console.log('🔍 [VERIFY] Vérification du code:', code, 'pour email:', userEmail);
+    console.log('🔍 [VERIFY] Vérification du code:', code);
+    console.log('📧 [VERIFY] Pour l\'email:', userEmail);
     
     toast({
       title: "Vérification en cours",
@@ -72,18 +72,21 @@ const VerifyCode = () => {
     });
     
     try {
+      console.log('🔄 [VERIFY] Envoi de la requête de vérification');
       const response = await verifyCode(userEmail, code);
       
-      console.log('✅ [VERIFY] Code verification successful:', response);
+      console.log('✅ [VERIFY] Vérification réussie:', response);
       setSuccess(true);
+      
       toast({
-        title: "Code vérifié",
+        title: "Compte vérifié",
         description: "Votre compte a été vérifié avec succès!"
       });
       
-      // Redirect to login after successful verification
+      // Redirection vers la page de connexion après une vérification réussie
+      console.log('🔄 [VERIFY] Préparation de la redirection vers la page de connexion dans 2 secondes');
       setTimeout(() => {
-        console.log('🔄 [VERIFY] Redirecting to login page');
+        console.log('🔄 [VERIFY] Redirection vers la page de connexion');
         navigate('/login', { 
           state: { 
             verificationSuccessful: true,
@@ -93,31 +96,34 @@ const VerifyCode = () => {
       }, 2000);
       
     } catch (error: any) {
-      console.error('❌ [VERIFY] Verification error:', error);
+      console.error('❌ [VERIFY] Erreur de vérification:', error);
       
       // Détecter le type d'erreur basé sur le message
-      if (error.message.includes('expiré')) {
-        console.error('⏰ [VERIFY] Verification code expired');
+      if (error.message && error.message.includes('expiré')) {
+        console.error('⏰ [VERIFY] Code de vérification expiré');
         setError("Code de vérification expiré. Veuillez vous réinscrire.");
         setErrorType('expired');
+        
         toast({
           title: "Code expiré",
           description: "Votre code de vérification a expiré",
           variant: "destructive"
         });
-      } else if (error.message.includes('incorrect')) {
-        console.error('❌ [VERIFY] Incorrect verification code');
+      } else if (error.message && error.message.includes('incorrect')) {
+        console.error('❌ [VERIFY] Code de vérification incorrect');
         setError("Code de vérification incorrect. Veuillez réessayer.");
         setErrorType('incorrect');
+        
         toast({
           title: "Code incorrect",
           description: "Le code de vérification est incorrect",
           variant: "destructive"
         });
       } else {
-        console.error('❌ [VERIFY] General verification error');
+        console.error('❌ [VERIFY] Erreur générale de vérification');
         setError("Une erreur est survenue lors de la vérification");
         setErrorType('error');
+        
         toast({
           title: "Erreur",
           description: "Une erreur est survenue lors de la vérification",
@@ -130,7 +136,8 @@ const VerifyCode = () => {
   };
   
   const handleResendCode = async () => {
-    console.log('🔄 [VERIFY] Resending verification code to:', userEmail);
+    console.log('🔄 [VERIFY] Demande de renvoi du code de vérification');
+    console.log('📧 [VERIFY] Pour l\'email:', userEmail);
     
     try {
       // Pour une implémentation complète, nous devrions avoir un endpoint pour demander un nouveau code
@@ -140,12 +147,14 @@ const VerifyCode = () => {
         description: "Un nouveau code a été envoyé à votre adresse email"
       });
       
-      // Reset error states
+      // Réinitialiser les états d'erreur
       setError(null);
       setErrorType(null);
       setCode("");
+      
+      console.log('✅ [VERIFY] Notification de renvoi de code affichée');
     } catch (error) {
-      console.error('❌ [VERIFY] Error resending code:', error);
+      console.error('❌ [VERIFY] Erreur lors du renvoi du code:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer un nouveau code. Veuillez réessayer.",
@@ -155,23 +164,24 @@ const VerifyCode = () => {
   };
   
   const handleReturnToRegister = () => {
-    console.log('🔄 [VERIFY] Returning to registration page');
+    console.log('🔄 [VERIFY] Retour à la page d\'inscription');
     navigate('/register');
   };
   
   const handleCodeChange = (value: string) => {
-    console.log('🔑 [VERIFY] Code updated:', value);
+    console.log('🔑 [VERIFY] Mise à jour du code:', value);
     setCode(value);
     
-    // Clear any error when user starts typing a new code
+    // Effacer toute erreur lorsque l'utilisateur commence à taper un nouveau code
     if (error) {
+      console.log('🔄 [VERIFY] Réinitialisation des erreurs précédentes');
       setError(null);
       setErrorType(null);
     }
     
     // Si le code a 6 caractères, vérifier automatiquement
     if (value.length === 6) {
-      console.log('🔍 [VERIFY] Code complete, auto-verifying...');
+      console.log('🔍 [VERIFY] Code complet (6 caractères), vérification automatique...');
       setTimeout(() => {
         if (!isVerifying && !success) {
           handleVerify();

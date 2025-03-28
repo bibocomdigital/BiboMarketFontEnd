@@ -11,9 +11,13 @@ const Login = () => {
   const verificationSuccessful = location.state?.verificationSuccessful || false;
   const verifiedEmail = location.state?.email || '';
   
+  console.log('🔄 [LOGIN] Initialisation du composant Login');
+  console.log('✅ [LOGIN] Vérification réussie:', verificationSuccessful);
+  console.log('📧 [LOGIN] Email vérifié:', verifiedEmail);
+  
   useEffect(() => {
     if (verificationSuccessful) {
-      console.log('✅ [LOGIN] User redirected after successful verification');
+      console.log('✅ [LOGIN] Utilisateur redirigé après une vérification réussie');
       toast({
         title: "Inscription réussie",
         description: "Votre compte a été vérifié avec succès. Vous pouvez maintenant vous connecter.",
