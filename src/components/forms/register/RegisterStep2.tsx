@@ -9,22 +9,20 @@ import { MapPin } from 'lucide-react';
 import { RegisterFormValues } from '../RegisterForm';
 import CountrySelect from './CountrySelect';
 import { UserRole, USER_ROLE_LABELS } from '@/types/user';
+import { Country } from '@/data/countries';
 
 interface RegisterStep2Props {
   form: UseFormReturn<RegisterFormValues>;
   prevStep: () => void;
   isSubmitting?: boolean;
-  onCountryChange: (countryName: string) => void;
+  onCountryChange: (country: Country) => void;
 }
 
 const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }: RegisterStep2Props) => {
-  console.log('🔄 [REGISTER] Rendering RegisterStep2 component');
-  console.log('👤 [REGISTER] Current form values for step 2:', form.getValues());
   
-  const handleCountrySelectChange = (country: any) => {
-    console.log('🌍 [REGISTER] Country changed in RegisterStep2:', country.name);
+  const handleCountrySelectChange = (country: Country) => {
     if (onCountryChange) {
-      onCountryChange(country.name);
+      onCountryChange(country);
     }
   };
   
@@ -40,7 +38,6 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
               <RadioGroup
                 onValueChange={(value) => {
                   field.onChange(value);
-                  console.log('👤 [REGISTER] Role changed:', value);
                 }}
                 value={field.value}
                 className="flex flex-col space-y-1"
@@ -74,10 +71,6 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
                   <Input 
                     placeholder="Votre ville" 
                     {...field} 
-                    onChange={(e) => {
-                      field.onChange(e);
-                      console.log('🏙️ [REGISTER] City changed:', e.target.value);
-                    }}
                   />
                   <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 </div>
@@ -97,10 +90,6 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
                   <Input 
                     placeholder="Votre département" 
                     {...field} 
-                    onChange={(e) => {
-                      field.onChange(e);
-                      console.log('🏢 [REGISTER] Department changed:', e.target.value);
-                    }}
                   />
                   <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 </div>
@@ -121,10 +110,6 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
                 <Input 
                   placeholder="Votre commune" 
                   {...field} 
-                  onChange={(e) => {
-                    field.onChange(e);
-                    console.log('🏘️ [REGISTER] Commune changed:', e.target.value);
-                  }}
                 />
                 <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               </div>
@@ -137,10 +122,7 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
         <Button 
           type="button" 
           variant="outline" 
-          onClick={() => {
-            console.log('🔙 [REGISTER] Back button clicked');
-            prevStep();
-          }} 
+          onClick={prevStep} 
           className="w-1/2"
         >
           Retour
