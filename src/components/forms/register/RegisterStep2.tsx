@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MapPin } from 'lucide-react';
 import { RegisterFormValues } from '../RegisterForm';
 import CountrySelect from './CountrySelect';
+import { UserRole, USER_ROLE_LABELS } from '@/types/user';
 
 interface RegisterStep2Props {
   form: UseFormReturn<RegisterFormValues>;
@@ -18,12 +19,6 @@ interface RegisterStep2Props {
 const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }: RegisterStep2Props) => {
   console.log('🔄 [REGISTER] Rendering RegisterStep2 component');
   console.log('👤 [REGISTER] Current form values for step 2:', form.getValues());
-  
-  const roleLabels = {
-    client: 'Client',
-    commercant: 'Commerçant',
-    fournisseur: 'Fournisseur'
-  };
   
   const handleCountrySelectChange = (country: any) => {
     console.log('🌍 [REGISTER] Country changed in RegisterStep2:', country.name);
@@ -49,12 +44,12 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
                 value={field.value}
                 className="flex flex-col space-y-1"
               >
-                {Object.entries(roleLabels).map(([value, label]) => (
-                  <FormItem key={value} className="flex items-center space-x-3 space-y-0">
+                {Object.values(UserRole).map((role) => (
+                  <FormItem key={role} className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value={value} />
+                      <RadioGroupItem value={role} />
                     </FormControl>
-                    <FormLabel className="font-normal">{label}</FormLabel>
+                    <FormLabel className="font-normal">{USER_ROLE_LABELS[role as UserRole]}</FormLabel>
                   </FormItem>
                 ))}
               </RadioGroup>

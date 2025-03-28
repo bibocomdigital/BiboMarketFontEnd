@@ -1,4 +1,3 @@
-
 // Types for authentication
 export interface User {
   id: number;
@@ -11,7 +10,7 @@ export interface User {
   department?: string;
   commune?: string;
   photo?: string;
-  role: 'client' | 'commercant' | 'fournisseur' | 'merchant' | 'supplier';
+  role: "client" | "commercant" | "fournisseur" | "merchant" | "supplier";
   createdAt?: string;
   updatedAt?: string;
 }

@@ -9,6 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import RegisterStep1 from './register/RegisterStep1';
 import RegisterStep2 from './register/RegisterStep2';
 import { Country, getDefaultCountry } from '@/data/countries';
+import { UserRole } from '@/types/user';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
@@ -31,7 +32,7 @@ const formSchema = z.object({
   department: z.string().min(2, { message: 'Veuillez entrer un département valide' }),
   commune: z.string().min(2, { message: 'Veuillez entrer une commune valide' }),
   photo: z.any().optional(),
-  role: z.enum(['client', 'commercant', 'fournisseur'], {
+  role: z.nativeEnum(UserRole, {
     required_error: 'Veuillez sélectionner un rôle',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -41,7 +42,7 @@ const formSchema = z.object({
 
 export type RegisterFormValues = z.infer<typeof formSchema>;
 
-const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => void, initialRole?: 'client' | 'commercant' | 'fournisseur' }) => {
+const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: () => void, initialRole?: UserRole }) => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
