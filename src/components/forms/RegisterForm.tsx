@@ -10,7 +10,7 @@ import RegisterStep1 from './register/RegisterStep1';
 import RegisterStep2 from './register/RegisterStep2';
 import { Country, getDefaultCountry } from '@/data/countries';
 import { UserRole } from '@/types/user';
-import { checkEmailExists, registerUser } from '@/services/registrationService';
+import { checkEmailExists, registerUser } from '@/services/authService';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
@@ -260,13 +260,15 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
         description: "Un code de vérification a été envoyé à votre email.",
       });
       
-      console.log('🔄 [REGISTER] Redirection vers la page de vérification...');
+      console.log('🔄 [REGISTER] Préparation de la redirection vers la page de vérification...');
       console.log('📧 [REGISTER] Email:', data.email);
       console.log('🔑 [REGISTER] Mot de passe préservé pour l\'auto-connexion');
       console.log('👤 [REGISTER] Rôle:', data.role);
       
       // Redirection forcée avec une courte temporisation pour s'assurer que l'état est bien passé
       setTimeout(() => {
+        console.log('⏱️ [REGISTER] Délai de redirection démarré');
+        
         navigate('/verify-code', { 
           state: { 
             role: data.role,
@@ -275,13 +277,13 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
           } 
         });
         
-        console.log('✅ [REGISTER] Redirection effectuée!');
+        console.log('✅ [REGISTER] Redirection vers /verify-code effectuée!');
         
         if (onClose) {
           console.log('🔄 [REGISTER] Fermeture de la modal d\'inscription');
           onClose();
         }
-      }, 500);
+      }, 1000);
       
     } catch (error: any) {
       console.error('❌ [REGISTER] Erreur lors de l\'inscription:', error);

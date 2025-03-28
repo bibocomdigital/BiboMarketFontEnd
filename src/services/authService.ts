@@ -1,3 +1,4 @@
+
 // Types for authentication
 export interface User {
   id: number;
@@ -225,6 +226,80 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
     }
   } catch (error: any) {
     console.error('❌ [AUTH] Erreur de connexion:', error);
+    throw error;
+  }
+};
+
+// ====== FONCTIONS D'INSCRIPTION INTÉGRÉES AU SERVICE D'AUTHENTIFICATION ======
+
+// Check if email exists in database
+export const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
+  console.log('🔍 [AUTH] Vérification si l\'email existe déjà:', email);
+  try {
+    const response = await apiRequest(`/auth/check-email?email=${encodeURIComponent(email)}`, 'GET');
+    console.log(`✅ [AUTH] Résultat de la vérification email: ${response.exists ? 'Existe' : 'N\'existe pas'}`);
+    return response;
+  } catch (error) {
+    console.error('❌ [AUTH] Erreur lors de la vérification de l\'email:', error);
+    throw error;
+  }
+};
+
+// Register new user
+export const registerUser = async (formData: FormData): Promise<any> => {
+  console.log('👤 [AUTH] Tentative d\'inscription d\'un nouvel utilisateur');
+  
+  try {
+    // Log form data for debugging
+    formData.forEach((value, key) => {
+      if (key === 'password') {
+        console.log(`📝 [AUTH REGISTER] FormData: ${key} = ********`);
+      } else if (value instanceof File) {
+        console.log(`📝 [AUTH REGISTER] FormData: ${key} = File (${value.name}, ${value.size} bytes)`);
+      } else {
+        console.log(`📝 [AUTH REGISTER] FormData: ${key} = ${value}`);
+      }
+    });
+    
+    console.log('📤 [AUTH REGISTER] Envoi des données d\'inscription...');
+    const response = await apiFormRequest('/auth/register', 'POST', formData);
+    
+    console.log('✅ [AUTH REGISTER] Inscription réussie! Réponse:', response);
+    console.log('📧 [AUTH REGISTER] Email utilisé pour l\'inscription:', formData.get('email'));
+    console.log('👤 [AUTH REGISTER] Rôle sélectionné:', formData.get('role'));
+    
+    return response;
+  } catch (error) {
+    console.error('❌ [AUTH REGISTER] Erreur lors de l\'inscription:', error);
+    throw error;
+  }
+};
+
+// Verify registration code
+export const verifyCode = async (email: string, code: string): Promise<any> => {
+  console.log('🔑 [AUTH] Tentative de vérification du code pour:', email);
+  console.log('🔢 [AUTH] Code soumis:', code);
+  
+  try {
+    const response = await apiRequest('/auth/verify-code', 'POST', { email, verificationCode: code });
+    console.log('✅ [AUTH] Vérification du code réussie!');
+    console.log('👤 [AUTH] Utilisateur vérifié:', response.user?.email);
+    console.log('👤 [AUTH] Rôle de l\'utilisateur:', response.user?.role);
+    
+    return response;
+  } catch (error) {
+    console.error('❌ [AUTH] Erreur lors de la vérification du code:', error);
+    
+    // Ajouter des détails sur l'erreur pour aider au débogage
+    if (error instanceof Error) {
+      console.error('🔍 [AUTH] Message d\'erreur détaillé:', error.message);
+      if (error.message.includes('incorrect')) {
+        console.error('🔍 [AUTH] Type d\'erreur: Code incorrect');
+      } else if (error.message.includes('expiré')) {
+        console.error('🔍 [AUTH] Type d\'erreur: Code expiré');
+      }
+    }
+    
     throw error;
   }
 };

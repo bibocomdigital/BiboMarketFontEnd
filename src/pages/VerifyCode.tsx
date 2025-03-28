@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
@@ -9,8 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole, mapStringToUserRole } from '@/types/user';
-import { verifyCode } from '@/services/registrationService';
-import { login } from '@/services/authService';
+import { verifyCode, login } from '@/services/authService';
 
 type VerificationScenario = 'success' | 'incorrect' | 'expired' | 'error';
 
@@ -45,7 +45,10 @@ const VerifyCode = () => {
         variant: "destructive"
       });
       
-      navigate('/register');
+      setTimeout(() => {
+        navigate('/register');
+        console.log('✅ [VERIFY] Redirection vers /register effectuée');
+      }, 500);
     }
   }, [userEmail, navigate, toast]);
   
@@ -106,6 +109,8 @@ const VerifyCode = () => {
         console.log('🔄 [VERIFY] Préparation de la redirection après connexion...');
         
         setTimeout(() => {
+          console.log('⏱️ [VERIFY] Délai de redirection démarré');
+          
           if (userRole === 'merchant' || userRole === 'commercant') {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord commerçant');
             navigate('/merchant-dashboard');
@@ -117,12 +122,14 @@ const VerifyCode = () => {
             navigate('/client-dashboard');
           }
           console.log('✅ [VERIFY] Redirection effectuée!');
-        }, 1000);
+        }, 2000); // Augmenté à 2 secondes pour assurer que le processus est complet
       } catch (loginError) {
         console.error('❌ [VERIFY] Erreur lors de la connexion automatique:', loginError);
         
         console.log('🔄 [VERIFY] Redirection vers la page de connexion avec indication de succès de vérification');
         setTimeout(() => {
+          console.log('⏱️ [VERIFY] Délai de redirection vers login démarré');
+          
           navigate('/login', { 
             state: { 
               verificationSuccessful: true,
@@ -130,7 +137,7 @@ const VerifyCode = () => {
             } 
           });
           console.log('✅ [VERIFY] Redirection vers la page de connexion effectuée!');
-        }, 1000);
+        }, 2000);
       }
       
     } catch (error: any) {
@@ -174,6 +181,8 @@ const VerifyCode = () => {
   };
   
   const handleResendCode = async () => {
+    console.log('🔄 [VERIFY] Demande de renvoi de code pour:', userEmail);
+    
     toast({
       title: "Code renvoyé",
       description: "Un nouveau code a été envoyé à votre adresse email"
@@ -182,23 +191,31 @@ const VerifyCode = () => {
     setError(null);
     setErrorType(null);
     setCode("");
+    
+    console.log('✅ [VERIFY] Interface réinitialisée pour nouveau code');
   };
   
   const handleReturnToRegister = () => {
+    console.log('🔄 [VERIFY] Retour à l\'inscription demandé');
     navigate('/register');
+    console.log('✅ [VERIFY] Redirection vers /register effectuée');
   };
   
   const handleCodeChange = (value: string) => {
     setCode(value);
+    console.log('🔢 [VERIFY] Code mis à jour:', value);
     
     if (error) {
       setError(null);
       setErrorType(null);
+      console.log('🔄 [VERIFY] Réinitialisation des erreurs suite à modification du code');
     }
     
     if (value.length === 6) {
+      console.log('🔄 [VERIFY] Code complet (6 caractères), vérification automatique dans 500ms');
       setTimeout(() => {
         if (!isVerifying && !success) {
+          console.log('🔄 [VERIFY] Déclenchement automatique de la vérification');
           handleVerify();
         }
       }, 500);
