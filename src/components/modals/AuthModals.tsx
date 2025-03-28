@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import LoginForm from '@/components/forms/LoginForm';
 import RegisterForm from '@/components/forms/RegisterForm';
@@ -12,6 +12,9 @@ type AuthModalProps = {
 };
 
 const AuthModal: React.FC<AuthModalProps> = ({ type, isOpen, onClose, initialRole = 'client' }) => {
+  console.log('🔄 [MODAL] AuthModal rendered with type:', type);
+  console.log('👤 [MODAL] Initial role:', initialRole);
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">

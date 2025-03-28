@@ -12,13 +12,23 @@ interface RegisterStep1Props {
   photoPreview: string | null;
   handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   nextStep: () => void;
+  emailExists: boolean;
 }
 
-const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep }: RegisterStep1Props) => {
+const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailExists }: RegisterStep1Props) => {
   const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  
+  console.log('📝 [REGISTER] Rendering RegisterStep1 component');
+  console.log('👤 [REGISTER] Current form values:', form.getValues());
+  console.log('📧 [REGISTER] Email exists status:', emailExists);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
@@ -65,10 +75,23 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep }: Regi
             <FormLabel>Email</FormLabel>
             <FormControl>
               <div className="relative">
-                <Input placeholder="exemple@email.com" {...field} />
+                <Input 
+                  placeholder="exemple@email.com" 
+                  {...field} 
+                  onChange={(e) => {
+                    field.onChange(e);
+                    console.log('📧 [REGISTER] Email changed:', e.target.value);
+                  }}
+                  className={emailExists ? "border-red-500 focus:border-red-500" : ""}
+                />
                 <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               </div>
             </FormControl>
+            {emailExists && (
+              <p className="text-sm font-medium text-destructive mt-1">
+                Cet email est déjà enregistré et vérifié.
+              </p>
+            )}
             <FormMessage />
           </FormItem>
         )}
@@ -117,6 +140,32 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep }: Regi
       />
       <FormField
         control={form.control}
+        name="confirmPassword"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Confirmer le mot de passe</FormLabel>
+            <FormControl>
+              <div className="relative">
+                <Input 
+                  type={showConfirmPassword ? "text" : "password"} 
+                  placeholder="Confirmez votre mot de passe" 
+                  {...field} 
+                />
+                <button 
+                  type="button" 
+                  onClick={toggleConfirmPasswordVisibility}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
         name="photo"
         render={({ field: { value, onChange, ...field } }) => (
           <FormItem>
@@ -149,7 +198,10 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep }: Regi
                       type="file" 
                       className="hidden" 
                       accept="image/*"
-                      onChange={handlePhotoChange}
+                      onChange={(e) => {
+                        handlePhotoChange(e);
+                        console.log('🖼️ [REGISTER] Photo selected:', e.target.files?.[0]?.name);
+                      }}
                       {...field}
                     />
                   </label>
@@ -161,7 +213,14 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep }: Regi
         )}
       />
       <div className="pt-4">
-        <Button type="button" onClick={nextStep} className="w-full bg-bibocom-primary text-white">
+        <Button 
+          type="button" 
+          onClick={() => {
+            console.log('👉 [REGISTER] Next button clicked');
+            nextStep();
+          }} 
+          className="w-full bg-bibocom-primary text-white"
+        >
           Continuer
         </Button>
       </div>
@@ -178,7 +237,7 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep }: Regi
         type="button" 
         variant="outline" 
         className="w-full flex items-center justify-center gap-2"
-        onClick={() => console.log('Google register')}
+        onClick={() => console.log('🔄 [REGISTER] Google register clicked')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
