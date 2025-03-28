@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -201,12 +202,16 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   };
 
   const onSubmit = async (data: RegisterFormValues) => {
+    console.log('📝 [REGISTER] Début du processus d\'inscription', data.email);
+    console.log('📝 [REGISTER] Rôle sélectionné:', data.role);
+    
     let phoneWithCountryCode = data.phoneNumber;
     if (data.phoneNumber && selectedCountry && !data.phoneNumber.includes(selectedCountry.dialCode)) {
       phoneWithCountryCode = `${selectedCountry.dialCode} ${data.phoneNumber}`;
     }
     
     if (!data.city || !data.department || !data.commune) {
+      console.log('❌ [REGISTER] Informations de localisation manquantes');
       toast({
         title: "Informations manquantes",
         description: "Veuillez remplir toutes les informations de localisation",
@@ -216,6 +221,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     }
     
     setIsSubmitting(true);
+    console.log('🔄 [REGISTER] Envoi des données d\'inscription en cours...');
     
     try {
       const formData = new FormData();
@@ -244,24 +250,42 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       }
 
       formData.set('role', backendRole);
+      console.log('👤 [REGISTER] Rôle envoyé au backend:', backendRole);
 
       const response = await registerUser(formData);
+      console.log('✅ [REGISTER] Inscription réussie!', response);
       
       toast({
         title: "Inscription réussie",
         description: "Un code de vérification a été envoyé à votre email.",
       });
       
-      navigate('/verify-code', { 
-        state: { 
-          role: data.role,
-          email: data.email,
-          password: data.password
-        } 
-      });
+      console.log('🔄 [REGISTER] Redirection vers la page de vérification...');
+      console.log('📧 [REGISTER] Email:', data.email);
+      console.log('🔑 [REGISTER] Mot de passe préservé pour l\'auto-connexion');
+      console.log('👤 [REGISTER] Rôle:', data.role);
       
-      if (onClose) onClose();
+      // Redirection forcée avec une courte temporisation pour s'assurer que l'état est bien passé
+      setTimeout(() => {
+        navigate('/verify-code', { 
+          state: { 
+            role: data.role,
+            email: data.email,
+            password: data.password
+          } 
+        });
+        
+        console.log('✅ [REGISTER] Redirection effectuée!');
+        
+        if (onClose) {
+          console.log('🔄 [REGISTER] Fermeture de la modal d\'inscription');
+          onClose();
+        }
+      }, 500);
+      
     } catch (error: any) {
+      console.error('❌ [REGISTER] Erreur lors de l\'inscription:', error);
+      
       let errorMessage = "Une erreur est survenue lors de l'inscription";
       
       if (error.message) {
@@ -274,6 +298,8 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
         }
       }
       
+      console.log('❌ [REGISTER] Message d\'erreur affiché:', errorMessage);
+      
       toast({
         title: "Erreur d'inscription",
         description: errorMessage,
@@ -281,6 +307,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       });
     } finally {
       setIsSubmitting(false);
+      console.log('🔄 [REGISTER] Fin du processus d\'inscription');
     }
   };
 

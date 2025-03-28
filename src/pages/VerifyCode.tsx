@@ -24,12 +24,21 @@ const VerifyCode = () => {
   const location = useLocation();
   const { toast } = useToast();
   
+  console.log('🔄 [VERIFY] Initialisation de la page de vérification');
+  console.log('🔍 [VERIFY] Location state:', location.state);
+  
   const userEmail = location.state?.email || '';
+  const userPassword = location.state?.password || '';
   const userRoleString = location.state?.role || 'CLIENT';
   const userRole = mapStringToUserRole(userRoleString);
   
+  console.log('📧 [VERIFY] Email reçu:', userEmail);
+  console.log('🔑 [VERIFY] Mot de passe reçu:', userPassword ? '[PRÉSENT]' : '[ABSENT]');
+  console.log('👤 [VERIFY] Rôle reçu:', userRoleString);
+  
   useEffect(() => {
     if (!userEmail) {
+      console.warn('⚠️ [VERIFY] Email manquant, redirection vers l\'inscription');
       toast({
         title: "Données manquantes",
         description: "L'email est requis pour la vérification",
@@ -42,6 +51,7 @@ const VerifyCode = () => {
   
   const handleVerify = async () => {
     if (code.length !== 6) {
+      console.warn('⚠️ [VERIFY] Code incomplet');
       toast({
         title: "Code incomplet",
         description: "Veuillez entrer les 6 caractères du code",
@@ -54,6 +64,10 @@ const VerifyCode = () => {
     setError(null);
     setErrorType(null);
     
+    console.log('🔄 [VERIFY] Vérification du code en cours...');
+    console.log('📧 [VERIFY] Email utilisé:', userEmail);
+    console.log('🔑 [VERIFY] Code soumis:', code);
+    
     toast({
       title: "Vérification en cours",
       description: "Nous vérifions votre code..."
@@ -61,6 +75,7 @@ const VerifyCode = () => {
     
     try {
       const response = await verifyCode(userEmail, code);
+      console.log('✅ [VERIFY] Vérification réussie!', response);
       
       setSuccess(true);
       
@@ -70,23 +85,43 @@ const VerifyCode = () => {
       });
       
       try {
+        console.log('🔄 [VERIFY] Tentative de connexion automatique...');
+        console.log('📧 [VERIFY] Email utilisé pour la connexion:', userEmail);
+        console.log('🔑 [VERIFY] Mot de passe disponible:', userPassword ? 'Oui' : 'Non');
+        
+        if (!userPassword) {
+          console.warn('⚠️ [VERIFY] Mot de passe non disponible, redirection vers la page de connexion');
+          throw new Error('Mot de passe non disponible');
+        }
+        
         const loginResult = await login({
           email: userEmail,
-          password: location.state?.password || ''
+          password: userPassword
         });
         
+        console.log('✅ [VERIFY] Connexion automatique réussie!', loginResult);
         const userRole = loginResult.user.role.toLowerCase();
+        console.log('👤 [VERIFY] Rôle de l\'utilisateur connecté:', userRole);
+        
+        console.log('🔄 [VERIFY] Préparation de la redirection après connexion...');
         
         setTimeout(() => {
           if (userRole === 'merchant' || userRole === 'commercant') {
+            console.log('🔄 [VERIFY] Redirection vers le tableau de bord commerçant');
             navigate('/merchant-dashboard');
           } else if (userRole === 'supplier' || userRole === 'fournisseur') {
+            console.log('🔄 [VERIFY] Redirection vers le tableau de bord fournisseur');
             navigate('/supplier-dashboard');
           } else {
+            console.log('🔄 [VERIFY] Redirection vers le tableau de bord client');
             navigate('/client-dashboard');
           }
+          console.log('✅ [VERIFY] Redirection effectuée!');
         }, 1000);
       } catch (loginError) {
+        console.error('❌ [VERIFY] Erreur lors de la connexion automatique:', loginError);
+        
+        console.log('🔄 [VERIFY] Redirection vers la page de connexion avec indication de succès de vérification');
         setTimeout(() => {
           navigate('/login', { 
             state: { 
@@ -94,11 +129,15 @@ const VerifyCode = () => {
               email: userEmail
             } 
           });
+          console.log('✅ [VERIFY] Redirection vers la page de connexion effectuée!');
         }, 1000);
       }
       
     } catch (error: any) {
+      console.error('❌ [VERIFY] Erreur lors de la vérification du code:', error);
+      
       if (error.message && error.message.includes('expiré')) {
+        console.log('⏰ [VERIFY] Code expiré');
         setError("Code de vérification expiré. Veuillez vous réinscrire.");
         setErrorType('expired');
         
@@ -108,6 +147,7 @@ const VerifyCode = () => {
           variant: "destructive"
         });
       } else if (error.message && error.message.includes('incorrect')) {
+        console.log('❌ [VERIFY] Code incorrect');
         setError("Code de vérification incorrect. Veuillez réessayer.");
         setErrorType('incorrect');
         
@@ -117,6 +157,7 @@ const VerifyCode = () => {
           variant: "destructive"
         });
       } else {
+        console.log('❌ [VERIFY] Erreur générique lors de la vérification');
         setError("Une erreur est survenue lors de la vérification");
         setErrorType('error');
         
@@ -128,6 +169,7 @@ const VerifyCode = () => {
       }
     } finally {
       setIsVerifying(false);
+      console.log('🔄 [VERIFY] Fin du processus de vérification');
     }
   };
   
