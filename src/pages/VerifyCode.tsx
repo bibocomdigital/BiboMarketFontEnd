@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/user';
+import { verifyCode } from '@/services/registrationService';
 
 // Définition correcte du type pour le scénario de vérification
 type VerificationScenario = 'success' | 'incorrect' | 'expired';
@@ -46,7 +47,7 @@ const VerifyCode = () => {
     }
   }, [userEmail, navigate, toast]);
   
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (code.length !== 6) {
       console.warn('⚠️ [VERIFY] Code incomplete:', code.length, 'digits provided');
       toast({
@@ -68,46 +69,32 @@ const VerifyCode = () => {
       description: "Nous vérifions votre code..."
     });
     
-    // Simuler un délai d'API
-    setTimeout(() => {
-      // Dans une implémentation réelle, vous appelleriez votre API de vérification ici
+    try {
+      const response = await verifyCode(userEmail, code);
       
-      // Pour la démonstration, simulons différents scénarios possibles
+      console.log('✅ [VERIFY] Code verification successful:', response);
+      setSuccess(true);
+      toast({
+        title: "Code vérifié",
+        description: "Votre compte a été vérifié avec succès!"
+      });
       
-      // Définir le scénario à tester
-      const scenario: VerificationScenario = 'success'; // Success case
-      // const scenario: VerificationScenario = 'incorrect'; // Incorrect code
-      // const scenario: VerificationScenario = 'expired'; // Expired code
-      
-      if (scenario === 'success') {
-        console.log('✅ [VERIFY] Code verification successful');
-        setSuccess(true);
-        toast({
-          title: "Code vérifié",
-          description: "Votre compte a été vérifié avec succès!"
+      // Redirect after successful verification
+      setTimeout(() => {
+        console.log('🔄 [VERIFY] Redirecting to verification pending page');
+        navigate('/verification-pending', { 
+          state: { 
+            role: userRole, 
+            email: userEmail 
+          } 
         });
-        
-        // Redirect after successful verification
-        setTimeout(() => {
-          console.log('🔄 [VERIFY] Redirecting to verification pending page');
-          navigate('/verification-pending', { 
-            state: { 
-              role: userRole, 
-              email: userEmail 
-            } 
-          });
-        }, 1500);
-      } 
-      else if (scenario === 'incorrect') {
-        console.error('❌ [VERIFY] Incorrect verification code');
-        setError("Code de vérification incorrect");
-        toast({
-          title: "Code incorrect",
-          description: "Le code de vérification est incorrect",
-          variant: "destructive"
-        });
-      }
-      else if (scenario === 'expired') {
+      }, 1500);
+      
+    } catch (error: any) {
+      console.error('❌ [VERIFY] Verification error:', error);
+      
+      // Détecter le type d'erreur basé sur le message
+      if (error.message.includes('expiré')) {
         console.error('⏰ [VERIFY] Verification code expired');
         setError("Code de vérification expiré");
         setIsExpired(true);
@@ -116,25 +103,43 @@ const VerifyCode = () => {
           description: "Votre code de vérification a expiré",
           variant: "destructive"
         });
+      } else {
+        console.error('❌ [VERIFY] Incorrect verification code');
+        setError("Code de vérification incorrect");
+        toast({
+          title: "Code incorrect",
+          description: "Le code de vérification est incorrect",
+          variant: "destructive"
+        });
       }
-      
+    } finally {
       setIsVerifying(false);
-    }, 1500);
+    }
   };
   
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     console.log('🔄 [VERIFY] Resending verification code to:', userEmail);
     
-    // Simulate sending a new code
-    toast({
-      title: "Code renvoyé",
-      description: "Un nouveau code a été envoyé à votre adresse email"
-    });
-    
-    // Reset error states
-    setError(null);
-    setIsExpired(false);
-    setCode("");
+    try {
+      // Pour une implémentation complète, nous devrions avoir un endpoint pour demander un nouveau code
+      // Pour l'instant, nous utilisons un simple toast de confirmation
+      toast({
+        title: "Code renvoyé",
+        description: "Un nouveau code a été envoyé à votre adresse email"
+      });
+      
+      // Reset error states
+      setError(null);
+      setIsExpired(false);
+      setCode("");
+    } catch (error) {
+      console.error('❌ [VERIFY] Error resending code:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer un nouveau code. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    }
   };
   
   const handleCodeChange = (value: string) => {

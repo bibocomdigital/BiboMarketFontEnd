@@ -3,13 +3,13 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RegisterStep1 from './register/RegisterStep1';
 import RegisterStep2 from './register/RegisterStep2';
 import { Country, getDefaultCountry } from '@/data/countries';
 import { UserRole } from '@/types/user';
+import { checkEmailExists, registerUser } from '@/services/registrationService';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
@@ -63,9 +63,9 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     if (roleParam) {
       if (roleParam === 'client') {
         form.setValue('role', UserRole.CLIENT);
-      } else if (roleParam === 'commercant') {
+      } else if (roleParam === 'commercant' || roleParam === 'merchant') {
         form.setValue('role', UserRole.MERCHANT);
-      } else if (roleParam === 'fournisseur') {
+      } else if (roleParam === 'fournisseur' || roleParam === 'supplier') {
         form.setValue('role', UserRole.SUPPLIER);
       }
     }
@@ -94,20 +94,12 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     form.setValue('role', initialRole);
   }, [initialRole, form]);
 
-  const checkEmailExists = async (email: string) => {
+  const handleCheckEmailExists = async (email: string) => {
     if (!email || !email.includes('@')) return;
     
     console.log('🔍 [REGISTER] Checking if email exists:', email);
     try {
-      const mockCheckEmail = () => {
-        return new Promise<{exists: boolean}>((resolve) => {
-          setTimeout(() => {
-            resolve({ exists: false });
-          }, 500);
-        });
-      };
-      
-      const response = await mockCheckEmail();
+      const response = await checkEmailExists(email);
       console.log('📧 [REGISTER] Email check response:', response);
       
       setEmailExists(response.exists);
@@ -133,7 +125,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     const email = form.watch('email');
     const debounceTimer = setTimeout(() => {
       if (email && email.includes('@')) {
-        checkEmailExists(email);
+        handleCheckEmailExists(email);
       }
     }, 500);
     
@@ -272,30 +264,25 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
         }
       });
 
-      console.log(`👤 [REGISTER] Explicitly adding role to FormData: ${data.role}`);
-      formData.append('role', data.role);
+      let backendRole;
+      switch (data.role) {
+        case UserRole.CLIENT:
+          backendRole = "CLIENT";
+          break;
+        case UserRole.MERCHANT:
+          backendRole = "MERCHANT";
+          break;
+        case UserRole.SUPPLIER:
+          backendRole = "SUPPLIER";
+          break;
+      }
 
-      console.log('🔄 [REGISTER] Simulating API registration call');
+      console.log(`👤 [REGISTER] Explicitly adding role to FormData: ${backendRole}`);
+      formData.append('role', backendRole);
+
+      console.log('🔄 [REGISTER] Sending registration data to API');
       
-      const mockRegister = () => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            resolve({
-              success: true,
-              message: "Inscription réussie",
-              user: {
-                id: 123,
-                email: data.email,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                role: data.role
-              }
-            });
-          }, 1500);
-        });
-      };
-      
-      const response = await mockRegister();
+      const response = await registerUser(formData);
       console.log('✅ [REGISTER] Registration successful:', response);
       
       toast({
@@ -311,11 +298,11 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       });
       
       if (onClose) onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [REGISTER] Registration error:', error);
       toast({
         title: "Erreur d'inscription",
-        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        description: error.message || "Une erreur est survenue lors de l'inscription",
         variant: "destructive",
       });
     } finally {
