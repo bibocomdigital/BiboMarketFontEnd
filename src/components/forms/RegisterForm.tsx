@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -94,7 +95,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     console.log('🔍 [REGISTER] Checking if email exists:', email);
     try {
       const mockCheckEmail = () => {
-        return new Promise((resolve) => {
+        return new Promise<{exists: boolean}>((resolve) => {
           setTimeout(() => {
             resolve({ exists: false });
           }, 500);
