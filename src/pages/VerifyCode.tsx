@@ -11,6 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
+type VerificationScenario = 'success' | 'incorrect' | 'expired';
+
 const VerifyCode = () => {
   const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -88,9 +90,9 @@ const VerifyCode = () => {
       // Pour la démonstration, simulons différents scénarios possibles
       
       // Uncomment one of these scenarios to test
-      const scenario = 'success'; // Success case
-      // const scenario = 'incorrect'; // Incorrect code
-      // const scenario = 'expired'; // Expired code
+      const scenario: VerificationScenario = 'success'; // Success case
+      // const scenario: VerificationScenario = 'incorrect'; // Incorrect code
+      // const scenario: VerificationScenario = 'expired'; // Expired code
       
       switch (scenario) {
         case 'success':

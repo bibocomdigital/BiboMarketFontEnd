@@ -11,9 +11,10 @@ import { RegisterFormValues } from '../RegisterForm';
 interface RegisterStep2Props {
   form: UseFormReturn<RegisterFormValues>;
   prevStep: () => void;
+  isSubmitting?: boolean; // Ajout de cette prop optionnelle
 }
 
-const RegisterStep2 = ({ form, prevStep }: RegisterStep2Props) => {
+const RegisterStep2 = ({ form, prevStep, isSubmitting = false }: RegisterStep2Props) => {
   return (
     <>
       <FormField
@@ -122,8 +123,12 @@ const RegisterStep2 = ({ form, prevStep }: RegisterStep2Props) => {
         <Button type="button" variant="outline" onClick={prevStep} className="w-1/2">
           Retour
         </Button>
-        <Button type="submit" className="w-1/2 bg-bibocom-primary text-white">
-          S'inscrire
+        <Button 
+          type="submit" 
+          className="w-1/2 bg-bibocom-primary text-white"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Inscription en cours...' : 'S\'inscrire'}
         </Button>
       </div>
     </>
