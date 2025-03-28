@@ -85,19 +85,30 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
       throw new Error("Email et mot de passe requis");
     }
 
-    // Mock roles based on email prefix for testing
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Vérification simple pour simuler l'échec d'authentification
+    if (credentials.email !== 'client@example.com' && 
+        credentials.email !== 'commercant@example.com' && 
+        credentials.email !== 'fournisseur@example.com') {
+      throw new Error("Email ou mot de passe incorrect");
+    }
+    
+    if (credentials.password !== 'password123') {
+      throw new Error("Email ou mot de passe incorrect");
+    }
+
+    // Déterminer le rôle en fonction de l'email pour la simulation
     let role: 'client' | 'commercant' | 'fournisseur' = 'client';
-    if (credentials.email.startsWith('commercant')) {
+    if (credentials.email === 'commercant@example.com') {
       role = 'commercant';
-    } else if (credentials.email.startsWith('fournisseur')) {
+    } else if (credentials.email === 'fournisseur@example.com') {
       role = 'fournisseur';
     }
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-
     const mockResponse: AuthResponse = {
-      token: "mock_jwt_token_for_testing_purposes",
+      token: "mock_jwt_token_for_testing_purposes_" + role,
       user: {
         id: 1,
         email: credentials.email,

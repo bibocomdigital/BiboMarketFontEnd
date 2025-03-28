@@ -37,8 +37,16 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
     try {
       console.log('Login data:', data);
       
+      // Vérifier que email et password sont présents
+      if (!data.email || !data.password) {
+        throw new Error("Email et mot de passe requis");
+      }
+      
       // Call the login service
-      const response = await login(data);
+      const response = await login({
+        email: data.email,
+        password: data.password
+      });
       
       // Show success toast
       toast({
@@ -49,7 +57,7 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
       // Close the modal if it exists
       if (onClose) onClose();
       
-      // Redirect based on user role
+      // Redirect based on user role from the response
       setTimeout(() => {
         const role = response.user.role;
         if (role === 'commercant') {
@@ -64,7 +72,7 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
       console.error('Erreur:', error);
       toast({
         title: "Erreur de connexion",
-        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        description: "Email ou mot de passe incorrect",
         variant: "destructive",
       });
     } finally {

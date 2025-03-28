@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { packageOpen, truck, settings, shoppingBag, users, barChart } from 'lucide-react';
+import { PackageOpen, Truck, Settings, ShoppingBag, Users, BarChart } from 'lucide-react';
 import { logout } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,7 +43,7 @@ const SupplierDashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium">Statistiques</h3>
               <span className="p-2 bg-bibocom-success/10 rounded-full text-bibocom-success">
-                <barChart size={20} />
+                <BarChart size={20} />
               </span>
             </div>
             <p className="text-2xl font-bold">0</p>
@@ -54,7 +54,7 @@ const SupplierDashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium">Produits</h3>
               <span className="p-2 bg-bibocom-success/10 rounded-full text-bibocom-success">
-                <packageOpen size={20} />
+                <PackageOpen size={20} />
               </span>
             </div>
             <p className="text-2xl font-bold">0</p>
@@ -65,7 +65,7 @@ const SupplierDashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium">Commerçants</h3>
               <span className="p-2 bg-bibocom-success/10 rounded-full text-bibocom-success">
-                <users size={20} />
+                <Users size={20} />
               </span>
             </div>
             <p className="text-2xl font-bold">0</p>
@@ -79,17 +79,17 @@ const SupplierDashboard = () => {
             <div className="space-y-4">
               <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                 <span>Ajouter un produit</span>
-                <packageOpen size={18} />
+                <PackageOpen size={18} />
               </button>
               
               <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                 <span>Gérer les livraisons</span>
-                <truck size={18} />
+                <Truck size={18} />
               </button>
               
               <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                 <span>Paramètres du compte</span>
-                <settings size={18} />
+                <Settings size={18} />
               </button>
             </div>
           </div>
