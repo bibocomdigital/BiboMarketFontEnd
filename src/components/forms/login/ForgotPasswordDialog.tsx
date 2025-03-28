@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader } from 'lucide-react';
@@ -104,7 +103,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
         {step === 'email' ? (
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div className="space-y-2">
-              <FormLabel htmlFor="reset-email">Email</FormLabel>
+              <label htmlFor="reset-email" className="text-sm font-medium">Email</label>
               <Input 
                 id="reset-email" 
                 placeholder="Votre adresse email" 
@@ -142,7 +141,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange, resetEmail, setResetEmail }:
         ) : (
           <form onSubmit={handleVerifyCode} className="space-y-4">
             <div className="space-y-2">
-              <FormLabel htmlFor="verification-code">Code de vérification</FormLabel>
+              <label htmlFor="verification-code" className="text-sm font-medium">Code de vérification</label>
               <Input 
                 id="verification-code" 
                 placeholder="Entrez le code reçu par email" 
