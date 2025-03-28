@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
@@ -11,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole, mapStringToUserRole } from '@/types/user';
 import { verifyCode } from '@/services/registrationService';
+import { login } from '@/services/authService';
 
-// Définition du type pour le scénario de vérification
 type VerificationScenario = 'success' | 'incorrect' | 'expired' | 'error';
 
 const VerifyCode = () => {
@@ -25,7 +24,6 @@ const VerifyCode = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  // Récupérer l'email et le rôle depuis la navigation
   const userEmail = location.state?.email || '';
   const userRoleString = location.state?.role || 'CLIENT';
   const userRole = mapStringToUserRole(userRoleString);
@@ -43,7 +41,6 @@ const VerifyCode = () => {
         variant: "destructive"
       });
       
-      // Redirection vers la page d'inscription si aucun email n'est fourni
       navigate('/register');
     }
   }, [userEmail, navigate, toast]);
@@ -83,22 +80,34 @@ const VerifyCode = () => {
         description: "Votre compte a été vérifié avec succès!"
       });
       
-      // Redirection vers la page de connexion après une vérification réussie
-      console.log('🔄 [VERIFY] Préparation de la redirection vers la page de connexion dans 2 secondes');
-      setTimeout(() => {
-        console.log('🔄 [VERIFY] Redirection vers la page de connexion');
-        navigate('/login', { 
-          state: { 
-            verificationSuccessful: true,
-            email: userEmail
-          } 
-        });
-      }, 2000);
+      try {
+        console.log('🔄 [VERIFY] Tentative de connexion automatique après vérification');
+        
+        console.log('ℹ️ [VERIFY] Redirection vers la page de connexion avec l\'email pré-rempli');
+        
+        console.log('🔄 [VERIFY] Préparation de la redirection vers la page de connexion dans 2 secondes');
+        setTimeout(() => {
+          console.log('🔄 [VERIFY] Redirection vers la page de connexion');
+          navigate('/login', { 
+            state: { 
+              verificationSuccessful: true,
+              email: userEmail
+            } 
+          });
+        }, 2000);
+      } catch (loginError) {
+        console.error('❌ [VERIFY] Erreur lors de la connexion automatique:', loginError);
+        setTimeout(() => {
+          navigate('/login', { 
+            state: { 
+              verificationSuccessful: true,
+              email: userEmail
+            } 
+          });
+        }, 2000);
+      }
       
     } catch (error: any) {
-      console.error('❌ [VERIFY] Erreur de vérification:', error);
-      
-      // Détecter le type d'erreur basé sur le message
       if (error.message && error.message.includes('expiré')) {
         console.error('⏰ [VERIFY] Code de vérification expiré');
         setError("Code de vérification expiré. Veuillez vous réinscrire.");
@@ -140,14 +149,11 @@ const VerifyCode = () => {
     console.log('📧 [VERIFY] Pour l\'email:', userEmail);
     
     try {
-      // Pour une implémentation complète, nous devrions avoir un endpoint pour demander un nouveau code
-      // Pour l'instant, nous utilisons un simple toast de confirmation
       toast({
         title: "Code renvoyé",
         description: "Un nouveau code a été envoyé à votre adresse email"
       });
       
-      // Réinitialiser les états d'erreur
       setError(null);
       setErrorType(null);
       setCode("");
@@ -172,14 +178,12 @@ const VerifyCode = () => {
     console.log('🔑 [VERIFY] Mise à jour du code:', value);
     setCode(value);
     
-    // Effacer toute erreur lorsque l'utilisateur commence à taper un nouveau code
     if (error) {
       console.log('🔄 [VERIFY] Réinitialisation des erreurs précédentes');
       setError(null);
       setErrorType(null);
     }
     
-    // Si le code a 6 caractères, vérifier automatiquement
     if (value.length === 6) {
       console.log('🔍 [VERIFY] Code complet (6 caractères), vérification automatique...');
       setTimeout(() => {

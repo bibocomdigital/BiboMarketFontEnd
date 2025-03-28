@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -13,6 +12,7 @@ import SocialLoginButton from './SocialLoginButton';
 import { LoginFormSchema } from './LoginFormTypes';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { login } from '@/services/authService';
 
 type LoginFormContentProps = {
   initialEmail?: string;
@@ -51,19 +51,29 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
     setIsSubmitting(true);
     
     try {
-      // Simulation d'une requête d'authentification
       console.log('🔄 [LOGIN] Sending authentication request...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await login({
+        email: values.email,
+        password: values.password
+      });
       
-      console.log('✅ [LOGIN] Authentication successful');
+      console.log('✅ [LOGIN] Authentication successful', response);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté"
       });
       
-      // Redirect to appropriate dashboard based on user role
       console.log('🔄 [LOGIN] Redirecting to dashboard...');
-      navigate('/client-dashboard');
+      const userRole = response.user.role.toLowerCase();
+      
+      console.log('👤 [LOGIN] User role for redirection:', userRole);
+      if (userRole === 'merchant' || userRole === 'commercant') {
+        navigate('/merchant-dashboard');
+      } else if (userRole === 'supplier' || userRole === 'fournisseur') {
+        navigate('/supplier-dashboard');
+      } else {
+        navigate('/client-dashboard');
+      }
       
       if (onClose) {
         console.log('🔄 [LOGIN] Closing dialog...');

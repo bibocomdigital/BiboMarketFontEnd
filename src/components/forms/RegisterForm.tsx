@@ -10,6 +10,7 @@ import RegisterStep2 from './register/RegisterStep2';
 import { Country, getDefaultCountry } from '@/data/countries';
 import { UserRole } from '@/types/user';
 import { checkEmailExists, registerUser } from '@/services/registrationService';
+import { login } from '@/services/authService';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
@@ -300,6 +301,19 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       });
       
       console.log('🔄 [REGISTER] Redirection vers la page de vérification du code');
+      
+      try {
+        console.log('🔐 [REGISTER] Tentative de connexion automatique après inscription');
+        const loginResult = await login({
+          email: data.email,
+          password: data.password
+        });
+        
+        console.log('✅ [REGISTER] Connexion automatique réussie:', loginResult);
+      } catch (loginError) {
+        console.log('ℹ️ [REGISTER] Connexion automatique impossible, poursuite du processus normal:', loginError);
+      }
+      
       navigate('/verify-code', { 
         state: { 
           role: data.role,
