@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
+// Define this type properly to ensure TypeScript knows these are valid string literals that can be compared
 type VerificationScenario = 'success' | 'incorrect' | 'expired';
 
 const VerifyCode = () => {
