@@ -74,14 +74,21 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
       }
       
       // Redirect based on user role from the response
-      const role = response.user.role;
-      console.log('Redirection basée sur le rôle:', role);
+      const role = response.user.role.toLowerCase(); // Convertir en minuscules pour s'assurer que la comparaison fonctionne
+      console.log('Redirection basée sur le rôle (en minuscules):', role);
       
       setTimeout(() => {
-        if (role === 'commercant') {
+        // Vérifier précisément les valeurs des rôles
+        console.log('Vérification du rôle exact:', role);
+        console.log('Est-ce "merchant"?', role === 'merchant');
+        console.log('Est-ce "commercant"?', role === 'commercant');
+        console.log('Est-ce "supplier"?', role === 'supplier');
+        console.log('Est-ce "fournisseur"?', role === 'fournisseur');
+        
+        if (role === 'merchant' || role === 'commercant') {
           console.log('Redirection vers le tableau de bord commerçant');
           navigate('/merchant-dashboard');
-        } else if (role === 'fournisseur') {
+        } else if (role === 'supplier' || role === 'fournisseur') {
           console.log('Redirection vers le tableau de bord fournisseur');
           navigate('/supplier-dashboard');
         } else {
