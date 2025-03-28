@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import RegisterStep1 from './register/RegisterStep1';
 import RegisterStep2 from './register/RegisterStep2';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Le prénom doit contenir au moins 2 caractères' }),
@@ -31,6 +32,17 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
   const [step, setStep] = useState(1);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check URL for role parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const roleParam = params.get('role');
+    if (roleParam && (roleParam === 'client' || roleParam === 'commercant' || roleParam === 'fournisseur')) {
+      form.setValue('role', roleParam);
+    }
+  }, [location]);
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(formSchema),
@@ -68,9 +80,14 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       console.log('Register data:', data);
       
       toast({
-        title: "Inscription en cours",
+        title: "Inscription réussie",
         description: "Un email de vérification vous sera envoyé pour confirmer votre compte.",
       });
+      
+      // Navigate to home page after successful registration
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
       
       if (onClose) onClose();
     } catch (error) {
@@ -109,11 +126,6 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-semibold">Inscription</h2>
-          <p className="text-sm text-gray-500">Inscrivez-vous pour rejoindre notre marketplace</p>
-        </div>
-
         {step === 1 ? (
           <RegisterStep1
             form={form}

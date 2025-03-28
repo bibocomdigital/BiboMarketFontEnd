@@ -1,19 +1,17 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import AnimatedText from './ui-custom/AnimatedText';
 import AnimatedCard from './ui-custom/AnimatedCard';
 import Badge from './ui-custom/Badge';
 import Button from './ui-custom/Button';
 import { Store, Users, Truck, ChevronRight, Check } from 'lucide-react';
-import AuthModal from './modals/AuthModals';
+import { Link, useNavigate } from 'react-router-dom';
 
 const UserTypes = () => {
-  const [registerModalOpen, setRegisterModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<'client' | 'commercant' | 'fournisseur'>('client');
-
-  const openRegisterModal = (role: 'client' | 'commercant' | 'fournisseur') => {
-    setSelectedRole(role);
-    setRegisterModalOpen(true);
+  const navigate = useNavigate();
+  
+  const navigateToRegister = (role: 'client' | 'commercant' | 'fournisseur') => {
+    navigate(`/register?role=${role}`);
   };
 
   const userTypes = [
@@ -128,7 +126,7 @@ const UserTypes = () => {
                 icon={<ChevronRight size={16} />}
                 iconPosition="right"
                 className="w-full"
-                onClick={() => openRegisterModal(userType.role)}
+                onClick={() => navigateToRegister(userType.role)}
               >
                 {userType.buttonText}
               </Button>
@@ -136,14 +134,6 @@ const UserTypes = () => {
           </AnimatedCard>
         ))}
       </div>
-
-      {/* Registration Modal with selected role */}
-      <AuthModal 
-        type="register"
-        isOpen={registerModalOpen} 
-        onClose={() => setRegisterModalOpen(false)}
-        initialRole={selectedRole}
-      />
     </section>
   );
 };
