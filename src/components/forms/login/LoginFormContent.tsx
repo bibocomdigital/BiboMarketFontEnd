@@ -1,0 +1,109 @@
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import EmailInput from './EmailInput';
+import PasswordInput from './PasswordInput';
+import ForgotPasswordDialog from './ForgotPasswordDialog';
+import SocialLoginButton from './SocialLoginButton';
+import { loginFormSchema, LoginFormValues } from './LoginFormTypes';
+
+interface LoginFormContentProps {
+  onClose?: () => void;
+}
+
+const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
+  const navigate = useNavigate();
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const { toast } = useToast();
+
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      console.log('Login data:', data);
+      
+      // Pour les besoins de démonstration, nous allons rediriger vers la page de profil
+      // quelle que soit l'entrée de l'utilisateur
+      
+      toast({
+        title: "Connexion réussie",
+        description: "Vous êtes maintenant connecté",
+      });
+      
+      // Fermer la modale si elle existe
+      if (onClose) onClose();
+      
+      // Redirection vers la page de profil avec un délai pour permettre
+      // à la toast de s'afficher et à la modale de se fermer
+      setTimeout(() => {
+        navigate('/profile');
+      }, 500);
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast({
+        title: "Erreur de connexion",
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <EmailInput form={form} />
+          <PasswordInput form={form} />
+          
+          <div className="flex justify-end">
+            <button 
+              type="button" 
+              onClick={() => setForgotPasswordOpen(true)}
+              className="text-sm text-bibocom-primary hover:underline"
+            >
+              Mot de passe oublié ?
+            </button>
+          </div>
+          
+          <div className="pt-2">
+            <Button type="submit" className="w-full bg-bibocom-primary text-white">
+              Se connecter
+            </Button>
+          </div>
+          
+          <div className="relative mt-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Ou continuez avec</span>
+            </div>
+          </div>
+          
+          <SocialLoginButton onClose={onClose} />
+        </form>
+      </Form>
+
+      <ForgotPasswordDialog 
+        open={forgotPasswordOpen}
+        onOpenChange={setForgotPasswordOpen}
+        resetEmail={resetEmail}
+        setResetEmail={setResetEmail}
+      />
+    </>
+  );
+};
+
+export default LoginFormContent;
