@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -11,7 +10,6 @@ import RegisterStep1 from './register/RegisterStep1';
 import RegisterStep2 from './register/RegisterStep2';
 import { Country, getDefaultCountry } from '@/data/countries';
 
-// Schéma Zod avec validation améliorée
 const formSchema = z.object({
   email: z.string().email({ message: 'Veuillez entrer une adresse email valide' }),
   firstName: z.string().min(2, { message: 'Le prénom doit contenir au moins 2 caractères' }),
@@ -20,13 +18,9 @@ const formSchema = z.object({
   password: z.string()
     .min(6, { message: 'Le mot de passe doit contenir au moins 6 caractères' })
     .refine(password => {
-      // Au moins une lettre majuscule
       const hasUpperCase = /[A-Z]/.test(password);
-      // Au moins une lettre minuscule
       const hasLowerCase = /[a-z]/.test(password);
-      // Au moins un chiffre
       const hasDigit = /\d/.test(password);
-      // Au moins un caractère spécial
       const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
       
       return hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar;
@@ -62,7 +56,6 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
   console.log('👤 [REGISTER] Initial role:', initialRole);
   console.log('🌍 [REGISTER] Initial country:', selectedCountry.name);
   
-  // Check URL for role parameter
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const roleParam = params.get('role');
@@ -95,18 +88,14 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     form.setValue('role', initialRole);
   }, [initialRole, form]);
 
-  // Check if email exists whenever it changes
   const checkEmailExists = async (email: string) => {
     if (!email || !email.includes('@')) return;
     
     console.log('🔍 [REGISTER] Checking if email exists:', email);
     try {
-      // Simulate API call to check email
-      // Pour démonstration, nous simulons un appel API
       const mockCheckEmail = () => {
         return new Promise((resolve) => {
           setTimeout(() => {
-            // Pour test, on pourrait retourner true ici
             resolve({ exists: false });
           }, 500);
         });
@@ -115,11 +104,8 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       const response = await mockCheckEmail();
       console.log('📧 [REGISTER] Email check response:', response);
       
-      // @ts-ignore - Mock response
       setEmailExists(response.exists);
       
-      // Si l'email existe, afficher un toast
-      // @ts-ignore - Mock response
       if (response.exists) {
         toast({
           title: "Email déjà utilisé",
@@ -153,7 +139,6 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     if (file) {
       console.log('🖼️ [REGISTER] Photo selected:', file.name, 'Size:', file.size, 'bytes');
       
-      // Vérifier la taille du fichier (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         console.error('❌ [REGISTER] File size too large:', file.size);
         toast({
@@ -164,7 +149,6 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
         return;
       }
       
-      // Vérifier le type de fichier
       if (!file.type.startsWith('image/')) {
         console.error('❌ [REGISTER] Invalid file type:', file.type);
         toast({
@@ -185,16 +169,16 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     }
   };
 
-  // Fonction pour passer à l'étape suivante
   const nextStep = () => {
     if (currentStep === 1) {
-      // Validation de l'étape 1
       const { firstName, lastName, email, phoneNumber, password, confirmPassword } = form.getValues();
       const errors = [];
       
       if (!firstName) errors.push('Le prénom est requis');
       if (!lastName) errors.push('Le nom est requis');
       if (!email) errors.push('L\'email est requis');
+      if (!phoneNumber) errors.push('Le numéro de téléphone est requis');
+      if (phoneNumber && phoneNumber.length < 9) errors.push('Le numéro de téléphone doit contenir au moins 9 chiffres');
       if (!password) errors.push('Le mot de passe est requis');
       if (password !== confirmPassword) errors.push('Les mots de passe ne correspondent pas');
       
@@ -219,22 +203,20 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       }
       
       console.log('✅ [REGISTER] Step 1 validation passed, moving to step 2');
-      setCurrentStep(2); // Passer à l'étape 2
+      setCurrentStep(2);
     }
   };
 
-  // Fonction pour revenir à l'étape précédente
   const prevStep = () => {
     if (currentStep > 1) {
       console.log('🔙 [REGISTER] Moving back to step', currentStep - 1);
       setCurrentStep(currentStep - 1);
     }
   };
-  
-  // Fonction pour gérer le changement de pays
+
   const handleCountryChange = (countryName: string) => {
     console.log('🌍 [REGISTER] Country changed in parent component:', countryName);
-    const country = getDefaultCountry(); // À remplacer par une recherche réelle
+    const country = getDefaultCountry();
     setSelectedCountry(country);
   };
 
@@ -246,10 +228,14 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       photo: data.photo instanceof File ? `File: ${data.photo.name}` : data.photo
     });
     
-    // Let's add a log to explicitly check if role is included in the form data
+    let phoneWithCountryCode = data.phoneNumber;
+    if (data.phoneNumber && selectedCountry && !data.phoneNumber.includes(selectedCountry.dialCode)) {
+      phoneWithCountryCode = `${selectedCountry.dialCode} ${data.phoneNumber}`;
+      console.log('📱 [REGISTER] Adding country code to phone:', phoneWithCountryCode);
+    }
+    
     console.log('👤 [REGISTER] Role value at submission:', data.role);
     
-    // Vérifications supplémentaires avant soumission
     if (!data.city || !data.department || !data.commune) {
       console.error('❌ [REGISTER] Missing location data');
       toast({
@@ -269,27 +255,23 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
         if (key === 'photo' && value instanceof File) {
           console.log(`📎 [REGISTER] Adding file to FormData: ${value.name} (${value.size} bytes)`);
           formData.append('photo', value);
+        } else if (key === 'phoneNumber') {
+          console.log(`📱 [REGISTER] Adding phone with country code:`, phoneWithCountryCode);
+          formData.append('phoneNumber', phoneWithCountryCode);
         } else if (key !== 'photo' && key !== 'confirmPassword') {
           console.log(`📝 [REGISTER] Adding field to FormData: ${key}=${key === 'password' ? '[HIDDEN]' : value}`);
           formData.append(key, String(value));
         }
       });
 
-      // Make sure role is explicitly added to the FormData
       console.log(`👤 [REGISTER] Explicitly adding role to FormData: ${data.role}`);
       formData.append('role', data.role);
 
-      // Simulate an API call
       console.log('🔄 [REGISTER] Simulating API registration call');
       
-      // Simuler un appel API pour l'inscription
       const mockRegister = () => {
         return new Promise((resolve, reject) => {
           setTimeout(() => {
-            // Pour test, on pourrait simuler une erreur ici
-            // reject(new Error("Erreur de serveur simulée"));
-            
-            // Success
             resolve({
               success: true,
               message: "Inscription réussie",
@@ -313,8 +295,6 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
         description: "Un code de vérification a été envoyé à votre email.",
       });
       
-      // Navigate to verification page
-      console.log('🔄 [REGISTER] Navigating to verification page');
       navigate('/verify-code', { 
         state: { 
           role: data.role,
@@ -335,7 +315,6 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     }
   };
 
-  // Afficher les étapes du formulaire en fonction de l'étape courante
   const renderStep = () => {
     switch (currentStep) {
       case 1:

@@ -15,29 +15,29 @@ interface PhoneInputProps {
 const PhoneInput = ({ form, selectedCountry = getDefaultCountry() }: PhoneInputProps) => {
   const [phoneWithoutCode, setPhoneWithoutCode] = useState('');
   
-  console.log('📱 [REGISTER] PhoneInput initialized with dial code:', selectedCountry.dialCode);
+  console.log('📱 [REGISTER] PhoneInput initialized with country:', selectedCountry.name);
 
-  // Mettre à jour l'indicatif lorsque le pays change
+  // Mettre à jour lorsque le pays change
   useEffect(() => {
     if (selectedCountry) {
-      console.log('📱 [REGISTER] Updating dial code to:', selectedCountry.dialCode);
+      console.log('📱 [REGISTER] Country changed to:', selectedCountry.name);
       
       // Mettre à jour le numéro complet dans le formulaire
-      updateFullPhoneNumber(phoneWithoutCode, selectedCountry.dialCode);
+      updateFullPhoneNumber(phoneWithoutCode);
     }
   }, [selectedCountry]);
 
-  const updateFullPhoneNumber = (phoneNumber: string, code: string) => {
-    const fullPhoneNumber = phoneNumber ? `${code} ${phoneNumber}` : '';
-    console.log('📱 [REGISTER] Setting full phone number:', fullPhoneNumber);
-    form.setValue('phoneNumber', fullPhoneNumber);
+  const updateFullPhoneNumber = (phoneNumber: string) => {
+    // On enregistre uniquement le numéro sans l'indicatif
+    console.log('📱 [REGISTER] Setting phone number:', phoneNumber);
+    form.setValue('phoneNumber', phoneNumber);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     console.log('📱 [REGISTER] Phone number changed:', value);
     setPhoneWithoutCode(value);
-    updateFullPhoneNumber(value, selectedCountry.dialCode);
+    updateFullPhoneNumber(value);
   };
 
   return (
@@ -48,14 +48,9 @@ const PhoneInput = ({ form, selectedCountry = getDefaultCountry() }: PhoneInputP
         <FormItem>
           <FormLabel>Téléphone</FormLabel>
           <FormControl>
-            <div className="relative flex">
-              <div className="flex items-center justify-center min-w-[80px] bg-gray-100 border border-r-0 border-gray-300 rounded-l-md px-3">
-                <span className="mr-1">{selectedCountry.flag}</span>
-                <span className="text-gray-700">{selectedCountry.dialCode}</span>
-              </div>
+            <div className="relative">
               <Input 
-                className="rounded-l-none"
-                placeholder="Votre numéro sans l'indicatif" 
+                placeholder="Votre numéro de téléphone" 
                 onChange={handlePhoneChange}
                 value={phoneWithoutCode}
               />

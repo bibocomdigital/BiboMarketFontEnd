@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -45,7 +44,6 @@ const RegisterStep1 = ({
   const handleNextStep = () => {
     console.log('👉 [REGISTER] Next button clicked, attempting to navigate to step 2');
     
-    // Validation supplémentaire avant de passer à l'étape suivante
     const { firstName, lastName, email, phoneNumber, password, confirmPassword } = form.getValues();
     
     if (!firstName || firstName.length < 2) {
@@ -75,11 +73,20 @@ const RegisterStep1 = ({
       return;
     }
     
-    if (!phoneNumber || phoneNumber.length < 9) {
+    if (!phoneNumber) {
       console.error('❌ [REGISTER] Phone number validation failed');
       form.setError('phoneNumber', { 
         type: 'manual', 
-        message: 'Numéro de téléphone invalide' 
+        message: 'Veuillez entrer un numéro de téléphone' 
+      });
+      return;
+    }
+    
+    if (phoneNumber && phoneNumber.length < 9) {
+      console.error('❌ [REGISTER] Phone number validation failed');
+      form.setError('phoneNumber', { 
+        type: 'manual', 
+        message: 'Le numéro de téléphone doit contenir au moins 9 chiffres' 
       });
       return;
     }
