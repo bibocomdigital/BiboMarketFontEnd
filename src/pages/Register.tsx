@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import RegisterForm from '@/components/forms/RegisterForm';
-import { UserRole } from '@/types/user';
+import { UserRole, USER_ROLE_LABELS } from '@/types/user';
 
 const Register = () => {
   const [role, setRole] = useState<UserRole>(UserRole.CLIENT);
@@ -24,7 +24,7 @@ const Register = () => {
               className={`p-6 rounded-xl cursor-pointer transition-all ${role === UserRole.CLIENT ? 'bg-white/20 shadow-lg scale-105' : 'bg-white/10 hover:bg-white/15'}`}
               onClick={() => setRole(UserRole.CLIENT)}
             >
-              <h3 className="text-xl font-semibold mb-2">Client</h3>
+              <h3 className="text-xl font-semibold mb-2">{USER_ROLE_LABELS[UserRole.CLIENT]}</h3>
               <p className="text-white/80">Trouvez les meilleurs produits et services en un seul endroit.</p>
             </div>
             
@@ -32,7 +32,7 @@ const Register = () => {
               className={`p-6 rounded-xl cursor-pointer transition-all ${role === UserRole.MERCHANT ? 'bg-white/20 shadow-lg scale-105' : 'bg-white/10 hover:bg-white/15'}`}
               onClick={() => setRole(UserRole.MERCHANT)}
             >
-              <h3 className="text-xl font-semibold mb-2">Commerçant</h3>
+              <h3 className="text-xl font-semibold mb-2">{USER_ROLE_LABELS[UserRole.MERCHANT]}</h3>
               <p className="text-white/80">Créez votre boutique en ligne et vendez à un public plus large.</p>
             </div>
             
@@ -40,7 +40,7 @@ const Register = () => {
               className={`p-6 rounded-xl cursor-pointer transition-all ${role === UserRole.SUPPLIER ? 'bg-white/20 shadow-lg scale-105' : 'bg-white/10 hover:bg-white/15'}`}
               onClick={() => setRole(UserRole.SUPPLIER)}
             >
-              <h3 className="text-xl font-semibold mb-2">Fournisseur</h3>
+              <h3 className="text-xl font-semibold mb-2">{USER_ROLE_LABELS[UserRole.SUPPLIER]}</h3>
               <p className="text-white/80">Proposez vos services aux commerçants sur la plateforme.</p>
             </div>
           </div>

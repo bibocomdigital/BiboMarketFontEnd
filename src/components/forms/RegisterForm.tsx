@@ -60,9 +60,14 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const roleParam = params.get('role');
-    if (roleParam && (roleParam === 'client' || roleParam === 'commercant' || roleParam === 'fournisseur')) {
-      console.log('🔄 [REGISTER] Setting role from URL params:', roleParam);
-      form.setValue('role', roleParam);
+    if (roleParam) {
+      if (roleParam === 'client') {
+        form.setValue('role', UserRole.CLIENT);
+      } else if (roleParam === 'commercant') {
+        form.setValue('role', UserRole.MERCHANT);
+      } else if (roleParam === 'fournisseur') {
+        form.setValue('role', UserRole.SUPPLIER);
+      }
     }
   }, [location]);
   

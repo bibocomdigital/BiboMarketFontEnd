@@ -3,15 +3,16 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import LoginForm from '@/components/forms/LoginForm';
 import RegisterForm from '@/components/forms/RegisterForm';
+import { UserRole } from '@/types/user';
 
 type AuthModalProps = {
   type: 'login' | 'register';
   isOpen: boolean;
   onClose: () => void;
-  initialRole?: 'client' | 'commercant' | 'fournisseur';
+  initialRole?: UserRole;
 };
 
-const AuthModal: React.FC<AuthModalProps> = ({ type, isOpen, onClose, initialRole = 'client' }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ type, isOpen, onClose, initialRole = UserRole.CLIENT }) => {
   console.log('🔄 [MODAL] AuthModal rendered with type:', type);
   console.log('👤 [MODAL] Initial role:', initialRole);
   
@@ -25,9 +26,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ type, isOpen, onClose, initialRol
           <DialogDescription className="text-center text-gray-500">
             {type === 'login' 
               ? 'Connectez-vous pour accéder à votre compte' 
-              : initialRole === 'commercant' 
+              : initialRole === UserRole.MERCHANT 
                 ? 'Inscrivez-vous en tant que commerçant pour créer votre boutique'
-                : initialRole === 'fournisseur'
+                : initialRole === UserRole.SUPPLIER
                   ? 'Inscrivez-vous en tant que fournisseur pour proposer vos services'
                   : 'Inscrivez-vous pour rejoindre notre marketplace'
             }
