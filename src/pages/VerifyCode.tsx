@@ -71,71 +71,51 @@ const VerifyCode = () => {
     // Simuler un délai d'API
     setTimeout(() => {
       // Dans une implémentation réelle, vous appelleriez votre API de vérification ici
-      // try {
-      //   const response = await fetch('/api/verify', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify({ email: userEmail, verificationCode: code })
-      //   });
-      //   const data = await response.json();
-      //   
-      //   if (response.ok) {
-      //     // Success case
-      //   } else {
-      //     // Error cases
-      //   }
-      // } catch (error) {
-      //   // Network error
-      // }
       
       // Pour la démonstration, simulons différents scénarios possibles
       
-      // Uncomment one of these scenarios to test
+      // Définir le scénario à tester
       const scenario: VerificationScenario = 'success'; // Success case
       // const scenario: VerificationScenario = 'incorrect'; // Incorrect code
       // const scenario: VerificationScenario = 'expired'; // Expired code
       
-      switch (scenario) {
-        case 'success':
-          console.log('✅ [VERIFY] Code verification successful');
-          setSuccess(true);
-          toast({
-            title: "Code vérifié",
-            description: "Votre compte a été vérifié avec succès!"
+      if (scenario === 'success') {
+        console.log('✅ [VERIFY] Code verification successful');
+        setSuccess(true);
+        toast({
+          title: "Code vérifié",
+          description: "Votre compte a été vérifié avec succès!"
+        });
+        
+        // Redirect after successful verification
+        setTimeout(() => {
+          console.log('🔄 [VERIFY] Redirecting to verification pending page');
+          navigate('/verification-pending', { 
+            state: { 
+              role: userRole, 
+              email: userEmail 
+            } 
           });
-          
-          // Redirect after successful verification
-          setTimeout(() => {
-            console.log('🔄 [VERIFY] Redirecting to verification pending page');
-            navigate('/verification-pending', { 
-              state: { 
-                role: userRole, 
-                email: userEmail 
-              } 
-            });
-          }, 1500);
-          break;
-          
-        case 'incorrect':
-          console.error('❌ [VERIFY] Incorrect verification code');
-          setError("Code de vérification incorrect");
-          toast({
-            title: "Code incorrect",
-            description: "Le code de vérification est incorrect",
-            variant: "destructive"
-          });
-          break;
-          
-        case 'expired':
-          console.error('⏰ [VERIFY] Verification code expired');
-          setError("Code de vérification expiré");
-          setIsExpired(true);
-          toast({
-            title: "Code expiré",
-            description: "Votre code de vérification a expiré",
-            variant: "destructive"
-          });
-          break;
+        }, 1500);
+      } 
+      else if (scenario === 'incorrect') {
+        console.error('❌ [VERIFY] Incorrect verification code');
+        setError("Code de vérification incorrect");
+        toast({
+          title: "Code incorrect",
+          description: "Le code de vérification est incorrect",
+          variant: "destructive"
+        });
+      }
+      else if (scenario === 'expired') {
+        console.error('⏰ [VERIFY] Verification code expired');
+        setError("Code de vérification expiré");
+        setIsExpired(true);
+        toast({
+          title: "Code expiré",
+          description: "Votre code de vérification a expiré",
+          variant: "destructive"
+        });
       }
       
       setIsVerifying(false);
