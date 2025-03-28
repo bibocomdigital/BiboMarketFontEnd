@@ -3,9 +3,9 @@
  * User role enumeration
  */
 export enum UserRole {
-  CLIENT = "client",
-  MERCHANT = "commercant",
-  SUPPLIER = "fournisseur"
+  CLIENT = "CLIENT",
+  MERCHANT = "MERCHANT",
+  SUPPLIER = "SUPPLIER"
 }
 
 /**
