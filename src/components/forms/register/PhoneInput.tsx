@@ -13,16 +13,14 @@ interface PhoneInputProps {
 }
 
 const PhoneInput = ({ form, selectedCountry = getDefaultCountry() }: PhoneInputProps) => {
-  const [dialCode, setDialCode] = useState(selectedCountry.dialCode);
   const [phoneWithoutCode, setPhoneWithoutCode] = useState('');
   
-  console.log('📱 [REGISTER] PhoneInput initialized with dial code:', dialCode);
+  console.log('📱 [REGISTER] PhoneInput initialized with dial code:', selectedCountry.dialCode);
 
   // Mettre à jour l'indicatif lorsque le pays change
   useEffect(() => {
     if (selectedCountry) {
       console.log('📱 [REGISTER] Updating dial code to:', selectedCountry.dialCode);
-      setDialCode(selectedCountry.dialCode);
       
       // Mettre à jour le numéro complet dans le formulaire
       updateFullPhoneNumber(phoneWithoutCode, selectedCountry.dialCode);
@@ -39,7 +37,7 @@ const PhoneInput = ({ form, selectedCountry = getDefaultCountry() }: PhoneInputP
     const value = e.target.value;
     console.log('📱 [REGISTER] Phone number changed:', value);
     setPhoneWithoutCode(value);
-    updateFullPhoneNumber(value, dialCode);
+    updateFullPhoneNumber(value, selectedCountry.dialCode);
   };
 
   return (
@@ -53,7 +51,7 @@ const PhoneInput = ({ form, selectedCountry = getDefaultCountry() }: PhoneInputP
             <div className="relative flex">
               <div className="flex items-center justify-center min-w-[80px] bg-gray-100 border border-r-0 border-gray-300 rounded-l-md px-3">
                 <span className="mr-1">{selectedCountry.flag}</span>
-                <span className="text-gray-700">{dialCode}</span>
+                <span className="text-gray-700">{selectedCountry.dialCode}</span>
               </div>
               <Input 
                 className="rounded-l-none"
