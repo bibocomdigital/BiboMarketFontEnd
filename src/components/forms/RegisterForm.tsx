@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -75,7 +74,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       phoneNumber: '',
       password: '',
       confirmPassword: '',
-      country: 'Sénégal',
+      country: selectedCountry.name,
       city: '',
       department: '',
       commune: '',
@@ -217,8 +216,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
 
   const handleCountryChange = (countryName: string) => {
     console.log('🌍 [REGISTER] Country changed in parent component:', countryName);
-    const country = getDefaultCountry();
+    const countries = [getDefaultCountry()];
+    const country = countries.find(c => c.name === countryName) || getDefaultCountry();
     setSelectedCountry(country);
+    form.setValue('country', country.name);
   };
 
   const onSubmit = async (data: RegisterFormValues) => {
