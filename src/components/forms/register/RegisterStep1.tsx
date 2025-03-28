@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -29,6 +28,11 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailE
 
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const handleNextStep = () => {
+    console.log('👉 [REGISTER] Next button clicked, attempting to navigate to step 2');
+    nextStep();
   };
 
   return (
@@ -215,10 +219,7 @@ const RegisterStep1 = ({ form, photoPreview, handlePhotoChange, nextStep, emailE
       <div className="pt-4">
         <Button 
           type="button" 
-          onClick={() => {
-            console.log('👉 [REGISTER] Next button clicked');
-            nextStep();
-          }} 
+          onClick={handleNextStep} 
           className="w-full bg-bibocom-primary text-white"
         >
           Continuer

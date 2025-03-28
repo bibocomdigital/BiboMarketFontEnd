@@ -11,10 +11,15 @@ import { RegisterFormValues } from '../RegisterForm';
 interface RegisterStep2Props {
   form: UseFormReturn<RegisterFormValues>;
   prevStep: () => void;
-  isSubmitting?: boolean; // Ajout de cette prop optionnelle
+  isSubmitting?: boolean;
 }
 
 const RegisterStep2 = ({ form, prevStep, isSubmitting = false }: RegisterStep2Props) => {
+  
+  // Ajoutons quelques logs pour déboguer
+  console.log('🔄 [REGISTER] Rendering RegisterStep2 component');
+  console.log('👤 [REGISTER] Current form values for step 2:', form.getValues());
+  
   return (
     <>
       <FormField

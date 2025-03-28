@@ -139,9 +139,10 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     }
   };
 
+  // Fonction pour passer à l'étape suivante
   const nextStep = () => {
     if (currentStep === 1) {
-      // Validate first step fields
+      // Validation de l'étape 1
       const { firstName, lastName, email, phoneNumber, password, confirmPassword } = form.getValues();
       const errors = [];
       
@@ -172,10 +173,11 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
       }
       
       console.log('✅ [REGISTER] Step 1 validation passed, moving to step 2');
-      setCurrentStep(2);
+      setCurrentStep(2); // Passer à l'étape 2
     }
   };
 
+  // Fonction pour revenir à l'étape précédente
   const prevStep = () => {
     if (currentStep > 1) {
       console.log('🔙 [REGISTER] Moving back to step', currentStep - 1);
@@ -366,7 +368,7 @@ const RegisterForm = ({ onClose, initialRole = 'client' }: { onClose?: () => voi
     }
   };
 
-  // Render different steps
+  // Afficher les étapes du formulaire en fonction de l'étape courante
   const renderStep = () => {
     switch (currentStep) {
       case 1:
