@@ -13,6 +13,7 @@ import VerifyCode from "./pages/VerifyCode";
 import VerificationPending from "./pages/VerificationPending";
 import ClientDashboard from "./pages/ClientDashboard";
 import MerchantDashboard from "./pages/MerchantDashboard";
+import SupplierDashboard from "./pages/SupplierDashboard";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/verification-pending" element={<VerificationPending />} />
           <Route path="/client-dashboard" element={<ClientDashboard />} />
           <Route path="/merchant-dashboard" element={<MerchantDashboard />} />
+          <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

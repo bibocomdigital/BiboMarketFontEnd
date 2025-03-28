@@ -11,6 +11,7 @@ import PasswordInput from './PasswordInput';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
 import SocialLoginButton from './SocialLoginButton';
 import { loginFormSchema, LoginFormValues } from './LoginFormTypes';
+import { login } from '@/services/authService';
 
 interface LoginFormContentProps {
   onClose?: () => void;
@@ -20,6 +21,7 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
   const navigate = useNavigate();
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<LoginFormValues>({
@@ -31,24 +33,32 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
+    setIsLoading(true);
     try {
       console.log('Login data:', data);
       
-      // Pour les besoins de démonstration, nous allons rediriger vers la page de profil
-      // quelle que soit l'entrée de l'utilisateur
+      // Call the login service
+      const response = await login(data);
       
+      // Show success toast
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté",
       });
       
-      // Fermer la modale si elle existe
+      // Close the modal if it exists
       if (onClose) onClose();
       
-      // Redirection vers la page de profil avec un délai pour permettre
-      // à la toast de s'afficher et à la modale de se fermer
+      // Redirect based on user role
       setTimeout(() => {
-        navigate('/profile');
+        const role = response.user.role;
+        if (role === 'commercant') {
+          navigate('/merchant-dashboard');
+        } else if (role === 'fournisseur') {
+          navigate('/supplier-dashboard');
+        } else {
+          navigate('/client-dashboard');
+        }
       }, 500);
     } catch (error) {
       console.error('Erreur:', error);
@@ -57,6 +67,8 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
         description: error instanceof Error ? error.message : "Une erreur est survenue",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,8 +90,12 @@ const LoginFormContent = ({ onClose }: LoginFormContentProps) => {
           </div>
           
           <div className="pt-2">
-            <Button type="submit" className="w-full bg-bibocom-primary text-white">
-              Se connecter
+            <Button 
+              type="submit" 
+              className="w-full bg-bibocom-primary text-white"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Connexion en cours...' : 'Se connecter'}
             </Button>
           </div>
           

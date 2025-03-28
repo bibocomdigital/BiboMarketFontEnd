@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const VerifyCode = () => {
   const [code, setCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -31,16 +32,36 @@ const VerifyCode = () => {
       return;
     }
     
-    // Simuler une vérification réussie
+    setIsVerifying(true);
+    
+    // Simuler une vérification avec l'API
     toast({
       title: "Vérification en cours",
       description: "Nous vérifions votre code..."
     });
     
-    // Rediriger vers la page d'attente
+    // Simuler un délai d'API
     setTimeout(() => {
-      navigate('/verification-pending', { state: { role: userRole, email: userEmail } });
+      // Dans une implémentation réelle, vous appelleriez votre API de vérification ici
+      
+      // Pour la démonstration, on considère toujours que la vérification est réussie
+      navigate('/verification-pending', { 
+        state: { 
+          role: userRole, 
+          email: userEmail 
+        } 
+      });
+      
+      setIsVerifying(false);
     }, 1500);
+  };
+  
+  const handleResendCode = () => {
+    // Simuler l'envoi d'un nouveau code
+    toast({
+      title: "Code renvoyé",
+      description: "Un nouveau code a été envoyé à votre adresse email"
+    });
   };
   
   return (
@@ -77,10 +98,7 @@ const VerifyCode = () => {
                 Vous n'avez pas reçu de code? 
                 <button 
                   className="text-bibocom-accent ml-1 hover:underline" 
-                  onClick={() => toast({
-                    title: "Code renvoyé",
-                    description: "Un nouveau code a été envoyé à votre adresse email"
-                  })}
+                  onClick={handleResendCode}
                 >
                   Renvoyer
                 </button>
@@ -90,8 +108,9 @@ const VerifyCode = () => {
             <Button 
               onClick={handleVerify} 
               className="w-full bg-bibocom-primary text-white"
+              disabled={isVerifying}
             >
-              Vérifier
+              {isVerifying ? 'Vérification en cours...' : 'Vérifier'}
             </Button>
           </div>
         </div>
