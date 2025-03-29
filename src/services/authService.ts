@@ -1,3 +1,4 @@
+
 // Configuration de l'API
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
@@ -194,6 +195,35 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
     console.log('🔑 [API] Code de vérification:', verificationCode);
     console.log('📤 [API] URL de vérification:', `${API_URL}/auth/verify-code`);
     
+    // En mode DEV, simuler une vérification réussie
+    if (import.meta.env.DEV && API_URL.includes('localhost')) {
+      console.log('⚠️ [API] Mode développement: simulation de vérification réussie');
+      
+      // Pour le test, acceptons tous les codes "123456"
+      if (verificationCode !== "123456") {
+        console.error('❌ [API] Code de vérification incorrect en mode simulation');
+        throw new Error('Code de vérification incorrect. Veuillez réessayer.');
+      }
+      
+      // Attendre un court délai pour simuler le temps de réponse du serveur
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Retourner un utilisateur simulé
+      return {
+        message: "Compte vérifié avec succès.",
+        user: {
+          id: 1,
+          email: email,
+          firstName: "Utilisateur",
+          lastName: "Simulé",
+          role: UserRole.CLIENT,
+          isVerified: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      };
+    }
+    
     const response = await fetch(`${API_URL}/auth/verify-code`, {
       method: 'POST',
       headers: {
@@ -244,6 +274,34 @@ export const login = async (credentials: { email: string; password: string }): P
 }> => {
   try {
     console.log('🔄 [API] Tentative de connexion pour:', credentials.email);
+    
+    // En mode DEV, simuler une connexion réussie
+    if (import.meta.env.DEV && API_URL.includes('localhost')) {
+      console.log('⚠️ [API] Mode développement: simulation de connexion réussie');
+      
+      // Attendre un court délai pour simuler le temps de réponse du serveur
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const user = {
+        id: 1,
+        email: credentials.email,
+        firstName: "Utilisateur",
+        lastName: "Simulé",
+        role: UserRole.CLIENT,
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Simuler un token JWT
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+      
+      // Stocker le token et l'utilisateur dans le localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      return { token, user };
+    }
     
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',

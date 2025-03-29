@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
@@ -110,9 +111,7 @@ const VerifyCode = () => {
         setTimeout(() => {
           console.log('⏱️ [VERIFY] Délai de redirection démarré (3s)');
           
-          // Utiliser window.location pour une redirection plus robuste
-          console.log('🔄 [VERIFY] Préparation de la redirection basée sur le rôle:', userRole);
-          
+          // Utiliser le rôle utilisateur pour la redirection
           if (userRole === 'merchant' || userRole === 'commercant') {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord commerçant');
             navigate('/merchant-dashboard', { replace: true });
@@ -124,7 +123,7 @@ const VerifyCode = () => {
             navigate('/client-dashboard', { replace: true });
           }
           console.log('✅ [VERIFY] Redirection effectuée!');
-        }, 3000); // Augmenté à 3 secondes pour s'assurer que tout est bien traité
+        }, 3000);
       } catch (loginError) {
         console.error('❌ [VERIFY] Erreur lors de la connexion automatique:', loginError);
         
@@ -185,6 +184,9 @@ const VerifyCode = () => {
   
   const handleResendCode = async () => {
     console.log('🔄 [VERIFY] Demande de renvoi de code pour:', userEmail);
+    
+    // Ici, vous pouvez appeler un service pour renvoyer le code de vérification
+    // Par exemple: await resendVerificationCode(userEmail);
     
     toast({
       title: "Code renvoyé",
