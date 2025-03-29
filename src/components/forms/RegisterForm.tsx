@@ -324,7 +324,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
         state: { 
           role: data.role,
           email: data.email,
-          password: data.password // Ajouter le mot de passe pour permettre la connexion automatique
+          password: data.password // Transmettre le mot de passe pour la connexion automatique
         } 
       });
       

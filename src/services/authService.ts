@@ -127,22 +127,7 @@ export const registerUser = async (formData: FormData): Promise<{
       throw new Error('Le mot de passe doit contenir au moins 6 caractères');
     }
     
-    // Simuler une inscription réussie pour contourner l'erreur du serveur
-    // Cette partie est temporaire jusqu'à ce que le problème côté serveur soit résolu
-    if (import.meta.env.DEV && API_URL.includes('localhost')) {
-      console.log('⚠️ [API] Mode développement: simulation d\'inscription réussie');
-      
-      // Attendre un court délai pour simuler le temps de réponse du serveur
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const email = formData.get('email') as string;
-      return {
-        message: "Inscription réussie. Un code de vérification a été envoyé à votre email.",
-        email
-      };
-    }
-    
-    // Appel API réel si nous ne sommes pas en mode simulation
+    // Appel API pour l'inscription
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       body: formData,
@@ -156,15 +141,9 @@ export const registerUser = async (formData: FormData): Promise<{
       console.error('❌ [API] Erreur d\'inscription:', errorData);
       
       // Vérifier si l'erreur est due à un email déjà existant
-      if (errorData.message && errorData.message.includes('déjà enregistré')) {
+      if (errorData.message && errorData.message.includes('déjà utilisée')) {
         console.error('❌ [API] Email déjà enregistré et vérifié');
         throw new Error('Cet email est déjà enregistré et vérifié.');
-      }
-      
-      // Vérifier s'il s'agit de l'erreur 'hashedPassword is not defined'
-      if (errorData.error && errorData.error.includes('hashedPassword is not defined')) {
-        console.error('❌ [API] Erreur côté serveur avec le hachage du mot de passe');
-        throw new Error('Erreur lors du traitement de votre mot de passe. Veuillez réessayer.');
       }
       
       throw new Error(errorData.message || 'Erreur lors de l\'inscription');
@@ -193,35 +172,6 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
     console.log('📧 [API] Email:', email);
     console.log('🔑 [API] Code de vérification:', verificationCode);
     console.log('📤 [API] URL de vérification:', `${API_URL}/auth/verify`);
-    
-    // En mode DEV, simuler une vérification réussie
-    if (import.meta.env.DEV && API_URL.includes('localhost')) {
-      console.log('⚠️ [API] Mode développement: simulation de vérification réussie');
-      
-      // Pour le test, acceptons tous les codes "123456"
-      if (verificationCode !== "123456") {
-        console.error('❌ [API] Code de vérification incorrect en mode simulation');
-        throw new Error('Code de vérification incorrect. Veuillez réessayer.');
-      }
-      
-      // Attendre un court délai pour simuler le temps de réponse du serveur
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Retourner un utilisateur simulé
-      return {
-        message: "Compte vérifié avec succès.",
-        user: {
-          id: 1,
-          email: email,
-          firstName: "Utilisateur",
-          lastName: "Simulé",
-          role: UserRole.CLIENT,
-          isVerified: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      };
-    }
     
     // Préparer le body de la requête
     const body = JSON.stringify({ email, verificationCode });
@@ -278,19 +228,6 @@ export const resendVerificationCode = async (email: string): Promise<{
     console.log('🔄 [API] Demande de renvoi de code de vérification');
     console.log('📧 [API] Email:', email);
     console.log('📤 [API] URL de renvoi de code:', `${API_URL}/auth/resend-code`);
-    
-    // En mode DEV, simuler un renvoi réussi
-    if (import.meta.env.DEV && API_URL.includes('localhost')) {
-      console.log('⚠️ [API] Mode développement: simulation de renvoi de code réussie');
-      
-      // Attendre un court délai pour simuler le temps de réponse du serveur
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Retourner un message de réussite
-      return {
-        message: "Un nouveau code de vérification a été envoyé à votre adresse email."
-      };
-    }
     
     const response = await fetch(`${API_URL}/auth/resend-code`, {
       method: 'POST',
