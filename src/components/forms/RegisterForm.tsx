@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -322,7 +323,8 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
       navigate('/verify-code', { 
         state: { 
           role: data.role,
-          email: data.email
+          email: data.email,
+          password: data.password // Ajouter le mot de passe pour permettre la connexion automatique
         } 
       });
       
