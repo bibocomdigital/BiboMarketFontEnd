@@ -10,13 +10,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole, mapStringToUserRole } from '@/types/user';
-import { verifyCode, login } from '@/services/authService';
+import { verifyCode, login, resendVerificationCode } from '@/services/authService';
 
 type VerificationScenario = 'success' | 'incorrect' | 'expired' | 'error';
 
 const VerifyCode = () => {
   const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<VerificationScenario | null>(null);
   const [success, setSuccess] = useState(false);
@@ -35,7 +36,7 @@ const VerifyCode = () => {
   
   console.log('📧 [VERIFY] Email reçu:', userEmail);
   console.log('🔑 [VERIFY] Mot de passe reçu:', userPassword ? '[PRÉSENT - ' + userPassword.length + ' caractères]' : '[ABSENT]');
-  console.log('🔑 [VERIFY] Mot de passe détails:', userPassword);
+  console.log('🔑 [VERIFY] Mot de passe détails pour debug:', userPassword);
   console.log('👤 [VERIFY] Rôle reçu:', userRoleString);
   
   useEffect(() => {
@@ -79,8 +80,9 @@ const VerifyCode = () => {
     });
     
     try {
+      console.log('🔍 [VERIFY] Appel de verifyCode avec email:', userEmail, 'et code:', code);
       const response = await verifyCode(userEmail, code);
-      console.log('✅ [VERIFY] Vérification réussie!', response);
+      console.log('✅ [VERIFY] Vérification réussie! Réponse:', response);
       
       setSuccess(true);
       
@@ -100,6 +102,7 @@ const VerifyCode = () => {
           throw new Error('Mot de passe non disponible');
         }
         
+        console.log('🔄 [VERIFY] Appel de login avec email:', userEmail);
         const loginResult = await login({
           email: userEmail,
           password: userPassword
@@ -147,6 +150,8 @@ const VerifyCode = () => {
       
     } catch (error: any) {
       console.error('❌ [VERIFY] Erreur lors de la vérification du code:', error);
+      console.error('❌ [VERIFY] Message d\'erreur:', error.message);
+      console.error('❌ [VERIFY] Détails de l\'erreur:', error);
       
       if (error.message && error.message.includes('expiré')) {
         console.log('⏰ [VERIFY] Code expiré');
@@ -186,21 +191,37 @@ const VerifyCode = () => {
   };
   
   const handleResendCode = async () => {
+    if (isResending) return;
+    
+    setIsResending(true);
     console.log('🔄 [VERIFY] Demande de renvoi de code pour:', userEmail);
     
-    // Ici, vous pouvez appeler un service pour renvoyer le code de vérification
-    // Par exemple: await resendVerificationCode(userEmail);
-    
-    toast({
-      title: "Code renvoyé",
-      description: "Un nouveau code a été envoyé à votre adresse email"
-    });
-    
-    setError(null);
-    setErrorType(null);
-    setCode("");
-    
-    console.log('✅ [VERIFY] Interface réinitialisée pour nouveau code');
+    try {
+      console.log('🔄 [VERIFY] Appel de resendVerificationCode avec email:', userEmail);
+      const response = await resendVerificationCode(userEmail);
+      console.log('✅ [VERIFY] Renvoi de code réussi:', response);
+      
+      toast({
+        title: "Code renvoyé",
+        description: "Un nouveau code a été envoyé à votre adresse email"
+      });
+      
+      setError(null);
+      setErrorType(null);
+      setCode("");
+      
+      console.log('✅ [VERIFY] Interface réinitialisée pour nouveau code');
+    } catch (error) {
+      console.error('❌ [VERIFY] Erreur lors du renvoi du code:', error);
+      
+      toast({
+        title: "Erreur",
+        description: "Impossible de renvoyer le code. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResending(false);
+    }
   };
   
   const handleReturnToRegister = () => {
@@ -306,19 +327,21 @@ const VerifyCode = () => {
                         className="w-full mt-2 flex items-center justify-center"
                         variant="outline" 
                         onClick={handleResendCode}
+                        disabled={isResending}
                       >
-                        <RefreshCw size={16} className="mr-2" />
-                        Demander un nouveau code
+                        <RefreshCw size={16} className={`mr-2 ${isResending ? 'animate-spin' : ''}`} />
+                        {isResending ? 'Envoi en cours...' : 'Demander un nouveau code'}
                       </Button>
                     </div>
                   ) : (
                     <p className="text-center text-sm text-gray-500 mt-4">
                       Vous n'avez pas reçu de code? 
                       <button 
-                        className="text-bibocom-accent ml-1 hover:underline" 
+                        className={`text-bibocom-accent ml-1 hover:underline ${isResending ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={handleResendCode}
+                        disabled={isResending}
                       >
-                        Renvoyer
+                        {isResending ? 'Envoi en cours...' : 'Renvoyer'}
                       </button>
                     </p>
                   )}

@@ -224,12 +224,16 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
       };
     }
     
+    // Préparer le body de la requête
+    const body = JSON.stringify({ email, verificationCode });
+    console.log('📤 [API] Body de la requête de vérification:', body);
+    
     const response = await fetch(`${API_URL}/auth/verify-code`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, verificationCode }),
+      body: body,
     });
 
     console.log('📊 [API] Statut de la réponse de vérification:', response.status);
@@ -261,6 +265,65 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
     return data;
   } catch (error) {
     console.error('❌ [API] Erreur lors de la vérification du code:', error);
+    throw error;
+  }
+};
+
+/**
+ * Renvoie un code de vérification à l'utilisateur
+ */
+export const resendVerificationCode = async (email: string): Promise<{
+  message: string;
+}> => {
+  try {
+    console.log('🔄 [API] Demande de renvoi de code de vérification');
+    console.log('📧 [API] Email:', email);
+    console.log('📤 [API] URL de renvoi de code:', `${API_URL}/auth/resend-code`);
+    
+    // En mode DEV, simuler un renvoi réussi
+    if (import.meta.env.DEV && API_URL.includes('localhost')) {
+      console.log('⚠️ [API] Mode développement: simulation de renvoi de code réussie');
+      
+      // Attendre un court délai pour simuler le temps de réponse du serveur
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Retourner un message de réussite
+      return {
+        message: "Un nouveau code de vérification a été envoyé à votre adresse email."
+      };
+    }
+    
+    const response = await fetch(`${API_URL}/auth/resend-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    console.log('📊 [API] Statut de la réponse de renvoi de code:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [API] Erreur de renvoi de code:', errorData);
+      
+      if (errorData.message && errorData.message.includes('non trouvé')) {
+        console.error('🔍 [API] Utilisateur non trouvé');
+        throw new Error('Utilisateur non trouvé. Veuillez vous inscrire.');
+      } else if (errorData.message && errorData.message.includes('vérifié')) {
+        console.error('✅ [API] Compte déjà vérifié');
+        throw new Error('Ce compte est déjà vérifié.');
+      }
+      
+      throw new Error(errorData.message || 'Erreur lors du renvoi du code');
+    }
+
+    const data = await response.json();
+    console.log('✅ [API] Renvoi de code réussi:', data);
+    
+    return data;
+  } catch (error) {
+    console.error('❌ [API] Erreur lors du renvoi du code:', error);
     throw error;
   }
 };
