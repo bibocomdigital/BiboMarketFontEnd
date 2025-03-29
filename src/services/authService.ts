@@ -1,4 +1,3 @@
-
 // Configuration de l'API
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
@@ -193,7 +192,7 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
     console.log('🔄 [API] Début de la vérification du code');
     console.log('📧 [API] Email:', email);
     console.log('🔑 [API] Code de vérification:', verificationCode);
-    console.log('📤 [API] URL de vérification:', `${API_URL}/auth/verify-code`);
+    console.log('📤 [API] URL de vérification:', `${API_URL}/auth/verify`);
     
     // En mode DEV, simuler une vérification réussie
     if (import.meta.env.DEV && API_URL.includes('localhost')) {
@@ -228,7 +227,7 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
     const body = JSON.stringify({ email, verificationCode });
     console.log('📤 [API] Body de la requête de vérification:', body);
     
-    const response = await fetch(`${API_URL}/auth/verify-code`, {
+    const response = await fetch(`${API_URL}/auth/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
