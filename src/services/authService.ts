@@ -1,6 +1,18 @@
-
 // Configuration de l'API
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
+/**
+ * Type pour les données de profil
+ */
+export interface ProfileData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  photo?: File;
+  city?: string;
+  country?: string;
+}
 
 /**
  * Vérifie si un email existe déjà
@@ -234,5 +246,114 @@ export const getCurrentUser = () => {
   } catch (error) {
     console.error('❌ [API] Erreur lors de la récupération de l\'utilisateur:', error);
     return null;
+  }
+};
+
+/**
+ * Récupère l'utilisateur pour des raisons de compatibilité
+ * @deprecated Utiliser getCurrentUser à la place
+ */
+export const getUser = () => {
+  return getCurrentUser();
+};
+
+/**
+ * Récupère le profil utilisateur détaillé
+ */
+export const getUserProfile = async (): Promise<ProfileData> => {
+  try {
+    console.log('🔄 [API] Récupération du profil utilisateur');
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('❌ [API] Tentative de récupération du profil sans token');
+      throw new Error('Non authentifié');
+    }
+    
+    const response = await fetch(`${API_URL}/users/profile`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('📊 [API] Statut de la réponse du profil:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [API] Erreur de récupération du profil:', errorData);
+      throw new Error(errorData.message || 'Erreur lors de la récupération du profil');
+    }
+
+    const data = await response.json();
+    console.log('✅ [API] Profil utilisateur récupéré avec succès:', data);
+    
+    return data;
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la récupération du profil:', error);
+    throw error;
+  }
+};
+
+/**
+ * Met à jour le profil utilisateur
+ */
+export const updateUserProfile = async (profileData: ProfileData): Promise<ProfileData> => {
+  try {
+    console.log('🔄 [API] Mise à jour du profil utilisateur');
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('❌ [API] Tentative de mise à jour du profil sans token');
+      throw new Error('Non authentifié');
+    }
+    
+    // Utiliser FormData pour pouvoir envoyer des fichiers
+    const formData = new FormData();
+    
+    // Ajouter les champs du profil au FormData
+    Object.entries(profileData).forEach(([key, value]) => {
+      if (value !== undefined) {
+        formData.append(key, value as string | Blob);
+      }
+    });
+    
+    // Log des données à envoyer (sans le fichier)
+    const logData = { ...profileData };
+    if (logData.photo) {
+      logData.photo = '[FILE]' as any;
+    }
+    console.log('📤 [API] Données de profil à envoyer:', logData);
+    
+    const response = await fetch(`${API_URL}/users/profile`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Ne pas définir Content-Type car il est automatiquement défini avec le boundary pour FormData
+      },
+      body: formData,
+    });
+
+    console.log('📊 [API] Statut de la réponse de mise à jour du profil:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [API] Erreur de mise à jour du profil:', errorData);
+      throw new Error(errorData.message || 'Erreur lors de la mise à jour du profil');
+    }
+
+    const data = await response.json();
+    console.log('✅ [API] Profil utilisateur mis à jour avec succès:', data);
+    
+    // Mettre à jour l'utilisateur stocké localement si nécessaire
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const updatedUser = { ...currentUser, ...data };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    
+    return data;
+  } catch (error) {
+    console.error('❌ [API] Erreur lors de la mise à jour du profil:', error);
+    throw error;
   }
 };
