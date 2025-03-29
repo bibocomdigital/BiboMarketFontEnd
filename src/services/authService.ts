@@ -112,6 +112,15 @@ export const registerUser = async (formData: FormData): Promise<{
     console.log('📤 [API] Envoi des données d\'inscription:', safeLogData);
     console.log('📤 [API] URL d\'inscription:', `${API_URL}/auth/register`);
     
+    // S'assurer que tous les champs requis sont présents dans le FormData
+    const requiredFields = ['email', 'password', 'firstName', 'lastName', 'role'];
+    for (const field of requiredFields) {
+      if (!formData.get(field)) {
+        console.error(`❌ [API] Champ requis manquant: ${field}`);
+        throw new Error(`Le champ ${field} est requis pour l'inscription`);
+      }
+    }
+    
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       body: formData,
@@ -128,6 +137,12 @@ export const registerUser = async (formData: FormData): Promise<{
       if (errorData.message && errorData.message.includes('déjà enregistré')) {
         console.error('❌ [API] Email déjà enregistré et vérifié');
         throw new Error('Cet email est déjà enregistré et vérifié.');
+      }
+      
+      // Vérifier s'il s'agit de l'erreur 'hashedPassword is not defined'
+      if (errorData.error && errorData.error.includes('hashedPassword is not defined')) {
+        console.error('❌ [API] Erreur côté serveur avec le hachage du mot de passe');
+        throw new Error('Erreur lors du traitement de votre mot de passe. Veuillez réessayer.');
       }
       
       throw new Error(errorData.message || 'Erreur lors de l\'inscription');
