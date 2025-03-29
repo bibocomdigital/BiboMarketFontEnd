@@ -25,15 +25,17 @@ const VerifyCode = () => {
   const { toast } = useToast();
   
   console.log('🔄 [VERIFY] Initialisation de la page de vérification');
-  console.log('🔍 [VERIFY] Location state:', location.state);
+  console.log('🔍 [VERIFY] Location state complet:', location.state);
   
+  // Extraction des données depuis location.state
   const userEmail = location.state?.email || '';
   const userPassword = location.state?.password || '';
   const userRoleString = location.state?.role || 'CLIENT';
   const userRole = mapStringToUserRole(userRoleString);
   
   console.log('📧 [VERIFY] Email reçu:', userEmail);
-  console.log('🔑 [VERIFY] Mot de passe reçu:', userPassword ? '[PRÉSENT]' : '[ABSENT]');
+  console.log('🔑 [VERIFY] Mot de passe reçu:', userPassword ? '[PRÉSENT - ' + userPassword.length + ' caractères]' : '[ABSENT]');
+  console.log('🔑 [VERIFY] Mot de passe détails:', userPassword);
   console.log('👤 [VERIFY] Rôle reçu:', userRoleString);
   
   useEffect(() => {
@@ -91,6 +93,7 @@ const VerifyCode = () => {
         console.log('🔄 [VERIFY] Tentative de connexion automatique...');
         console.log('📧 [VERIFY] Email utilisé pour la connexion:', userEmail);
         console.log('🔑 [VERIFY] Mot de passe disponible:', userPassword ? 'Oui' : 'Non');
+        console.log('🔑 [VERIFY] Longueur du mot de passe:', userPassword ? userPassword.length : 0);
         
         if (!userPassword) {
           console.warn('⚠️ [VERIFY] Mot de passe non disponible, redirection vers la page de connexion');
