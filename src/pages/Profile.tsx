@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -70,7 +71,7 @@ const Profile = () => {
             address: `${userData.city || ''}, ${userData.country || ''}`,
             bio: '', // Pas dans l'API
             birthdate: '', // Pas dans l'API
-            avatar: userData.photo || '',
+            avatar: userData.photo?.toString() || '', // Convert to string if it's a File
           });
           setEditInfo({
             firstName: userData.firstName || '',
@@ -80,7 +81,7 @@ const Profile = () => {
             address: `${userData.city || ''}, ${userData.country || ''}`,
             bio: '', // Pas dans l'API
             birthdate: '', // Pas dans l'API
-            avatar: userData.photo || '',
+            avatar: userData.photo?.toString() || '', // Convert to string if it's a File
           });
         }
       } catch (error: any) {
