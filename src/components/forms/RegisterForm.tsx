@@ -52,6 +52,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [emailExists, setEmailExists] = useState<boolean>(false);
   const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
+  const [formData, setFormData] = useState<FormData | null>(null);
   const { toast } = useToast();
   
   // Logs pour débogage
@@ -418,16 +419,9 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     }
   };
 
-  // Handler spécifique pour prévenir le comportement par défaut du formulaire
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Empêcher le comportement par défaut
-    console.log('🔄 [REGISTER] Form submit event captured and prevented from refreshing');
-    form.handleSubmit(onSubmit)(e); // Passer l'événement à handleSubmit
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={handleFormSubmit} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {renderStep()}
         
         {/* Indicateur d'étape (pour débogage) */}
