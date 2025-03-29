@@ -122,7 +122,10 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
         <Button 
           type="button" 
           variant="outline" 
-          onClick={prevStep} 
+          onClick={(e) => {
+            e.preventDefault(); // Empêcher le comportement par défaut
+            prevStep();
+          }} 
           className="w-1/2"
         >
           Retour

@@ -1,5 +1,47 @@
+
 // Configuration de l'API
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
+// Définition des rôles utilisateur
+export enum UserRole { 
+  CLIENT = 'CLIENT', 
+  MERCHANT = 'MERCHANT', 
+  SUPPLIER = 'SUPPLIER' 
+}
+
+// Labels à afficher pour chaque rôle
+export const USER_ROLE_LABELS: Record<UserRole, string> = { 
+  [UserRole.CLIENT]: 'Client', 
+  [UserRole.MERCHANT]: 'Commerçant', 
+  [UserRole.SUPPLIER]: 'Fournisseur' 
+};
+
+// Interface pour les données utilisateur
+export interface User { 
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  photo?: string;
+  phoneNumber?: string;
+  isVerified: boolean;
+  country?: string;
+  city?: string;
+  department?: string;
+  commune?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Interface pour le contexte d'authentification
+export interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
+  logout: () => void;
+  loading: boolean;
+}
 
 /**
  * Type pour les données de profil
@@ -107,13 +149,7 @@ export const registerUser = async (formData: FormData): Promise<{
  */
 export const verifyCode = async (email: string, verificationCode: string): Promise<{
   message: string;
-  user: {
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  }
+  user: User;
 }> => {
   try {
     console.log('🔄 [API] Début de la vérification du code');
@@ -167,13 +203,7 @@ export const verifyCode = async (email: string, verificationCode: string): Promi
  */
 export const login = async (credentials: { email: string; password: string }): Promise<{
   token: string;
-  user: {
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  }
+  user: User;
 }> => {
   try {
     console.log('🔄 [API] Tentative de connexion pour:', credentials.email);
@@ -238,11 +268,11 @@ export const isAuthenticated = (): boolean => {
 /**
  * Récupère l'utilisateur connecté
  */
-export const getCurrentUser = () => {
+export const getCurrentUser = (): User | null => {
   try {
     const userStr = localStorage.getItem('user');
     if (!userStr) return null;
-    return JSON.parse(userStr);
+    return JSON.parse(userStr) as User;
   } catch (error) {
     console.error('❌ [API] Erreur lors de la récupération de l\'utilisateur:', error);
     return null;
@@ -253,7 +283,7 @@ export const getCurrentUser = () => {
  * Récupère l'utilisateur pour des raisons de compatibilité
  * @deprecated Utiliser getCurrentUser à la place
  */
-export const getUser = () => {
+export const getUser = (): User | null => {
   return getCurrentUser();
 };
 
