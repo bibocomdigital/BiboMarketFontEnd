@@ -4,11 +4,11 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Phone } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
-import { RegisterFormValues } from '../RegisterForm';
 import { Country, getDefaultCountry } from '@/data/countries';
 
+// Étendu pour accommoder CompleteProfileFormValues aussi
 interface PhoneInputProps {
-  form: UseFormReturn<RegisterFormValues>;
+  form: UseFormReturn<any>; // Accept any form type
   selectedCountry?: Country;
 }
 
