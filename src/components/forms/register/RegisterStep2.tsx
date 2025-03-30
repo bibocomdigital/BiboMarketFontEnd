@@ -9,13 +9,7 @@ import { RegisterFormValues } from '../RegisterForm';
 import CountrySelect from './CountrySelect';
 import { UserRole, USER_ROLE_LABELS } from '@/types/user';
 import { Country } from '@/data/countries';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface RegisterStep2Props {
   form: UseFormReturn<RegisterFormValues>;
@@ -44,30 +38,31 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
         control={form.control}
         name="role"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="space-y-3">
             <FormLabel>Je m'inscris en tant que*</FormLabel>
-            <Select
-              onValueChange={(value) => {
-                console.log('🔄 [REGISTER_STEP2] Role changed to:', value);
-                field.onChange(value);
-                form.setValue('role', value as UserRole);
-              }}
-              value={field.value || undefined}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionnez votre rôle" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
+            <FormControl>
+              <RadioGroup
+                onValueChange={(value) => {
+                  console.log('🔄 [REGISTER_STEP2] Role changed to:', value);
+                  field.onChange(value);
+                  form.setValue('role', value as UserRole);
+                }}
+                value={field.value}
+                className="flex flex-col space-y-1"
+              >
                 {Object.values(UserRole).map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {USER_ROLE_LABELS[role as UserRole]}
-                  </SelectItem>
+                  <FormItem key={role} className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value={role} />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer">
+                      {USER_ROLE_LABELS[role as UserRole]}
+                    </FormLabel>
+                  </FormItem>
                 ))}
-              </SelectContent>
-            </Select>
-            <div className="text-xs text-muted-foreground mt-1">
+              </RadioGroup>
+            </FormControl>
+            <div className="text-xs text-muted-foreground">
               * Veuillez sélectionner un rôle pour continuer
             </div>
             <FormMessage />

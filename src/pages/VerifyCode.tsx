@@ -95,6 +95,7 @@ const VerifyCode = () => {
         console.log('📧 [VERIFY] Email utilisé pour la connexion:', userEmail);
         console.log('🔑 [VERIFY] Mot de passe disponible:', userPassword ? 'Oui' : 'Non');
         console.log('🔑 [VERIFY] Longueur du mot de passe:', userPassword ? userPassword.length : 0);
+        console.log('👤 [VERIFY] Rôle attendu de l\'utilisateur:', userRoleString);
         
         if (!userPassword) {
           console.warn('⚠️ [VERIFY] Mot de passe non disponible, redirection vers la page de connexion');
@@ -108,19 +109,19 @@ const VerifyCode = () => {
         });
         
         console.log('✅ [VERIFY] Connexion automatique réussie!', loginResult);
-        const userRoleFromLogin = loginResult.user.role.toUpperCase();
-        console.log('👤 [VERIFY] Rôle de l\'utilisateur connecté:', userRoleFromLogin);
+        console.log('👤 [VERIFY] Rôle de l\'utilisateur connecté:', loginResult.user.role);
         
         console.log('🔄 [VERIFY] Préparation de la redirection après connexion...');
+        console.log('👤 [VERIFY] Rôle transmis lors de l\'inscription:', userRoleString);
         
         setTimeout(() => {
           console.log('⏱️ [VERIFY] Délai de redirection démarré (3s)');
           
-          // Correction: Utiliser le rôle de l'utilisateur pour la redirection
-          if (userRoleFromLogin === UserRole.MERCHANT || userRoleString === UserRole.MERCHANT) {
+          // Respecter le rôle transmis depuis l'inscription
+          if (userRoleString === UserRole.MERCHANT) {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord commerçant');
             navigate('/merchant-dashboard', { replace: true });
-          } else if (userRoleFromLogin === UserRole.SUPPLIER || userRoleString === UserRole.SUPPLIER) {
+          } else if (userRoleString === UserRole.SUPPLIER) {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord fournisseur');
             navigate('/supplier-dashboard', { replace: true });
           } else {
