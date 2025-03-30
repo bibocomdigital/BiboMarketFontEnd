@@ -27,7 +27,6 @@ const VerifyCode = () => {
   console.log('🔄 [VERIFY] Initialisation de la page de vérification');
   console.log('🔍 [VERIFY] Location state complet:', location.state);
   
-  // Extraction des données depuis location.state
   const userEmail = location.state?.email || '';
   const userPassword = location.state?.password || '';
   const userRoleString = location.state?.role || 'CLIENT';
@@ -116,7 +115,6 @@ const VerifyCode = () => {
         setTimeout(() => {
           console.log('⏱️ [VERIFY] Délai de redirection démarré (3s)');
           
-          // Utiliser le rôle utilisateur pour la redirection
           if (userRole === 'merchant' || userRole === 'commercant') {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord commerçant');
             navigate('/merchant-dashboard', { replace: true });
@@ -286,6 +284,7 @@ const VerifyCode = () => {
                     maxLength={6} 
                     value={code} 
                     onChange={handleCodeChange}
+                    pattern="^[a-zA-Z0-9]*$"
                     className={error ? "border-red-300" : ""}
                   >
                     <InputOTPGroup>
