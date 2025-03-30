@@ -14,6 +14,7 @@ import VerificationPending from "./pages/VerificationPending";
 import ClientDashboard from "./pages/ClientDashboard";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import SupplierDashboard from "./pages/SupplierDashboard";
+import CompleteProfile from "./pages/CompleteProfile";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/client-dashboard" element={<ClientDashboard />} />
           <Route path="/merchant-dashboard" element={<MerchantDashboard />} />
           <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
+          <Route path="/complete-profile" element={<CompleteProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
