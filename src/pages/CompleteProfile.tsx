@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -57,7 +58,7 @@ const CompleteProfile = () => {
     const urlToken = params.get('token');
     
     if (urlToken) {
-      console.log('🔑 [COMPLETE_PROFILE] Token récupéré de l\'URL');
+      console.log('🔑 [COMPLETE_PROFILE] Token récupéré de l\'URL:', urlToken.substring(0, 15) + '...');
       setToken(urlToken);
       
       // Stocker le token dans localStorage
@@ -82,6 +83,8 @@ const CompleteProfile = () => {
       const profileUrl = import.meta.env.VITE_API_URL 
         ? `${import.meta.env.VITE_API_URL}/api/auth/profile`
         : 'http://localhost:3000/api/auth/profile';
+      
+      console.log('🔍 [COMPLETE_PROFILE] Tentative de récupération du profil depuis:', profileUrl);
       
       const response = await fetch(profileUrl, {
         method: 'GET',
@@ -145,6 +148,8 @@ const CompleteProfile = () => {
         ? `${import.meta.env.VITE_API_URL}/api/auth/profile1`
         : 'http://localhost:3000/api/auth/profile1';
       
+      console.log('🔄 [COMPLETE_PROFILE] Envoi de la mise à jour du profil à:', updateProfileUrl);
+      
       const response = await fetch(updateProfileUrl, {
         method: 'PUT',
         headers: {
@@ -155,7 +160,9 @@ const CompleteProfile = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Échec de mise à jour du profil');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('🔴 [COMPLETE_PROFILE] Réponse d\'erreur:', response.status, errorData);
+        throw new Error(errorData.message || 'Échec de mise à jour du profil');
       }
       
       const data = await response.json();
