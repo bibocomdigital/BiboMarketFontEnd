@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -238,7 +237,7 @@ const CompleteProfile = () => {
                   <FormItem>
                     <FormLabel>Numéro de téléphone</FormLabel>
                     <FormControl>
-                      <PhoneInput {...field} />
+                      <PhoneInput form={form} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
