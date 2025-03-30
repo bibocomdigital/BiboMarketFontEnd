@@ -4,12 +4,18 @@ import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MapPin } from 'lucide-react';
 import { RegisterFormValues } from '../RegisterForm';
 import CountrySelect from './CountrySelect';
 import { UserRole, USER_ROLE_LABELS } from '@/types/user';
 import { Country } from '@/data/countries';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from '@/components/ui/select';
 
 interface RegisterStep2Props {
   form: UseFormReturn<RegisterFormValues>;
@@ -38,32 +44,30 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
         control={form.control}
         name="role"
         render={({ field }) => (
-          <FormItem className="space-y-3">
+          <FormItem>
             <FormLabel>Je m'inscris en tant que*</FormLabel>
-            <FormControl>
-              <RadioGroup
-                onValueChange={(value) => {
-                  console.log('🔄 [REGISTER_STEP2] Role changed to:', value);
-                  field.onChange(value);
-                  // Forcer la mise à jour de la valeur
-                  form.setValue('role', value as UserRole);
-                }}
-                value={field.value || ''}
-                className="flex flex-col space-y-1"
-              >
+            <Select
+              onValueChange={(value) => {
+                console.log('🔄 [REGISTER_STEP2] Role changed to:', value);
+                field.onChange(value);
+                form.setValue('role', value as UserRole);
+              }}
+              value={field.value || undefined}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez votre rôle" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
                 {Object.values(UserRole).map((role) => (
-                  <FormItem key={role} className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value={role} />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      {USER_ROLE_LABELS[role as UserRole]}
-                    </FormLabel>
-                  </FormItem>
+                  <SelectItem key={role} value={role}>
+                    {USER_ROLE_LABELS[role as UserRole]}
+                  </SelectItem>
                 ))}
-              </RadioGroup>
-            </FormControl>
-            <div className="text-xs text-muted-foreground">
+              </SelectContent>
+            </Select>
+            <div className="text-xs text-muted-foreground mt-1">
               * Veuillez sélectionner un rôle pour continuer
             </div>
             <FormMessage />
