@@ -39,14 +39,16 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
         name="role"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel>Je m'inscris en tant que</FormLabel>
+            <FormLabel>Je m'inscris en tant que*</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={(value) => {
                   console.log('🔄 [REGISTER_STEP2] Role changed to:', value);
                   field.onChange(value);
+                  // Forcer la mise à jour de la valeur
+                  form.setValue('role', value as UserRole);
                 }}
-                value={field.value}
+                value={field.value || ''}
                 className="flex flex-col space-y-1"
               >
                 {Object.values(UserRole).map((role) => (
@@ -54,11 +56,16 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
                     <FormControl>
                       <RadioGroupItem value={role} />
                     </FormControl>
-                    <FormLabel className="font-normal">{USER_ROLE_LABELS[role as UserRole]}</FormLabel>
+                    <FormLabel className="font-normal">
+                      {USER_ROLE_LABELS[role as UserRole]}
+                    </FormLabel>
                   </FormItem>
                 ))}
               </RadioGroup>
             </FormControl>
+            <div className="text-xs text-muted-foreground">
+              * Veuillez sélectionner un rôle pour continuer
+            </div>
             <FormMessage />
           </FormItem>
         )}
@@ -140,7 +147,7 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
         <Button 
           type="submit" 
           className="w-1/2 bg-bibocom-primary text-white"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !form.getValues().role}
         >
           {isSubmitting ? 'Inscription en cours...' : 'S\'inscrire'}
         </Button>
