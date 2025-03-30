@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
@@ -107,18 +108,19 @@ const VerifyCode = () => {
         });
         
         console.log('✅ [VERIFY] Connexion automatique réussie!', loginResult);
-        const userRole = loginResult.user.role.toLowerCase();
-        console.log('👤 [VERIFY] Rôle de l\'utilisateur connecté:', userRole);
+        const userRoleFromLogin = loginResult.user.role.toUpperCase();
+        console.log('👤 [VERIFY] Rôle de l\'utilisateur connecté:', userRoleFromLogin);
         
         console.log('🔄 [VERIFY] Préparation de la redirection après connexion...');
         
         setTimeout(() => {
           console.log('⏱️ [VERIFY] Délai de redirection démarré (3s)');
           
-          if (userRole === 'merchant' || userRole === 'commercant') {
+          // Correction: Utiliser le rôle de l'utilisateur pour la redirection
+          if (userRoleFromLogin === UserRole.MERCHANT || userRoleString === UserRole.MERCHANT) {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord commerçant');
             navigate('/merchant-dashboard', { replace: true });
-          } else if (userRole === 'supplier' || userRole === 'fournisseur') {
+          } else if (userRoleFromLogin === UserRole.SUPPLIER || userRoleString === UserRole.SUPPLIER) {
             console.log('🔄 [VERIFY] Redirection vers le tableau de bord fournisseur');
             navigate('/supplier-dashboard', { replace: true });
           } else {
