@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -8,8 +7,22 @@ import Testimonials from '@/components/Testimonials';
 import CallToAction from '@/components/CallToAction';
 import Footer from '@/components/Footer';
 import { ArrowUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Vérifier si un token de complétion de profil existe dans l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      console.log('Token détecté, redirection vers la page de complétion de profil');
+      navigate(`/complete-profile?token=${token}`);
+    }
+  }, [navigate]);
+  
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Smooth scroll effect for anchor links

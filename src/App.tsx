@@ -15,6 +15,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import SupplierDashboard from "./pages/SupplierDashboard";
 import CompleteProfile from "./pages/CompleteProfile";
+import Redirector from "./pages/Redirector";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,8 @@ const App = () => (
           <Route path="/merchant-dashboard" element={<MerchantDashboard />} />
           <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
           <Route path="/complete-profile" element={<CompleteProfile />} />
+          {/* Ajout de la route de redirection */}
+          <Route path="/redirect" element={<Redirector />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
