@@ -6,7 +6,7 @@ import { Phone } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { Country, getDefaultCountry } from '@/data/countries';
 
-// Étendu pour accommoder CompleteProfileFormValues aussi
+// Extended to accommodate CompleteProfileFormValues as well
 interface PhoneInputProps {
   form: UseFormReturn<any>; // Accept any form type
   selectedCountry?: Country;
@@ -17,18 +17,18 @@ const PhoneInput = ({ form, selectedCountry = getDefaultCountry() }: PhoneInputP
   
   console.log('📱 [REGISTER] PhoneInput initialized with country:', selectedCountry.name);
 
-  // Mettre à jour lorsque le pays change
+  // Update when country changes
   useEffect(() => {
     if (selectedCountry) {
       console.log('📱 [REGISTER] Country changed to:', selectedCountry.name);
       
-      // Mettre à jour le numéro complet dans le formulaire
+      // Update the full phone number in the form
       updateFullPhoneNumber(phoneWithoutCode);
     }
   }, [selectedCountry]);
 
   const updateFullPhoneNumber = (phoneNumber: string) => {
-    // On enregistre uniquement le numéro sans l'indicatif
+    // We only register the number without the prefix
     console.log('📱 [REGISTER] Setting phone number:', phoneNumber);
     form.setValue('phoneNumber', phoneNumber);
   };
