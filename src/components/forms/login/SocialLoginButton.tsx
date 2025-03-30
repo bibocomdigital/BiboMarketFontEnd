@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 interface SocialLoginButtonProps {
-  provider: 'google' | 'facebook';
+  provider?: 'google' | 'facebook';
   className?: string;
 }
 
-const SocialLoginButton = ({ provider, className }: SocialLoginButtonProps) => {
+const SocialLoginButton = ({ provider = 'google', className }: SocialLoginButtonProps) => {
   const { toast } = useToast();
   
   const handleGoogleLogin = () => {

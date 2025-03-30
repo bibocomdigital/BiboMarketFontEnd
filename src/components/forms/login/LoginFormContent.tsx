@@ -152,7 +152,7 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
             <span className="px-2 bg-white text-gray-500">Ou connectez-vous avec</span>
           </div>
         </div>
-        <SocialLoginButton />
+        <SocialLoginButton provider="google" />
       </form>
       <ForgotPasswordDialog 
         open={showForgotPassword} 
