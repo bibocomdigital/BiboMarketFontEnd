@@ -55,6 +55,25 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
   console.log('👤 [REGISTER] Initial role:', initialRole);
   console.log('🔢 [REGISTER] Current step from URL:', currentStep);
 
+  // Initialiser le formulaire avec les valeurs par défaut
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phoneNumber: '',
+      password: '',
+      confirmPassword: '',
+      country: getDefaultCountry().name,
+      city: '',
+      department: '',
+      commune: '',
+      photo: undefined,
+      role: initialRole,
+    },
+  });
+
   const updateStep = (step: number) => {
     console.log('🔄 [REGISTER] Updating step to:', step);
     
@@ -80,16 +99,33 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     }
   }, [location.search]);
   
+  // Gestion du paramètre de rôle dans l'URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const roleParam = params.get('role');
     
-    if (roleParam && Object.values(UserRole).includes(roleParam as UserRole)) {
-      console.log('🔄 [REGISTER] Setting role from URL params:', roleParam);
-      form.setValue('role', roleParam as UserRole);
+    if (roleParam) {
+      console.log('🔄 [REGISTER] Role param from URL:', roleParam);
+      
+      let roleValue: UserRole;
+      
+      // Mapper la valeur du paramètre vers un rôle UserRole
+      if (roleParam.toLowerCase() === 'client') {
+        roleValue = UserRole.CLIENT;
+      } else if (roleParam.toLowerCase() === 'commercant' || roleParam.toLowerCase() === 'merchant') {
+        roleValue = UserRole.MERCHANT;
+      } else if (roleParam.toLowerCase() === 'fournisseur' || roleParam.toLowerCase() === 'supplier') {
+        roleValue = UserRole.SUPPLIER;
+      } else {
+        roleValue = initialRole;
+      }
+      
+      console.log('🔄 [REGISTER] Setting role from URL params to:', roleValue);
+      form.setValue('role', roleValue);
     }
-  }, [location]);
+  }, [location.search]);
 
+  // Charger les données sauvegardées du formulaire
   useEffect(() => {
     const savedFormData = localStorage.getItem('registerFormData');
     if (savedFormData) {
@@ -110,29 +146,9 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
         console.error('❌ [REGISTER] Error loading saved form data:', error);
       }
     }
-    
-    return () => {
-    };
   }, []);
   
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phoneNumber: '',
-      password: '',
-      confirmPassword: '',
-      country: getDefaultCountry().name,
-      city: '',
-      department: '',
-      commune: '',
-      photo: undefined,
-      role: initialRole,
-    },
-  });
-
+  // Sauvegarder les données du formulaire
   useEffect(() => {
     const subscription = form.watch((data) => {
       const dataToSave = { ...data };
@@ -149,6 +165,7 @@ const RegisterForm = ({ onClose, initialRole = UserRole.CLIENT }: { onClose?: ()
     return () => subscription.unsubscribe();
   }, [form.watch, photoPreview]);
 
+  // S'assurer que le rôle initial est correctement défini
   useEffect(() => {
     console.log('🔄 [REGISTER] Setting form role to:', initialRole);
     form.setValue('role', initialRole);

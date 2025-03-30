@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,12 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
       onCountryChange(country);
     }
   };
+
+  // Afficher la valeur du rôle pour le débogage
+  useEffect(() => {
+    const currentRole = form.getValues().role;
+    console.log('🔍 [REGISTER_STEP2] Current role value:', currentRole);
+  }, [form]);
   
   return (
     <>
@@ -37,6 +43,7 @@ const RegisterStep2 = ({ form, prevStep, isSubmitting = false, onCountryChange }
             <FormControl>
               <RadioGroup
                 onValueChange={(value) => {
+                  console.log('🔄 [REGISTER_STEP2] Role changed to:', value);
                   field.onChange(value);
                 }}
                 value={field.value}

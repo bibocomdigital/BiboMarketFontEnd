@@ -1,12 +1,29 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import RegisterForm from '@/components/forms/RegisterForm';
 import { UserRole, USER_ROLE_LABELS } from '@/types/user';
 
 const Register = () => {
+  const location = useLocation();
   const [role, setRole] = useState<UserRole>(UserRole.CLIENT);
+  
+  // Récupérer le rôle depuis les paramètres d'URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const roleParam = params.get('role');
+    
+    if (roleParam) {
+      if (roleParam.toLowerCase() === 'commercant' || roleParam.toLowerCase() === 'merchant') {
+        setRole(UserRole.MERCHANT);
+      } else if (roleParam.toLowerCase() === 'fournisseur' || roleParam.toLowerCase() === 'supplier') {
+        setRole(UserRole.SUPPLIER);
+      } else if (roleParam.toLowerCase() === 'client') {
+        setRole(UserRole.CLIENT);
+      }
+    }
+  }, [location]);
   
   return (
     <div className="min-h-screen flex flex-col md:flex-row">

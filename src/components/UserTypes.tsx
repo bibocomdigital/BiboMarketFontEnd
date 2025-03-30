@@ -6,11 +6,12 @@ import Badge from './ui-custom/Badge';
 import Button from './ui-custom/Button';
 import { Store, Users, Truck, ChevronRight, Check } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { UserRole } from '@/types/user';
 
 const UserTypes = () => {
   const navigate = useNavigate();
   
-  const navigateToRegister = (role: 'client' | 'commercant' | 'fournisseur') => {
+  const navigateToRegister = (role: string) => {
     navigate(`/register?role=${role}`);
   };
 
@@ -30,7 +31,7 @@ const UserTypes = () => {
         "Badge de vérification (payant)",
       ],
       buttonText: "Devenir commerçant",
-      role: "commercant" as const
+      role: "merchant" // Utiliser "merchant" pour correspondre à UserRole.MERCHANT
     },
     {
       icon: <Users size={28} />,
@@ -47,7 +48,7 @@ const UserTypes = () => {
         "Notifications personnalisées",
       ],
       buttonText: "Créer un compte client",
-      role: "client" as const
+      role: "client" // Utiliser "client" pour correspondre à UserRole.CLIENT
     },
     {
       icon: <Truck size={28} />,
@@ -64,7 +65,7 @@ const UserTypes = () => {
         "Visibilité accrue sur la plateforme",
       ],
       buttonText: "S'inscrire comme fournisseur",
-      role: "fournisseur" as const
+      role: "supplier" // Utiliser "supplier" pour correspondre à UserRole.SUPPLIER
     }
   ];
 
