@@ -14,28 +14,28 @@ const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({ provider, onClose
   const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
   
   const handleLogin = () => {
-    // Fermer la modal de connexion si elle existe
+    // Close the login modal if it exists
     if (onClose) {
       onClose();
     }
     
-    // Enregistrer l'URL actuelle pour la redirection après authentification
+    // Store the current URL for redirection after authentication
     localStorage.setItem('auth_redirect_url', window.location.origin + '/redirect');
     
-    // Construire l'URL d'authentification
+    // Build the authentication URL
     let authUrl = '';
     
     if (provider === 'google') {
-      // Redirection directe vers Google OAuth
+      // Direct redirection to Google OAuth
       authUrl = `${backendUrl}/api/auth/google`;
-      console.log(`🔄 Redirection vers l'authentification Google:`, authUrl);
+      console.log(`🔄 Redirecting to Google authentication:`, authUrl);
     } else {
-      // Pour d'autres providers comme Facebook
+      // For other providers like Facebook
       authUrl = `${backendUrl}/api/auth/${provider}`;
-      console.log(`🔄 Redirection vers l'authentification ${provider}:`, authUrl);
+      console.log(`🔄 Redirecting to ${provider} authentication:`, authUrl);
     }
     
-    // Redirection vers l'API d'authentification
+    // Redirect to the authentication API
     window.location.href = authUrl;
   };
   
