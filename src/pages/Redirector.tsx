@@ -18,12 +18,14 @@ const Redirector = () => {
     const code = params.get('code');
     const scope = params.get('scope');
     const urlToken = params.get('token');
+    const needsCompletion = params.get('needsCompletion') === 'true';
     
     // Debug info
     console.log('🔍 URL parameters:', {
       code: code ? `${code.substring(0, 10)}...` : 'null',
       scope: scope || 'null',
-      token: urlToken ? `${urlToken.substring(0, 10)}...` : 'null'
+      token: urlToken ? `${urlToken.substring(0, 10)}...` : 'null',
+      needsCompletion: needsCompletion
     });
     
     // If we have a token in the URL, use it directly
@@ -33,15 +35,16 @@ const Redirector = () => {
       // Process the token through our service
       if (processSocialAuthToken(urlToken)) {
         toast({
-          title: "Authentication successful",
-          description: "You will be redirected to complete your profile.",
+          title: "Authentification réussie",
+          description: "Vous allez être redirigé pour compléter votre profil.",
         });
         
+        // Always redirect to complete profile for social auth
         navigate(`/complete-profile?token=${urlToken}`);
       } else {
         toast({
-          title: "Authentication problem",
-          description: "Unable to process your authentication token.",
+          title: "Problème d'authentification",
+          description: "Impossible de traiter votre jeton d'authentification.",
           variant: "destructive"
         });
         navigate('/');
@@ -54,9 +57,10 @@ const Redirector = () => {
     if (token) {
       console.log('🔑 Token found in localStorage:', token.substring(0, 15) + '...');
       toast({
-        title: "Authentication successful",
-        description: "You will be redirected to complete your profile.",
+        title: "Authentification réussie",
+        description: "Vous allez être redirigé pour compléter votre profil.",
       });
+      // Always redirect to complete profile for social login
       navigate(`/complete-profile?token=${token}`);
       return;
     }
@@ -89,8 +93,8 @@ const Redirector = () => {
         console.log('❌ No token found - redirecting to home');
         setIsProcessing(false);
         toast({
-          title: "Authentication problem",
-          description: "Unable to retrieve your authentication token.",
+          title: "Problème d'authentification",
+          description: "Impossible de récupérer votre jeton d'authentification.",
           variant: "destructive"
         });
         navigate('/');
@@ -102,11 +106,11 @@ const Redirector = () => {
     <div className="flex h-screen w-full items-center justify-center">
       <div className="text-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-        <p className="mt-4 text-lg">Redirecting...</p>
-        <p className="text-sm text-gray-500 mt-2">Processing your authentication...</p>
+        <p className="mt-4 text-lg">Redirection en cours...</p>
+        <p className="text-sm text-gray-500 mt-2">Traitement de votre authentification...</p>
         {!isProcessing && (
           <p className="text-amber-600 mt-4">
-            No authentication token found. If the problem persists, contact the administrator.
+            Aucun jeton d'authentification trouvé. Si le problème persiste, contactez l'administrateur.
           </p>
         )}
       </div>

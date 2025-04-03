@@ -78,3 +78,20 @@ export const processSocialAuthToken = (token: string): boolean => {
     return false;
   }
 };
+
+/**
+ * Updates SocialLoginButton to use the social auth service
+ * @param onClose Optional function to close a modal or dialog
+ */
+export const handleSocialLogin = (provider: 'google' | 'facebook', onClose?: () => void): void => {
+  // Close modal if provided
+  if (onClose) {
+    onClose();
+  }
+  
+  if (provider === 'google') {
+    initiateGoogleLogin();
+  } else {
+    initiateFacebookLogin();
+  }
+};

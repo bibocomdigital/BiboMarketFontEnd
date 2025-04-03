@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { handleSocialLogin } from '@/services/socialAuthService';
 
 interface SocialLoginButtonProps {
   provider?: 'google' | 'facebook';
@@ -12,28 +13,9 @@ interface SocialLoginButtonProps {
 const SocialLoginButton = ({ provider = 'google', className, onClose }: SocialLoginButtonProps) => {
   const { toast } = useToast();
   
-  const handleGoogleLogin = () => {
-    console.log('🔄 [LOGIN] Redirection vers l\'authentification Google');
-    
-    // Close modal if it exists
-    if (onClose) {
-      onClose();
-    }
-    
-    // URL du backend pour l'authentification Google
-    const backendUrl = import.meta.env.VITE_API_URL 
-      ? `${import.meta.env.VITE_API_URL}/api/auth/google`
-      : 'http://localhost:3000/api/auth/google';
-    
-    console.log('🔍 [LOGIN] Redirection vers:', backendUrl);
-    
-    // Rediriger l'utilisateur vers l'URL d'authentification Google du backend
-    window.location.href = backendUrl;
-  };
-  
   const handleLogin = () => {
     if (provider === 'google') {
-      handleGoogleLogin();
+      handleSocialLogin('google', onClose);
     } else {
       // Pour l'instant, Facebook n'est pas implémenté
       toast({
