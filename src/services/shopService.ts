@@ -102,6 +102,12 @@ export const createShop = async (shopData: FormData): Promise<Shop> => {
       throw new Error('Vous devez être connecté pour créer une boutique');
     }
     
+    // Log du contenu de FormData pour débugger
+    console.log('📋 [SHOP] Contenu du FormData:');
+    for (let pair of shopData.entries()) {
+      console.log(`   ${pair[0]}: ${pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]}`);
+    }
+    
     // Appeler l'API pour créer la boutique
     const response = await fetch(`${backendUrl}/api/shops`, {
       method: 'POST',
@@ -112,13 +118,25 @@ export const createShop = async (shopData: FormData): Promise<Shop> => {
       body: shopData
     });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ [SHOP] Erreur lors de la création de la boutique:', errorData.message);
-      throw new Error(errorData.message || 'Erreur lors de la création de la boutique');
+    // Log de la réponse pour débugger
+    console.log('🔄 [SHOP] Statut de la réponse:', response.status);
+    
+    const responseText = await response.text();
+    console.log('🔄 [SHOP] Réponse brute:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ [SHOP] Erreur lors du parsing de la réponse JSON:', e);
+      throw new Error('Format de réponse invalide depuis le serveur');
     }
     
-    const data = await response.json();
+    if (!response.ok) {
+      console.error('❌ [SHOP] Erreur lors de la création de la boutique:', data.message);
+      throw new Error(data.message || 'Erreur lors de la création de la boutique');
+    }
+    
     console.log('✅ [SHOP] Boutique créée avec succès:', data.shop.name);
     
     return data.shop;

@@ -26,6 +26,7 @@ const MerchantDashboard = () => {
     queryFn: getMyShop,
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
   
   // Gestion de l'erreur si la boutique n'existe pas encore
@@ -36,8 +37,23 @@ const MerchantDashboard = () => {
       title: 'Boutique créée avec succès',
       description: 'Votre boutique a été créée et est maintenant visible pour vos clients.',
     });
-    refetch();
+    
+    console.log('🔄 [MERCHANT] Rafraîchissement des données de la boutique après création');
+    // Forcer un refetch pour récupérer les nouvelles données
+    setTimeout(() => {
+      refetch();
+    }, 1000); // Petit délai pour s'assurer que le backend a bien traité la création
   };
+  
+  // Log pour débugger
+  useEffect(() => {
+    if (isError) {
+      console.log('❌ [MERCHANT] Erreur lors de la récupération de la boutique:', error);
+    }
+    if (hasShop) {
+      console.log('✅ [MERCHANT] Boutique trouvée:', shopData);
+    }
+  }, [isError, hasShop, shopData, error]);
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

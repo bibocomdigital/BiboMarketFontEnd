@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Store, ShoppingBag, Users, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,7 @@ const NoShop: React.FC<NoShopProps> = ({ onShopCreated }) => {
           Bienvenue sur BibocomMarket! En tant que commerçant, vous pouvez créer votre propre boutique en ligne pour vendre vos produits et services à une clientèle plus large.
         </p>
         
-        <Alert variant="warning" className="max-w-xl mx-auto bg-amber-50 border-amber-200 mt-4">
+        <Alert className="max-w-xl mx-auto bg-amber-50 border-amber-200 mt-4">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertTitle className="text-amber-800">Important</AlertTitle>
           <AlertDescription className="text-amber-700">

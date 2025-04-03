@@ -58,6 +58,11 @@ const CreateShopDialog: React.FC<CreateShopDialogProps> = ({ onSuccess }) => {
   const onSubmit = async (data: CreateShopFormData) => {
     setIsLoading(true);
     try {
+      console.log('🔄 [SHOP_DIALOG] Création de la boutique avec les données:', {
+        ...data,
+        logo: selectedLogo ? `File: ${selectedLogo.name}` : 'Aucun logo'
+      });
+      
       // Créer un objet FormData pour envoyer les données et le fichier
       const formData = new FormData();
       formData.append('name', data.name);
@@ -69,8 +74,15 @@ const CreateShopDialog: React.FC<CreateShopDialogProps> = ({ onSuccess }) => {
         formData.append('logo', selectedLogo);
       }
       
+      // Log du contenu de FormData pour débugger
+      console.log('📋 [SHOP_DIALOG] Contenu du FormData avant envoi:');
+      for (let pair of formData.entries()) {
+        console.log(`   ${pair[0]}: ${pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]}`);
+      }
+      
       // Appeler le service pour créer la boutique
-      await createShop(formData);
+      const result = await createShop(formData);
+      console.log('✅ [SHOP_DIALOG] Résultat de la création:', result);
       
       toast({
         title: "Boutique créée avec succès",
@@ -85,7 +97,7 @@ const CreateShopDialog: React.FC<CreateShopDialogProps> = ({ onSuccess }) => {
       // Appeler la fonction de succès
       onSuccess();
     } catch (error) {
-      console.error('Erreur lors de la création de la boutique:', error);
+      console.error('❌ [SHOP_DIALOG] Erreur lors de la création de la boutique:', error);
       toast({
         title: "Erreur",
         description: error instanceof Error ? error.message : "Une erreur est survenue lors de la création de la boutique",
