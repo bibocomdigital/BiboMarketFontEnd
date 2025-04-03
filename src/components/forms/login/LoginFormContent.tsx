@@ -56,13 +56,22 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
         description: "Vous êtes maintenant connecté"
       });
       
-      const userRole = response.user.role.toLowerCase();
+      // Débogage - Affichons le rôle reçu pour le tracer
+      console.log('👤 [LOGIN] Rôle de l\'utilisateur:', response.user.role);
+      console.log('👤 [LOGIN] Type du rôle reçu:', typeof response.user.role);
       
-      if (userRole === 'merchant' || userRole === 'commercant') {
+      // Correction: normaliser le rôle reçu pour la comparaison
+      const userRole = response.user.role.toUpperCase();
+      
+      // Rediriger en fonction du rôle utilisateur
+      if (userRole === 'MERCHANT' || userRole === 'COMMERCANT') {
+        console.log('🔄 [LOGIN] Redirection vers le tableau de bord commerçant');
         navigate('/merchant-dashboard');
-      } else if (userRole === 'supplier' || userRole === 'fournisseur') {
+      } else if (userRole === 'SUPPLIER' || userRole === 'FOURNISSEUR') {
+        console.log('🔄 [LOGIN] Redirection vers le tableau de bord fournisseur');
         navigate('/supplier-dashboard');
       } else {
+        console.log('🔄 [LOGIN] Redirection vers le tableau de bord client');
         navigate('/client-dashboard');
       }
       
