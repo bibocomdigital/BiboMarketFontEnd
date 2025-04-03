@@ -35,8 +35,9 @@ const App = () => (
           <Route path="/merchant-dashboard" element={<MerchantDashboard />} />
           <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
           <Route path="/complete-profile" element={<CompleteProfile />} />
-          {/* Ajout de la route de redirection */}
+          {/* Routes pour la redirection après authentification */}
           <Route path="/redirect" element={<Redirector />} />
+          <Route path="/api/auth/google/callback" element={<Redirector />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
