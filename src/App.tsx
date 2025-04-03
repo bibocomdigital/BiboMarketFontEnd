@@ -37,14 +37,15 @@ const App = () => (
           <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
           <Route path="/complete-profile" element={<CompleteProfile />} />
           
-          {/* Routes pour la redirection après authentification */}
+          {/* Routes for authentication redirection */}
           <Route path="/redirect" element={<Redirector />} />
           <Route path="/api/auth/google/callback" element={<Redirector />} />
+          <Route path="/api/auth/google" element={<Redirector />} />
           
-          {/* Route API fallback */}
+          {/* API fallback route - this must be BEFORE the catch-all "*" route */}
           <Route path="/api/*" element={<ApiNotFound />} />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Catch-all for any other routes */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

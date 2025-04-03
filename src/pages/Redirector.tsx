@@ -39,20 +39,17 @@ const Redirector = () => {
         console.log('💾 Scope d\'authentification sauvegardé:', scope);
       }
       
-      // Le backend doit placer le token dans localStorage après l'authentification Google
-      // Simuler un traitement d'authentification réussi pour le développement
+      // En développement: rediriger directement vers l'API backend
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      
+      // Si nous sommes en mode développement, nous pouvons rediriger vers l'API backend
       if (import.meta.env.DEV) {
-        console.log('🔧 Mode développement: simulation d\'authentification réussie');
-        // Simuler un token pour le développement
-        const mockToken = "dev_mock_token_" + Date.now();
-        localStorage.setItem('token', mockToken);
+        // Construire l'URL complète pour le backend avec les paramètres
+        const fullBackendCallbackUrl = `${backendUrl}/api/auth/google/callback${location.search}`;
+        console.log('🔄 Redirection vers le backend:', fullBackendCallbackUrl);
         
-        // Rediriger vers la page de complétion de profil après un court délai
-        setTimeout(() => {
-          console.log('✅ Redirection vers la page de complétion de profil');
-          navigate(`/complete-profile?token=${mockToken}`);
-        }, 1500);
-        
+        // Rediriger l'utilisateur vers le backend pour traiter l'authentification
+        window.location.href = fullBackendCallbackUrl;
         return;
       }
       
@@ -97,6 +94,14 @@ const Redirector = () => {
           }, 3000);
         }
       }, 2000);
+    } else if (location.pathname.startsWith('/api/auth/google')) {
+      // Traitement direct de la route /api/auth/google
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      console.log('🔄 Redirection de l\'authentification Google vers le backend:', `${backendUrl}${location.pathname}${location.search}`);
+      
+      // Rediriger directement vers le backend
+      window.location.href = `${backendUrl}${location.pathname}${location.search}`;
+      return;
     } else if (location.pathname === '/redirect') {
       // Pour la route /redirect, vérifier si le token est dans l'URL ou localStorage
       if (urlToken) {
