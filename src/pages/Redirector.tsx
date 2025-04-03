@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { processSocialAuthToken } from '@/services/socialAuthService';
 
 const Redirector = () => {
   const navigate = useNavigate();
@@ -28,15 +29,23 @@ const Redirector = () => {
     // If we have a token in the URL, use it directly
     if (urlToken) {
       console.log('🔑 Token found in URL:', urlToken.substring(0, 15) + '...');
-      localStorage.setItem('token', urlToken);
-      localStorage.setItem('auth_token', urlToken);
       
-      toast({
-        title: "Authentication successful",
-        description: "You will be redirected to complete your profile.",
-      });
-      
-      navigate(`/complete-profile?token=${urlToken}`);
+      // Process the token through our service
+      if (processSocialAuthToken(urlToken)) {
+        toast({
+          title: "Authentication successful",
+          description: "You will be redirected to complete your profile.",
+        });
+        
+        navigate(`/complete-profile?token=${urlToken}`);
+      } else {
+        toast({
+          title: "Authentication problem",
+          description: "Unable to process your authentication token.",
+          variant: "destructive"
+        });
+        navigate('/');
+      }
       return;
     }
     

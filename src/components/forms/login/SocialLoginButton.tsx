@@ -2,6 +2,7 @@
 import React from 'react';
 import { Facebook, LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { initiateGoogleLogin, initiateFacebookLogin } from '@/services/socialAuthService';
 
 type SocialLoginButtonProps = {
   provider: 'google' | 'facebook';
@@ -9,34 +10,18 @@ type SocialLoginButtonProps = {
 };
 
 const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({ provider, onClose }) => {
-  // Use window.location.origin to construct the backend URL if the VITE_API_URL is not set
-  // This helps when your frontend and backend are on the same domain but different ports
-  const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-  
   const handleLogin = () => {
     // Close the login modal if it exists
     if (onClose) {
       onClose();
     }
     
-    // Store the current URL for redirection after authentication
-    localStorage.setItem('auth_redirect_url', window.location.origin + '/redirect');
-    
-    // Build the authentication URL
-    let authUrl = '';
-    
+    // Use the appropriate service based on provider
     if (provider === 'google') {
-      // Direct redirection to Google OAuth
-      authUrl = `${backendUrl}/api/auth/google`;
-      console.log(`🔄 Redirecting to Google authentication:`, authUrl);
-    } else {
-      // For other providers like Facebook
-      authUrl = `${backendUrl}/api/auth/${provider}`;
-      console.log(`🔄 Redirecting to ${provider} authentication:`, authUrl);
+      initiateGoogleLogin();
+    } else if (provider === 'facebook') {
+      initiateFacebookLogin();
     }
-    
-    // Redirect to the authentication API
-    window.location.href = authUrl;
   };
   
   return (
