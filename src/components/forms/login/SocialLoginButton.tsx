@@ -9,6 +9,8 @@ type SocialLoginButtonProps = {
 };
 
 const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({ provider, onClose }) => {
+  // Use window.location.origin to construct the backend URL if the VITE_API_URL is not set
+  // This helps when your frontend and backend are on the same domain but different ports
   const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
   
   const handleLogin = () => {
@@ -20,10 +22,18 @@ const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({ provider, onClose
     // Enregistrer l'URL actuelle pour la redirection après authentification
     localStorage.setItem('auth_redirect_url', window.location.origin + '/redirect');
     
-    // Pour Google, rediriger directement vers l'API d'authentification
-    const authUrl = `${backendUrl}/api/auth/${provider}`;
+    // Construire l'URL d'authentification
+    let authUrl = '';
     
-    console.log(`🔄 Redirection vers l'authentification ${provider}:`, authUrl);
+    if (provider === 'google') {
+      // Redirection directe vers Google OAuth
+      authUrl = `${backendUrl}/api/auth/google`;
+      console.log(`🔄 Redirection vers l'authentification Google:`, authUrl);
+    } else {
+      // Pour d'autres providers comme Facebook
+      authUrl = `${backendUrl}/api/auth/${provider}`;
+      console.log(`🔄 Redirection vers l'authentification ${provider}:`, authUrl);
+    }
     
     // Redirection vers l'API d'authentification
     window.location.href = authUrl;
