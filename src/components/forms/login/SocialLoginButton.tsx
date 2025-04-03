@@ -14,11 +14,12 @@ const SocialLoginButton = ({ provider = 'google', className }: SocialLoginButton
   const handleGoogleLogin = () => {
     console.log('🔄 [LOGIN] Redirection vers l\'authentification Google');
     
-    // URL du backend pour l'authentification Google
-    // Utilisons une URL relative pour éviter les problèmes de port
-    const backendUrl = import.meta.env.VITE_API_URL 
-      ? `${import.meta.env.VITE_API_URL}/api/auth/google`
-      : '/api/auth/google';
+    // Determine the base URL for backend API calls
+    // Use the current window location to ensure we're using the same origin
+    const apiBaseUrl = '/api';
+    
+    // Construct the full Google auth URL
+    const backendUrl = `${apiBaseUrl}/auth/google`;
     
     console.log('🔍 [LOGIN] Redirection vers:', backendUrl);
     toast({
@@ -26,7 +27,7 @@ const SocialLoginButton = ({ provider = 'google', className }: SocialLoginButton
       description: "Redirection vers la page d'authentification Google...",
     });
     
-    // Stocker l'URL actuelle pour que le backend puisse rediriger correctement
+    // Store the current URL for redirection after auth
     localStorage.setItem('auth_redirect_url', window.location.origin);
     
     // Rediriger l'utilisateur vers l'URL d'authentification Google du backend

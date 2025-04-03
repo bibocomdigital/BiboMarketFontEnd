@@ -20,8 +20,9 @@ const Redirector = () => {
     
     // Vérifier si nous sommes sur un callback Google (contient code= et scope=)
     const isGoogleCallback = code && scope;
+    const isGoogleCallbackPath = location.pathname.includes('/api/auth/google/callback');
     
-    if (isGoogleCallback || location.pathname.includes('/api/auth/google/callback')) {
+    if (isGoogleCallback || isGoogleCallbackPath) {
       console.log('🔍 Callback Google détecté, recherche du token...');
       toast({
         title: "Authentification en cours",
@@ -31,13 +32,31 @@ const Redirector = () => {
       // Stocker les paramètres du callback dans localStorage pour que le backend puisse les récupérer
       if (code) {
         localStorage.setItem('auth_code', code);
+        console.log('💾 Code d\'authentification sauvegardé:', code);
       }
       if (scope) {
         localStorage.setItem('auth_scope', scope);
+        console.log('💾 Scope d\'authentification sauvegardé:', scope);
       }
       
       // Le backend doit placer le token dans localStorage après l'authentification Google
-      // Attendre un moment pour s'assurer que le backend a eu le temps de traiter la demande
+      // Simuler un traitement d'authentification réussi pour le développement
+      if (import.meta.env.DEV) {
+        console.log('🔧 Mode développement: simulation d\'authentification réussie');
+        // Simuler un token pour le développement
+        const mockToken = "dev_mock_token_" + Date.now();
+        localStorage.setItem('token', mockToken);
+        
+        // Rediriger vers la page de complétion de profil après un court délai
+        setTimeout(() => {
+          console.log('✅ Redirection vers la page de complétion de profil');
+          navigate(`/complete-profile?token=${mockToken}`);
+        }, 1500);
+        
+        return;
+      }
+      
+      // Pour la production, attendre que le backend place le token
       setTimeout(() => {
         // Récupérer le token JWT depuis localStorage (qui aurait été placé par le backend)
         const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
@@ -75,9 +94,9 @@ const Redirector = () => {
               });
               navigate('/');
             }
-          }, 3000); // Augmenté à 3 secondes pour donner plus de temps
+          }, 3000);
         }
-      }, 2000); // Augmenté à 2 secondes pour donner plus de temps
+      }, 2000);
     } else if (location.pathname === '/redirect') {
       // Pour la route /redirect, vérifier si le token est dans l'URL ou localStorage
       if (urlToken) {
