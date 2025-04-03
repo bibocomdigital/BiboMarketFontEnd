@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -60,14 +59,15 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
       console.log('👤 [LOGIN] Rôle de l\'utilisateur:', response.user.role);
       console.log('👤 [LOGIN] Type du rôle reçu:', typeof response.user.role);
       
-      // Correction: normaliser le rôle reçu pour la comparaison
-      const userRole = response.user.role.toUpperCase();
+      // S'assurer que le rôle est une chaîne de caractères avant de le normaliser
+      const roleStr = String(response.user.role).toUpperCase();
+      console.log('👤 [LOGIN] Rôle normalisé:', roleStr);
       
       // Rediriger en fonction du rôle utilisateur
-      if (userRole === 'MERCHANT' || userRole === 'COMMERCANT') {
+      if (roleStr === 'MERCHANT' || roleStr === 'COMMERCANT') {
         console.log('🔄 [LOGIN] Redirection vers le tableau de bord commerçant');
         navigate('/merchant-dashboard');
-      } else if (userRole === 'SUPPLIER' || userRole === 'FOURNISSEUR') {
+      } else if (roleStr === 'SUPPLIER' || roleStr === 'FOURNISSEUR') {
         console.log('🔄 [LOGIN] Redirection vers le tableau de bord fournisseur');
         navigate('/supplier-dashboard');
       } else {

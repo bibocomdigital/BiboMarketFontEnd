@@ -274,33 +274,9 @@ export const login = async (credentials: { email: string; password: string }): P
   try {
     console.log('🔄 [API] Tentative de connexion pour:', credentials.email);
     
-    // En mode DEV, simuler une connexion réussie
-    if (import.meta.env.DEV && API_URL.includes('localhost')) {
-      console.log('⚠️ [API] Mode développement: simulation de connexion réussie');
-      
-      // Attendre un court délai pour simuler le temps de réponse du serveur
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const user = {
-        id: 1,
-        email: credentials.email,
-        firstName: "Utilisateur",
-        lastName: "Simulé",
-        role: UserRole.CLIENT,
-        isVerified: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      // Simuler un token JWT
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-      
-      // Stocker le token et l'utilisateur dans le localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      return { token, user };
-    }
+    // Désactivation du mode simulation - toujours utiliser l'API réelle
+    console.log('📤 [API] URL de connexion:', `${API_URL}/auth/login`);
+    console.log('📤 [API] Données envoyées:', { email: credentials.email, password: '********' });
     
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
@@ -320,6 +296,7 @@ export const login = async (credentials: { email: string; password: string }): P
 
     const data = await response.json();
     console.log('✅ [API] Connexion réussie pour:', data.user.email);
+    console.log('👤 [API] Rôle de l\'utilisateur:', data.user.role);
     
     // Stocker le token dans le localStorage
     localStorage.setItem('token', data.token);
