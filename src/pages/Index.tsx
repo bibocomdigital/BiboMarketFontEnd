@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -21,22 +20,11 @@ const Index = () => {
     if (token) {
       console.log('Token détecté, redirection vers la page de complétion de profil');
       navigate(`/complete-profile?token=${token}`);
+      return;
     }
     
-    // Vérifier également si un token existe dans localStorage
-    const storedToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
-    if (storedToken && !token) {
-      console.log('Token trouvé dans localStorage, vérification si redirection nécessaire');
-      // Vérifier si l'utilisateur a déjà complété son profil
-      const user = localStorage.getItem('user');
-      if (user) {
-        const userData = JSON.parse(user);
-        if (!userData.isProfileCompleted) {
-          console.log('Profil non complété, redirection vers la page de complétion');
-          navigate(`/complete-profile?token=${storedToken}`);
-        }
-      }
-    }
+    // Ne pas vérifier le token dans localStorage pour la page d'accueil
+    // Cette modification permet aux utilisateurs d'accéder à l'accueil même s'ils ont un token
   }, [navigate]);
   
   const [showScrollTop, setShowScrollTop] = useState(false);

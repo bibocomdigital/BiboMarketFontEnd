@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -13,7 +12,7 @@ const Redirector = () => {
     // Vérifier si nous sommes sur un callback Google (contient code= et scope=)
     const isGoogleCallback = location.search.includes('code=') && location.search.includes('scope=');
     
-    if (isGoogleCallback) {
+    if (isGoogleCallback || location.pathname === '/api/auth/google/callback') {
       console.log('🔍 Callback Google détecté, recherche du token...');
       
       // Le backend doit placer le token dans localStorage après l'authentification Google
