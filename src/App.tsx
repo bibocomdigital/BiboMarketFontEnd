@@ -26,15 +26,12 @@ const App = () => (
       <SonnerToaster />
       <BrowserRouter>
         <Routes>
-          {/* IMPORTANT: API routes must be handled first */}
-          {/* Google Auth routes - redirected to backend */}
+          {/* API routes - must be handled first */}
           <Route path="/api/auth/google/callback" element={<ApiNotFound />} />
           <Route path="/api/auth/google" element={<ApiNotFound />} />
-          
-          {/* Generic API fallback for any other API routes */}
           <Route path="/api/*" element={<ApiNotFound />} />
           
-          {/* Routes for authentication redirection */}
+          {/* Redirector for authentication flows */}
           <Route path="/redirect" element={<Redirector />} />
           
           {/* Normal application routes */}

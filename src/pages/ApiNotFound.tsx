@@ -9,7 +9,7 @@ const ApiNotFound = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log('🔍 API route not found:', location.pathname);
+    console.log('🔍 API route détectée:', location.pathname);
     
     // Extraction du chemin API complet
     const apiPath = location.pathname;
@@ -18,14 +18,14 @@ const ApiNotFound = () => {
     
     // Si c'est une route d'authentification Google, on redirige directement vers le backend
     if (apiPath.includes('/api/auth/google')) {
-      console.log('🔄 Redirection de la route Google Auth vers le backend:', fullBackendUrl);
+      console.log('🔄 Redirection de Google Auth vers le backend:', fullBackendUrl);
       
       toast({
         title: "Redirection vers l'authentification",
         description: "Redirection vers le serveur Google...",
       });
       
-      // Stockage de l'URL actuelle pour la redirection après authentification
+      // Stocker l'URL actuelle pour la redirection après authentification
       localStorage.setItem('auth_redirect_url', window.location.origin + '/redirect');
       
       // Redirection vers le serveur backend

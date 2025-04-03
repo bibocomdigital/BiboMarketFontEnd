@@ -18,117 +18,75 @@ const Redirector = () => {
     const scope = params.get('scope');
     const urlToken = params.get('token');
     
-    // Vérifier si nous sommes sur un callback Google
-    const isGoogleCallback = code && scope;
-    const isGoogleCallbackPath = location.pathname.includes('/api/auth/google/callback');
+    // Debug info
+    console.log('🔍 Paramètres URL:', {
+      code: code ? `${code.substring(0, 10)}...` : 'null',
+      scope: scope || 'null',
+      token: urlToken ? `${urlToken.substring(0, 10)}...` : 'null'
+    });
     
-    if (isGoogleCallback || isGoogleCallbackPath) {
-      console.log('🔍 Callback Google détecté, recherche du token...');
+    // Si nous avons un token dans l'URL, l'utiliser directement
+    if (urlToken) {
+      console.log('🔑 Token trouvé dans l\'URL:', urlToken.substring(0, 15) + '...');
+      localStorage.setItem('token', urlToken);
+      localStorage.setItem('auth_token', urlToken);
+      
       toast({
-        title: "Authentification en cours",
-        description: "Connexion avec Google en cours de traitement...",
+        title: "Authentification réussie",
+        description: "Vous allez être redirigé vers la page de complétion de profil.",
       });
       
-      // Si nous avons un token dans l'URL, l'utiliser directement
-      if (urlToken) {
-        console.log('🔑 Token trouvé dans l\'URL:', urlToken.substring(0, 15) + '...');
-        localStorage.setItem('token', urlToken);
-        localStorage.setItem('auth_token', urlToken);
-        
-        toast({
-          title: "Authentification réussie",
-          description: "Vous allez être redirigé vers la page de complétion de profil.",
-        });
-        
-        navigate(`/complete-profile?token=${urlToken}`);
-        return;
-      }
-      
-      // Construire l'URL complète pour le backend
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-      
-      if (code && scope) {
-        // Stocker les paramètres du callback
-        localStorage.setItem('auth_code', code);
-        localStorage.setItem('auth_scope', scope);
-        
-        // Construire l'URL complète pour le backend avec le callback complet
-        const callbackUrl = `${backendUrl}/api/auth/google/callback?code=${code}&scope=${scope}`;
-        console.log('🔄 Redirection vers le backend pour callback:', callbackUrl);
-        
-        // Rediriger vers le backend
-        window.location.href = callbackUrl;
-        return;
-      }
-      
-      // Si nous sommes à ce point, nous n'avons pas de token et nous sommes dans un état indéterminé
-      // Vérifier le localStorage une dernière fois
-      const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
-      if (token) {
-        console.log('🔑 Token trouvé dans localStorage:', token.substring(0, 15) + '...');
-        toast({
-          title: "Authentification réussie",
-          description: "Vous allez être redirigé vers la page de complétion de profil.",
-        });
-        navigate(`/complete-profile?token=${token}`);
-        return;
-      }
-      
-      // Attendre un peu et réessayer
-      setTimeout(() => {
-        const retryToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
-        if (retryToken) {
-          console.log('🔑 Token trouvé après attente:', retryToken.substring(0, 15) + '...');
-          toast({
-            title: "Authentification réussie",
-            description: "Vous allez être redirigé vers la page de complétion de profil.",
-          });
-          navigate(`/complete-profile?token=${retryToken}`);
-        } else {
-          console.log('❌ Aucun token trouvé après attente');
-          setIsProcessing(false);
-          toast({
-            title: "Erreur d'authentification",
-            description: "Impossible de récupérer votre token d'authentification.",
-            variant: "destructive"
-          });
-          navigate('/');
-        }
-      }, 3000);
-    } else if (location.pathname === '/redirect') {
-      // Pour la route /redirect, vérifier si le token est dans l'URL ou localStorage
-      if (urlToken) {
-        console.log('🔄 Redirection: token détecté dans l\'URL');
-        localStorage.setItem('token', urlToken);
-        localStorage.setItem('auth_token', urlToken);
-        navigate(`/complete-profile?token=${urlToken}`);
-      } else {
-        // Vérifier s'il y a un token dans localStorage
-        const storedToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
-        if (storedToken) {
-          console.log('🔑 Token trouvé dans localStorage');
-          navigate(`/complete-profile?token=${storedToken}`);
-        } else {
-          console.log('❌ Redirection: aucun token trouvé');
-          setIsProcessing(false);
-          toast({
-            title: "Erreur de redirection",
-            description: "Aucun token d'authentification trouvé.",
-            variant: "destructive"
-          });
-          navigate('/');
-        }
-      }
-    } else {
-      // Route non reconnue
-      console.log('⚠️ Route non reconnue dans Redirector:', location.pathname);
-      setIsProcessing(false);
-      toast({
-        title: "Redirection",
-        description: "Route non reconnue, redirection vers la page d'accueil.",
-      });
-      navigate('/');
+      navigate(`/complete-profile?token=${urlToken}`);
+      return;
     }
+    
+    // Vérifier le localStorage pour un token récent
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    if (token) {
+      console.log('🔑 Token trouvé dans localStorage:', token.substring(0, 15) + '...');
+      toast({
+        title: "Authentification réussie",
+        description: "Vous allez être redirigé vers la page de complétion de profil.",
+      });
+      navigate(`/complete-profile?token=${token}`);
+      return;
+    }
+    
+    // Si pas de token, essayer de gérer le cas d'une redirection après auth Google
+    if (code && scope) {
+      console.log('🔍 Code et scope Google détectés, redirection vers l\'API...');
+      
+      // Rediriger vers l'API pour finaliser l'authentification
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      const redirectUrl = `${backendUrl}/api/auth/google/callback?code=${code}&scope=${scope}`;
+      
+      console.log('🔄 Redirection vers le backend:', redirectUrl);
+      
+      // Store current origin for callback
+      localStorage.setItem('auth_redirect_url', window.location.origin + '/redirect');
+      
+      // Redirect to backend
+      window.location.href = redirectUrl;
+      return;
+    }
+    
+    // Si aucun cas précédent, vérifier à nouveau le localStorage après un court délai
+    setTimeout(() => {
+      const retryToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
+      if (retryToken) {
+        console.log('🔑 Token trouvé après attente:', retryToken.substring(0, 15) + '...');
+        navigate(`/complete-profile?token=${retryToken}`);
+      } else {
+        console.log('❌ Aucun token trouvé - redirection vers l\'accueil');
+        setIsProcessing(false);
+        toast({
+          title: "Problème d'authentification",
+          description: "Impossible de récupérer votre token d'authentification.",
+          variant: "destructive"
+        });
+        navigate('/');
+      }
+    }, 2000);
   }, [navigate, location, toast]);
   
   return (
