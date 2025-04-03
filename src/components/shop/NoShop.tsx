@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Store, ShoppingBag, Users, CheckCircle } from 'lucide-react';
+import { Store, ShoppingBag, Users, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import CreateShopDialog from './CreateShopDialog';
 
 interface NoShopProps {
@@ -17,6 +18,15 @@ const NoShop: React.FC<NoShopProps> = ({ onShopCreated }) => {
         <p className="text-gray-600 max-w-3xl mx-auto">
           Bienvenue sur BibocomMarket! En tant que commerçant, vous pouvez créer votre propre boutique en ligne pour vendre vos produits et services à une clientèle plus large.
         </p>
+        
+        <Alert variant="warning" className="max-w-xl mx-auto bg-amber-50 border-amber-200 mt-4">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800">Important</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            Chaque commerçant ne peut créer qu'une seule boutique. Une fois créée, vous pourrez la personnaliser et y ajouter vos produits.
+          </AlertDescription>
+        </Alert>
+        
         <div className="pt-4">
           <CreateShopDialog onSuccess={onShopCreated} />
         </div>

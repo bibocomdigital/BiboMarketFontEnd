@@ -8,6 +8,7 @@ import { getMyShop } from '@/services/shopService';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NoShop from '@/components/shop/NoShop';
 import ShopOverview from '@/components/shop/ShopOverview';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const MerchantDashboard = () => {
   const { toast } = useToast();
@@ -146,6 +147,14 @@ const MerchantDashboard = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-bibocom-primary">Espace commerçant</h1>
             <p className="text-gray-600 mt-2">Gérez votre boutique et développez votre activité</p>
+            
+            {hasShop && (
+              <Alert className="mt-4 bg-green-50 border-green-200">
+                <AlertDescription className="text-green-700">
+                  Vous gérez actuellement la boutique <span className="font-semibold">{shopData.name}</span>. Les commerçants ne peuvent gérer qu'une seule boutique à la fois.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
           
           {/* État de chargement */}
