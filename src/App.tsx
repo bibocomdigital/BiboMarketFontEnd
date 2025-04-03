@@ -39,10 +39,13 @@ const App = () => (
           
           {/* Routes for authentication redirection */}
           <Route path="/redirect" element={<Redirector />} />
-          <Route path="/api/auth/google/callback" element={<Redirector />} />
-          <Route path="/api/auth/google" element={<Redirector />} />
           
-          {/* API fallback route - this must be BEFORE the catch-all "*" route */}
+          {/* IMPORTANT: API routes must be handled before the catch-all */}
+          {/* Google Auth routes - redirected to backend */}
+          <Route path="/api/auth/google/callback" element={<ApiNotFound />} />
+          <Route path="/api/auth/google" element={<ApiNotFound />} />
+          
+          {/* Generic API fallback for any other API routes */}
           <Route path="/api/*" element={<ApiNotFound />} />
           
           {/* Catch-all for any other routes */}

@@ -18,7 +18,7 @@ const Redirector = () => {
     const scope = params.get('scope');
     const urlToken = params.get('token');
     
-    // Vérifier si nous sommes sur un callback Google (contient code= et scope=)
+    // Vérifier si nous sommes sur un callback Google
     const isGoogleCallback = code && scope;
     const isGoogleCallbackPath = location.pathname.includes('/api/auth/google/callback');
     
@@ -29,92 +29,86 @@ const Redirector = () => {
         description: "Connexion avec Google en cours de traitement...",
       });
       
-      // Stocker les paramètres du callback dans localStorage pour que le backend puisse les récupérer
-      if (code) {
-        localStorage.setItem('auth_code', code);
-        console.log('💾 Code d\'authentification sauvegardé:', code);
-      }
-      if (scope) {
-        localStorage.setItem('auth_scope', scope);
-        console.log('💾 Scope d\'authentification sauvegardé:', scope);
-      }
-      
-      // En développement: rediriger directement vers l'API backend
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-      
-      // Si nous sommes en mode développement, nous pouvons rediriger vers l'API backend
-      if (import.meta.env.DEV) {
-        // Construire l'URL complète pour le backend avec les paramètres
-        const fullBackendCallbackUrl = `${backendUrl}/api/auth/google/callback${location.search}`;
-        console.log('🔄 Redirection vers le backend:', fullBackendCallbackUrl);
+      // Si nous sommes sur la route de callback Google mais sans token, vérifier si le backend a redirigé avec un token dans l'URL
+      if (urlToken) {
+        console.log('🔑 Token trouvé dans l\'URL:', urlToken.substring(0, 15) + '...');
+        localStorage.setItem('token', urlToken);
+        localStorage.setItem('auth_token', urlToken);
         
-        // Rediriger l'utilisateur vers le backend pour traiter l'authentification
-        window.location.href = fullBackendCallbackUrl;
+        toast({
+          title: "Authentification réussie",
+          description: "Vous allez être redirigé vers la page de complétion de profil.",
+        });
+        
+        navigate(`/complete-profile?token=${urlToken}`);
         return;
       }
       
-      // Pour la production, attendre que le backend place le token
-      setTimeout(() => {
-        // Récupérer le token JWT depuis localStorage (qui aurait été placé par le backend)
-        const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+      // Vérifier si le token existe dans le localStorage (peut-être mis par le backend)
+      const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+      if (token) {
+        console.log('🔑 Token trouvé dans localStorage:', token.substring(0, 15) + '...');
+        toast({
+          title: "Authentification réussie",
+          description: "Vous allez être redirigé vers la page de complétion de profil.",
+        });
+        navigate(`/complete-profile?token=${token}`);
+        return;
+      }
+      
+      // Si nous n'avons toujours pas de token, essayons de rediriger vers le backend
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      
+      if (code && scope) {
+        // Stocker les paramètres du callback
+        localStorage.setItem('auth_code', code);
+        localStorage.setItem('auth_scope', scope);
         
-        if (token) {
-          console.log('🔑 Token trouvé, redirection vers la page de complétion de profil');
+        // Construire l'URL complète pour le backend
+        const callbackUrl = `${backendUrl}/api/auth/google/callback?code=${code}&scope=${scope}`;
+        console.log('🔄 Redirection vers le backend pour callback:', callbackUrl);
+        
+        // Rediriger vers le backend
+        window.location.href = callbackUrl;
+        return;
+      }
+      
+      // Si nous n'avons toujours pas pu traiter le callback, attendre un peu et réessayer
+      setTimeout(() => {
+        const retryToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
+        if (retryToken) {
+          console.log('🔑 Token trouvé après attente:', retryToken.substring(0, 15) + '...');
           toast({
             title: "Authentification réussie",
             description: "Vous allez être redirigé vers la page de complétion de profil.",
           });
-          navigate(`/complete-profile?token=${token}`);
+          navigate(`/complete-profile?token=${retryToken}`);
         } else {
-          console.log('⏳ Attente du token...');
+          console.log('❌ Aucun token trouvé après attente');
+          setIsProcessing(false);
           toast({
-            title: "Authentification en cours",
-            description: "Veuillez patienter...",
+            title: "Erreur d'authentification",
+            description: "Impossible de récupérer votre token d'authentification.",
+            variant: "destructive"
           });
-          // Si le token n'est pas encore disponible, attendre encore un peu
-          setTimeout(() => {
-            const retryToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
-            if (retryToken) {
-              console.log('🔑 Token trouvé après attente, redirection');
-              toast({
-                title: "Authentification réussie",
-                description: "Vous allez être redirigé vers la page de complétion de profil.",
-              });
-              navigate(`/complete-profile?token=${retryToken}`);
-            } else {
-              console.log('❌ Aucun token trouvé après attente, redirection vers la page d\'accueil');
-              setIsProcessing(false);
-              toast({
-                title: "Erreur d'authentification",
-                description: "Impossible de récupérer votre token d'authentification.",
-                variant: "destructive"
-              });
-              navigate('/');
-            }
-          }, 3000);
+          navigate('/');
         }
-      }, 2000);
-    } else if (location.pathname.startsWith('/api/auth/google')) {
-      // Traitement direct de la route /api/auth/google
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-      console.log('🔄 Redirection de l\'authentification Google vers le backend:', `${backendUrl}${location.pathname}${location.search}`);
-      
-      // Rediriger directement vers le backend
-      window.location.href = `${backendUrl}${location.pathname}${location.search}`;
-      return;
+      }, 3000);
     } else if (location.pathname === '/redirect') {
       // Pour la route /redirect, vérifier si le token est dans l'URL ou localStorage
       if (urlToken) {
-        console.log('🔄 Redirection: token détecté dans l\'URL, redirection vers la page de complétion de profil');
+        console.log('🔄 Redirection: token détecté dans l\'URL');
+        localStorage.setItem('token', urlToken);
+        localStorage.setItem('auth_token', urlToken);
         navigate(`/complete-profile?token=${urlToken}`);
       } else {
-        // Vérifier s'il y a un token dans localStorage (cas où le backend redirige sans paramètre)
+        // Vérifier s'il y a un token dans localStorage
         const storedToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
         if (storedToken) {
-          console.log('🔑 Token trouvé dans localStorage, redirection vers la page de complétion de profil');
+          console.log('🔑 Token trouvé dans localStorage');
           navigate(`/complete-profile?token=${storedToken}`);
         } else {
-          console.log('❌ Redirection: aucun token trouvé, redirection vers la page d\'accueil');
+          console.log('❌ Redirection: aucun token trouvé');
           setIsProcessing(false);
           toast({
             title: "Erreur de redirection",
@@ -126,7 +120,7 @@ const Redirector = () => {
       }
     } else {
       // Route non reconnue
-      console.log('⚠️ Route non reconnue dans Redirector, redirection vers l\'accueil');
+      console.log('⚠️ Route non reconnue dans Redirector:', location.pathname);
       setIsProcessing(false);
       toast({
         title: "Redirection",

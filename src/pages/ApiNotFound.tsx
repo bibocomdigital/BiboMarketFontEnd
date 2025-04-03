@@ -10,21 +10,23 @@ const ApiNotFound = () => {
 
   useEffect(() => {
     console.log('🔍 API route not found:', location.pathname);
-    console.log('🔄 Checking if this is a Google auth route');
     
-    // Si c'est une route d'authentification Google, on redirige vers le backend
-    if (location.pathname.includes('/api/auth/google')) {
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-      const redirectUrl = `${backendUrl}${location.pathname}${location.search}`;
+    // Extraction du chemin API complet
+    const apiPath = location.pathname;
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+    const fullBackendUrl = `${backendUrl}${apiPath}${location.search}`;
+    
+    // Si c'est une route d'authentification Google, on redirige directement vers le backend
+    if (apiPath.includes('/api/auth/google')) {
+      console.log('🔄 Redirection de la route Google Auth vers le backend:', fullBackendUrl);
       
-      console.log('🔄 Redirection de la route Google Auth vers le backend:', redirectUrl);
       toast({
-        title: "Redirection vers le backend",
-        description: "Redirection vers le serveur d'authentification...",
+        title: "Redirection vers l'authentification",
+        description: "Redirection vers le serveur Google...",
       });
       
-      // Redirection directe vers le backend
-      window.location.href = redirectUrl;
+      // Redirection vers le serveur backend
+      window.location.href = fullBackendUrl;
       return;
     }
     
@@ -47,13 +49,13 @@ const ApiNotFound = () => {
         <h1 className="text-2xl font-bold text-red-600 mb-4">Traitement de la Requête</h1>
         <p className="mb-4">
           {location.pathname.includes('/api/auth/google') 
-            ? "Redirection vers le serveur d'authentification..."
+            ? "Redirection vers le serveur d'authentification Google..."
             : "L'API demandée n'est pas disponible. Cela peut être dû à une configuration incorrecte."}
         </p>
         <p className="text-sm text-gray-600 mb-6">
           {location.pathname.includes('/api/auth/google')
             ? "Veuillez patienter pendant que nous traitons votre demande d'authentification."
-            : "Assurez-vous que votre backend est correctement configuré pour gérer les requêtes d'authentification."}
+            : "Assurez-vous que votre backend est correctement configuré pour gérer les requêtes API."}
         </p>
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] mx-auto"></div>
         <p className="mt-4 text-sm text-gray-500">
