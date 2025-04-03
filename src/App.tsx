@@ -26,6 +26,18 @@ const App = () => (
       <SonnerToaster />
       <BrowserRouter>
         <Routes>
+          {/* IMPORTANT: API routes must be handled first */}
+          {/* Google Auth routes - redirected to backend */}
+          <Route path="/api/auth/google/callback" element={<ApiNotFound />} />
+          <Route path="/api/auth/google" element={<ApiNotFound />} />
+          
+          {/* Generic API fallback for any other API routes */}
+          <Route path="/api/*" element={<ApiNotFound />} />
+          
+          {/* Routes for authentication redirection */}
+          <Route path="/redirect" element={<Redirector />} />
+          
+          {/* Normal application routes */}
           <Route path="/" element={<Index />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />
@@ -36,17 +48,6 @@ const App = () => (
           <Route path="/merchant-dashboard" element={<MerchantDashboard />} />
           <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
           <Route path="/complete-profile" element={<CompleteProfile />} />
-          
-          {/* Routes for authentication redirection */}
-          <Route path="/redirect" element={<Redirector />} />
-          
-          {/* IMPORTANT: API routes must be handled before the catch-all */}
-          {/* Google Auth routes - redirected to backend */}
-          <Route path="/api/auth/google/callback" element={<ApiNotFound />} />
-          <Route path="/api/auth/google" element={<ApiNotFound />} />
-          
-          {/* Generic API fallback for any other API routes */}
-          <Route path="/api/*" element={<ApiNotFound />} />
           
           {/* Catch-all for any other routes */}
           <Route path="*" element={<NotFound />} />

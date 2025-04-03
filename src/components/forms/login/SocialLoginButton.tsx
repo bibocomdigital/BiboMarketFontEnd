@@ -28,7 +28,7 @@ const SocialLoginButton = ({ provider = 'google', className }: SocialLoginButton
     });
     
     // Store the current URL for redirection after auth
-    localStorage.setItem('auth_redirect_url', window.location.origin);
+    localStorage.setItem('auth_redirect_url', window.location.origin + '/redirect');
     
     // Rediriger l'utilisateur vers l'URL d'authentification Google du backend
     window.location.href = backendUrl;

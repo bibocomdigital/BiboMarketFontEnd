@@ -25,6 +25,9 @@ const ApiNotFound = () => {
         description: "Redirection vers le serveur Google...",
       });
       
+      // Stockage de l'URL actuelle pour la redirection après authentification
+      localStorage.setItem('auth_redirect_url', window.location.origin + '/redirect');
+      
       // Redirection vers le serveur backend
       window.location.href = fullBackendUrl;
       return;

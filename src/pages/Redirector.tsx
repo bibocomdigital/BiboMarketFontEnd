@@ -29,7 +29,7 @@ const Redirector = () => {
         description: "Connexion avec Google en cours de traitement...",
       });
       
-      // Si nous sommes sur la route de callback Google mais sans token, vérifier si le backend a redirigé avec un token dans l'URL
+      // Si nous avons un token dans l'URL, l'utiliser directement
       if (urlToken) {
         console.log('🔑 Token trouvé dans l\'URL:', urlToken.substring(0, 15) + '...');
         localStorage.setItem('token', urlToken);
@@ -44,7 +44,25 @@ const Redirector = () => {
         return;
       }
       
-      // Vérifier si le token existe dans le localStorage (peut-être mis par le backend)
+      // Construire l'URL complète pour le backend
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      
+      if (code && scope) {
+        // Stocker les paramètres du callback
+        localStorage.setItem('auth_code', code);
+        localStorage.setItem('auth_scope', scope);
+        
+        // Construire l'URL complète pour le backend avec le callback complet
+        const callbackUrl = `${backendUrl}/api/auth/google/callback?code=${code}&scope=${scope}`;
+        console.log('🔄 Redirection vers le backend pour callback:', callbackUrl);
+        
+        // Rediriger vers le backend
+        window.location.href = callbackUrl;
+        return;
+      }
+      
+      // Si nous sommes à ce point, nous n'avons pas de token et nous sommes dans un état indéterminé
+      // Vérifier le localStorage une dernière fois
       const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
       if (token) {
         console.log('🔑 Token trouvé dans localStorage:', token.substring(0, 15) + '...');
@@ -56,24 +74,7 @@ const Redirector = () => {
         return;
       }
       
-      // Si nous n'avons toujours pas de token, essayons de rediriger vers le backend
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-      
-      if (code && scope) {
-        // Stocker les paramètres du callback
-        localStorage.setItem('auth_code', code);
-        localStorage.setItem('auth_scope', scope);
-        
-        // Construire l'URL complète pour le backend
-        const callbackUrl = `${backendUrl}/api/auth/google/callback?code=${code}&scope=${scope}`;
-        console.log('🔄 Redirection vers le backend pour callback:', callbackUrl);
-        
-        // Rediriger vers le backend
-        window.location.href = callbackUrl;
-        return;
-      }
-      
-      // Si nous n'avons toujours pas pu traiter le callback, attendre un peu et réessayer
+      // Attendre un peu et réessayer
       setTimeout(() => {
         const retryToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
         if (retryToken) {
