@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { LogOut, User, Package, BarChart2, Users, PlusCircle, Settings, Menu, Store } from 'lucide-react';
@@ -8,6 +7,7 @@ import { getMyShop } from '@/services/shopService';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NoShop from '@/components/shop/NoShop';
 import ShopOverview from '@/components/shop/ShopOverview';
+import EditShopDialog from '@/components/shop/EditShopDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const MerchantDashboard = () => {
@@ -43,6 +43,14 @@ const MerchantDashboard = () => {
     setTimeout(() => {
       refetch();
     }, 1000); // Petit délai pour s'assurer que le backend a bien traité la création
+  };
+
+  const handleShopUpdated = () => {
+    console.log('🔄 [MERCHANT] Rafraîchissement des données de la boutique après mise à jour');
+    // Forcer un refetch pour récupérer les données mises à jour
+    setTimeout(() => {
+      refetch();
+    }, 1000);
   };
   
   // Log pour débugger
@@ -185,11 +193,23 @@ const MerchantDashboard = () => {
           {!isLoading && (
             <>
               {hasShop ? (
-                <ShopOverview 
-                  shop={shopData}
-                  products={shopData.products || []}
-                  onEditClick={() => setShowEditShop(true)}
-                />
+                <>
+                  <ShopOverview 
+                    shop={shopData}
+                    products={shopData.products || []}
+                    onEditClick={() => setShowEditShop(true)}
+                  />
+                  
+                  {/* Modal d'édition de la boutique */}
+                  {showEditShop && (
+                    <EditShopDialog
+                      shop={shopData}
+                      open={showEditShop}
+                      onOpenChange={setShowEditShop}
+                      onShopUpdated={handleShopUpdated}
+                    />
+                  )}
+                </>
               ) : (
                 <NoShop onShopCreated={handleShopCreated} />
               )}

@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
-import UserTypes from '@/components/UserTypes';
-import Testimonials from '@/components/Testimonials';
+import Shops from '@/components/Shops';
+import ProductsGrid from '@/components/ProductsGrid';
 import CallToAction from '@/components/CallToAction';
 import Footer from '@/components/Footer';
 import { ArrowUp } from 'lucide-react';
@@ -91,10 +91,10 @@ const Index = () => {
         <Header />
         <main className="flex-grow">
           <Hero />
-          <Features />
-          <UserTypes />
-          <Testimonials />
-          <CallToAction />
+         
+          <ProductsGrid />
+          <Shops />
+         
         </main>
         <Footer />
       </div>

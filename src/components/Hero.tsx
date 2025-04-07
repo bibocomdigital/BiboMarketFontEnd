@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Button from './ui-custom/Button';
 import Badge from './ui-custom/Badge';
@@ -7,62 +6,131 @@ import { ArrowRight, ShoppingBag, Users, Truck, Star } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 
 const Hero = () => {
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
   const [email, setEmail] = useState('');
 
+  // Images depuis le dossier public
+ // Images depuis le dossier public
+const images = [
+  {
+    src: "/images/saa1.jpeg",
+    alt: "Groupe de femmes shopping"
+  },
+  {
+    src: "/images/image2.jpeg",
+    alt: "Trois femmes avec des sacs shopping"
+  },
+  {
+    src: "/images/chaussures.jpeg",
+    alt: "iPhone 14 Pro en violet"
+  },
+  {
+    src: "/images/iphone1.jpeg",
+    alt: "iPhone et Apple Watch"
+  },
+  {
+    src: "/images/iphone2.jpeg",
+    alt: "iPhone avec coque transparente"
+  },
+  {
+    src: "/images/iphone3.jpeg",
+    alt: "iPhone avec coque blanche"
+  },
+  {
+    src: "/images/iphone4.jpeg",
+    alt: "iPhone avec coque rose"
+  },
+  {
+    src: "/images/iphone6.jpeg",
+    alt: "iPhone 16 Pro Rose Pink"
+  },
+  {
+    src: "/images/iphonne13.jpeg",
+    alt: "iPhone 13 series"
+  },
+  {
+    src: "/images/iphonne.jpeg",
+    alt: "iPhone avec coque rouge"
+  },
+  {
+    src: "/images/robes2.jpeg",
+    alt: "Robe de soirée rouge"
+  },
+  {
+    src: "/images/chau.jpeg",
+    alt: "Robe élégante beige"
+  },
+  {
+    src: "/images/sac2.jpeg",
+    alt: "Robe jaune d'été"
+  }
+  ,
+  {
+    src: "/images/pullld.jpeg",
+    alt: "Robe jaune d'été"
+  }
+  ,
+  {
+    src: "/images/chauss.jpeg",
+    alt: "Robe jaune d'été"
+  }
+];
   useEffect(() => {
-    const img = new Image();
-    img.src = 'https://images.unsplash.com/photo-1487700160041-babef9c3cb55?auto=format&fit=crop&q=80';
-    img.onload = () => {
-      setIsImageLoaded(true);
-    };
-  }, []);
+    // Carousel automatique
+    const interval = setInterval(() => {
+      setActiveImage((prev) => (prev + 1) % images.length);
+    }, 4000);
 
-  const handleSubmit = (e: React.FormEvent) => {
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     // Traitement de l'inscription à la newsletter
     console.log("Email pour newsletter:", email);
     setEmail('');
-    // Ici, vous pourriez ajouter une notification toast
   };
 
   return (
-    <div className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-b from-bibocom-light to-white pt-28">
-      {/* Éléments décoratifs */}
-      <div className="absolute inset-0 bg-hero-pattern opacity-10"></div>
-      <div className="absolute top-20 right-10 w-64 h-64 bg-bibocom-secondary/20 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 left-10 w-72 h-72 bg-bibocom-accent/20 rounded-full blur-3xl"></div>
-      
-      {/* Contenu principal */}
+    <div className="relative min-h-[90vh] bg-white py-16 mt-8">
       <div className="container mx-auto px-6 sm:px-10 z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Colonne gauche - Texte */}
           <div className="max-w-xl">
             <AnimatedText delay={100}>
-              <Badge variant="secondary" size="md" className="mb-6">
+              <Badge variant="secondary" size="md" className="mb-6 bg-purple-100 text-purple-700 rounded-full px-4 py-1">
                 La révolution du e-commerce au Sénégal 🚀
               </Badge>
             </AnimatedText>
             
             <AnimatedText delay={200} variant="slide">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                <span className="text-gradient">Votre écosystème</span> commercial du futur
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-slate-800">
+                <span>Votre écosystème</span>
+                <span className="block">commercial du</span> 
+                <span className="block text-bibocom-accent">futur</span>
               </h1>
             </AnimatedText>
             
             <AnimatedText delay={400}>
-              <p className="text-bibocom-primary/80 text-lg mb-8">
+              <p className="text-slate-600 text-lg mb-8">
                 BIBOCOM MARKET réunit commerçants, clients et fournisseurs dans un espace unique. 
-                Créez votre boutique en ligne, vendez vos produits et développez votre présence digitale au Sénégal.
+                Créez votre boutique en ligne, vendez vos produits et développez votre présence digitale.
               </p>
             </AnimatedText>
             
             <AnimatedText delay={600}>
-              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mb-12 max-w-md">
+              <div className="bg-pink-600 text-white inline-block rounded-lg px-4 py-2 mb-6">
+                <div className="font-bold">20% OFF</div>
+                <div className="text-sm">première commande</div>
+              </div>
+            </AnimatedText>
+            
+            <AnimatedText delay={700}>
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mb-8 max-w-md">
                 <Input 
                   type="email" 
                   placeholder="Votre adresse email..." 
-                  className="flex-grow" 
+                  className="flex-grow border-2 border-gray-200 rounded-full" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -71,6 +139,7 @@ const Hero = () => {
                   type="submit"
                   size="lg" 
                   variant="primary"
+                  className="bg-bibocom-accent hover:bg-bibocom-accent/90 text-white rounded-full whitespace-nowrap"
                   icon={<ArrowRight size={18} />}
                   iconPosition="right"
                 >
@@ -80,71 +149,88 @@ const Hero = () => {
             </AnimatedText>
             
             <AnimatedText delay={800}>
-              <div className="flex flex-wrap gap-6 items-center">
-                <div className="flex items-center gap-1">
-                  <Star className="text-bibocom-accent" size={18} fill="currentColor" />
-                  <Star className="text-bibocom-accent" size={18} fill="currentColor" />
-                  <Star className="text-bibocom-accent" size={18} fill="currentColor" />
-                  <Star className="text-bibocom-accent" size={18} fill="currentColor" />
-                  <Star className="text-bibocom-accent" size={18} fill="currentColor" />
+              <div className="flex flex-wrap gap-6 items-center mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-orange-100 rounded-full p-2">
+                    <ShoppingBag className="text-orange-500" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Produits</p>
+                    <p className="font-bold text-slate-800">+5000</p>
+                  </div>
                 </div>
-                <p className="text-sm text-bibocom-primary/70">Plus de <span className="font-semibold">2500+ clients</span> satisfaits</p>
+                
+                <div className="flex items-center space-x-2">
+                  <div className="bg-blue-100 rounded-full p-2">
+                    <Users className="text-blue-500" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Boutiques</p>
+                    <p className="font-bold text-slate-800">+2000</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <div className="bg-green-100 rounded-full p-2">
+                    <Truck className="text-green-500" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Livraison</p>
+                    <p className="font-bold text-slate-800">24h/48h</p>
+                  </div>
+                </div>
               </div>
             </AnimatedText>
           </div>
           
-          {/* Colonne droite - Image */}
-          <div className="relative">
-            <div className={`relative w-full h-[520px] rounded-2xl overflow-hidden transform transition-all duration-1000 shadow-xl ${isImageLoaded ? 'scale-100 opacity-100' : 'scale-105 opacity-0'}`}>
-              <div className="absolute inset-0 bg-gradient-to-br from-bibocom-primary/30 to-transparent rounded-2xl"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1487700160041-babef9c3cb55?auto=format&fit=crop&q=80" 
-                alt="Bibocom Market - La marketplace sénégalaise" 
-                className="w-full h-full object-cover object-center rounded-2xl hover:scale-105 transition-transform duration-700"
-                style={{ opacity: isImageLoaded ? 1 : 0, transition: 'opacity 1s ease-out' }}
-              />
-              
-              {/* Éléments flottants */}
-              <div className="absolute top-10 right-10 glass p-4 rounded-xl shadow-lg animate-float">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-bibocom-accent rounded-full flex items-center justify-center">
-                    <ShoppingBag size={18} className="text-white" />
+          {/* Colonne droite - Image et statistiques */}
+          <div className="relative hidden lg:block">
+            <div className="relative rounded-2xl h-[600px] overflow-hidden">
+              {/* Image principale */}
+              <div className="absolute right-0 h-full w-5/6 z-10">
+                {images.map((image, index) => (
+                  <div
+                    key={index}
+                    className={`absolute inset-0 transition-opacity duration-1000 ${
+                      index === activeImage ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    <img 
+                      src={image.src} 
+                      alt={image.alt} 
+                      className="w-full h-full object-cover object-center rounded-2xl"
+                    />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">+5000</p>
-                    <p className="text-xs text-bibocom-primary/70">Produits</p>
-                  </div>
-                </div>
+                ))}
               </div>
               
-              <div className="absolute bottom-10 left-10 glass p-4 rounded-xl shadow-lg animate-float" style={{ animationDelay: '0.5s' }}>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-bibocom-success rounded-full flex items-center justify-center">
-                    <Users size={18} className="text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">+2000</p>
-                    <p className="text-xs text-bibocom-primary/70">Boutiques</p>
-                  </div>
-                </div>
+              {/* Éléments décoratifs */}
+              <div className="absolute bottom-8 right-8 bg-white shadow-lg rounded-xl p-4 z-20">
+                <div className="font-bold text-xl text-slate-800">254.12k</div>
+                <div className="text-sm text-slate-500">Clients Satisfaits</div>
               </div>
               
-              <div className="absolute top-1/2 -translate-y-1/2 -right-4 glass p-4 rounded-xl shadow-lg animate-float" style={{ animationDelay: '1s' }}>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-bibocom-secondary rounded-full flex items-center justify-center">
-                    <Truck size={18} className="text-bibocom-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">24h/48h</p>
-                    <p className="text-xs text-bibocom-primary/70">Livraison</p>
-                  </div>
-                </div>
+              <div className="absolute top-8 right-32 bg-pink-600 text-white rounded-xl p-2 shadow-lg z-20">
+                <div className="font-bold">-40%</div>
+              </div>
+              
+              <div className="absolute bottom-32 left-0 bg-green-100 text-green-700 rounded-xl p-3 shadow-lg z-20">
+                <div className="font-medium">Livraison gratuite</div>
+              </div>
+              
+              {/* Indicateurs du carousel */}
+              <div className="absolute bottom-4 left-4 flex space-x-2 z-30">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === activeImage ? 'bg-bibocom-accent w-6' : 'bg-gray-300'
+                    }`}
+                    onClick={() => setActiveImage(index)}
+                  />
+                ))}
               </div>
             </div>
-            
-            {/* Éléments décoratifs */}
-            <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-bibocom-secondary/40 rounded-full blur-xl"></div>
-            <div className="absolute -top-6 -right-6 w-32 h-32 bg-bibocom-accent/30 rounded-full blur-xl"></div>
           </div>
         </div>
       </div>

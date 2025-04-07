@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Store, 
   Phone, 
@@ -15,6 +14,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Badge from '@/components/ui-custom/Badge';
+import CreateProductModal from './CreateProductModal';
+
+// Nous avons retiré l'import CreateShopDialog puisque nous allons utiliser onEditClick
+
+// URL de base du backend
+const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface ShopOverviewProps {
   shop: Shop;
@@ -27,15 +32,40 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
   products,
   onEditClick 
 }) => {
+  console.log("ShopOverview rendered", { shopName: shop.name, productsCount: products.length });
+  
+  // État pour contrôler l'ouverture/fermeture du modal
+  const [isCreateProductModalOpen, setIsCreateProductModalOpen] = useState(false);
+
+  // Debug modal state changes
+  useEffect(() => {
+    console.log("Modal state changed:", isCreateProductModalOpen);
+  }, [isCreateProductModalOpen]);
+
+  // Fonction pour fermer le modal
+  const closeCreateProductModal = () => {
+    console.log("closeCreateProductModal called");
+    setIsCreateProductModalOpen(false);
+  };
+  
   return (
     <div className="space-y-6">
+      {/* Modal d'ajout de produit - Centré sur la page */}
+      <CreateProductModal 
+        isOpen={isCreateProductModalOpen} 
+        onClose={closeCreateProductModal} 
+      />
+
       {/* En-tête de la boutique */}
       <div className="bg-gradient-to-r from-bibocom-primary/10 to-bibocom-accent/10 rounded-xl p-6 shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           <div className="relative">
             <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
               {shop.logo ? (
-                <AvatarImage src={shop.logo} alt={shop.name} />
+                <AvatarImage 
+                  src={`${backendUrl}/uploads/${shop.logo.split('/').pop()}`}
+                  alt={shop.name} 
+                />
               ) : (
                 <AvatarFallback className="bg-bibocom-primary text-white text-xl">
                   {shop.name.substring(0, 2).toUpperCase()}
@@ -56,6 +86,7 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
                 </div>
               </div>
               
+              {/* Nous utilisons onEditClick pour ouvrir le modal depuis le composant parent */}
               {onEditClick && (
                 <Button 
                   onClick={onEditClick} 
@@ -145,7 +176,14 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
           <CardDescription>Gérez efficacement votre boutique</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          {/* Action d'ajout de produit - Maintenant cliquable pour ouvrir le modal */}
+          <div 
+            className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            onClick={() => {
+              console.log("Add product card clicked");
+              setIsCreateProductModalOpen(true);
+            }}
+          >
             <div className="bg-bibocom-accent/10 w-10 h-10 rounded-lg flex items-center justify-center mr-3">
               <Package className="text-bibocom-accent" size={20} />
             </div>
@@ -230,7 +268,14 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
                 Vous n'avez pas encore ajouté de produits à votre boutique.
               </p>
               <div className="mt-6">
-                <Button variant="outline" className="text-bibocom-accent border-bibocom-accent">
+                <Button 
+                  variant="outline" 
+                  className="text-bibocom-accent border-bibocom-accent"
+                  onClick={() => {
+                    console.log("Add product button clicked");
+                    setIsCreateProductModalOpen(true);
+                  }}
+                >
                   Ajouter un produit
                 </Button>
               </div>

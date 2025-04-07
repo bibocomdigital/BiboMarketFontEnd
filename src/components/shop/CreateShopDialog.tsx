@@ -1,263 +1,283 @@
-
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useToast } from '@/hooks/use-toast';
-import { Store, Upload, MapPin, Phone, X } from 'lucide-react';
-import { createShop } from '@/services/shopService';
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { 
+  Store, 
+  Phone, 
+  MapPin, 
+  Package, 
+  ShoppingCart, 
+  Users, 
+  Settings,
+  Edit
+} from 'lucide-react';
+import { Shop, ShopProduct } from '@/services/shopService';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Badge from '@/components/ui-custom/Badge';
+import CreateProductModal from './CreateProductModal';
 
-interface CreateShopFormData {
-  name: string;
-  description: string;
-  phoneNumber: string;
-  address: string;
+// URL de base du backend
+const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+interface ShopOverviewProps {
+  shop: Shop;
+  products: ShopProduct[];
+  onEditClick?: () => void;
 }
 
-interface CreateShopDialogProps {
-  onSuccess: () => void;
-}
+const ShopOverview: React.FC<ShopOverviewProps> = ({ 
+  shop, 
+  products,
+  onEditClick 
+}) => {
+  // État pour contrôler l'ouverture/fermeture du modal
+  const [isCreateProductModalOpen, setIsCreateProductModalOpen] = useState(false);
 
-const CreateShopDialog: React.FC<CreateShopDialogProps> = ({ onSuccess }) => {
-  const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
-  const [previewURL, setPreviewURL] = useState<string | null>(null);
-  
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateShopFormData>();
-  
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedLogo(file);
-      setPreviewURL(URL.createObjectURL(file));
-    }
+  // Fonction pour ouvrir le modal
+  const openCreateProductModal = () => {
+    setIsCreateProductModalOpen(true);
   };
-  
-  const clearSelectedLogo = () => {
-    setSelectedLogo(null);
-    if (previewURL) {
-      URL.revokeObjectURL(previewURL);
-      setPreviewURL(null);
-    }
+
+  // Fonction pour fermer le modal
+  const closeCreateProductModal = () => {
+    setIsCreateProductModalOpen(false);
   };
-  
-  const onSubmit = async (data: CreateShopFormData) => {
-    setIsLoading(true);
-    try {
-      console.log('🔄 [SHOP_DIALOG] Création de la boutique avec les données:', {
-        ...data,
-        logo: selectedLogo ? `File: ${selectedLogo.name}` : 'Aucun logo'
-      });
-      
-      // Créer un objet FormData pour envoyer les données et le fichier
-      const formData = new FormData();
-      formData.append('name', data.name);
-      formData.append('description', data.description);
-      formData.append('phoneNumber', data.phoneNumber);
-      formData.append('address', data.address);
-      
-      if (selectedLogo) {
-        formData.append('logo', selectedLogo);
-      }
-      
-      // Log du contenu de FormData pour débugger
-      console.log('📋 [SHOP_DIALOG] Contenu du FormData avant envoi:');
-      for (let pair of formData.entries()) {
-        console.log(`   ${pair[0]}: ${pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]}`);
-      }
-      
-      // Appeler le service pour créer la boutique
-      const result = await createShop(formData);
-      console.log('✅ [SHOP_DIALOG] Résultat de la création:', result);
-      
-      toast({
-        title: "Boutique créée avec succès",
-        description: "Votre boutique a été créée et est maintenant disponible.",
-      });
-      
-      // Réinitialiser le formulaire
-      reset();
-      clearSelectedLogo();
-      setOpen(false);
-      
-      // Appeler la fonction de succès
-      onSuccess();
-    } catch (error) {
-      console.error('❌ [SHOP_DIALOG] Erreur lors de la création de la boutique:', error);
-      toast({
-        title: "Erreur",
-        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la création de la boutique",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-bibocom-primary to-bibocom-accent text-white">
-          <Store className="mr-2 h-4 w-4" />
-          Créer ma boutique
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-bibocom-primary">Créer votre boutique</DialogTitle>
-          <DialogDescription>
-            Remplissez les informations ci-dessous pour créer votre boutique et commencer à vendre vos produits.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="logo" className="flex items-center">
-                Logo de la boutique
-              </Label>
-              
-              {previewURL ? (
-                <div className="relative w-32 h-32 mx-auto">
-                  <img 
-                    src={previewURL} 
-                    alt="Aperçu du logo" 
-                    className="w-full h-full object-cover rounded-lg border-2 border-bibocom-accent"
-                  />
-                  <button
-                    type="button"
-                    onClick={clearSelectedLogo}
-                    className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
-                  >
-                    <X className="h-4 w-4 text-red-500" />
-                  </button>
-                </div>
+    <div className="space-y-6">
+      {/* Modal d'ajout de produit */}
+      <CreateProductModal 
+        isOpen={isCreateProductModalOpen} 
+        onClose={closeCreateProductModal} 
+      />
+
+      {/* En-tête de la boutique */}
+      <div className="bg-gradient-to-r from-bibocom-primary/10 to-bibocom-accent/10 rounded-xl p-6 shadow-sm">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="relative">
+            <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
+              {shop.logo ? (
+                <AvatarImage 
+                  src={`${backendUrl}/uploads/${shop.logo.split('/').pop()}`}
+                  alt={shop.name} 
+                />
               ) : (
-                <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-bibocom-accent transition-colors"
-                  onClick={() => document.getElementById('logo')?.click()}>
-                  <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600 text-center">
-                    Cliquez pour sélectionner une image ou faites-la glisser ici
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">PNG, JPG jusqu'à 5MB</p>
-                </div>
+                <AvatarFallback className="bg-bibocom-primary text-white text-xl">
+                  {shop.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
               )}
+            </Avatar>
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-bibocom-primary">{shop.name}</h1>
+                <div className="mt-1 flex items-center">
+                  <Badge variant="accent" className="mr-2">Boutique vérifiée</Badge>
+                  <p className="text-sm text-gray-600">
+                    Créée le {new Date(shop.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
               
-              <input
-                id="logo"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleLogoChange}
-              />
+              {onEditClick && (
+                <Button 
+                  onClick={onEditClick} 
+                  variant="outline" 
+                  className="flex items-center"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modifier ma boutique
+                </Button>
+              )}
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center">
-                <Store className="h-4 w-4 mr-2 text-bibocom-accent" />
-                Nom de la boutique <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <Input
-                id="name"
-                placeholder="Entrez le nom de votre boutique"
-                {...register('name', { required: "Le nom de la boutique est requis" })}
-                className={errors.name ? "border-red-500" : ""}
-              />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
-            </div>
+            <p className="mt-3 text-gray-700">{shop.description}</p>
             
-            <div className="space-y-2">
-              <Label htmlFor="description" className="flex items-center">
-                <Store className="h-4 w-4 mr-2 text-bibocom-accent" />
-                Description <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <Textarea
-                id="description"
-                placeholder="Décrivez votre boutique et ce que vous vendez"
-                {...register('description', { required: "La description est requise" })}
-                className={`min-h-[100px] ${errors.description ? "border-red-500" : ""}`}
-              />
-              {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phoneNumber" className="flex items-center">
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex items-center text-gray-600">
                 <Phone className="h-4 w-4 mr-2 text-bibocom-accent" />
-                Numéro de téléphone <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <Input
-                id="phoneNumber"
-                placeholder="Ex: +225 0707070707"
-                {...register('phoneNumber', { 
-                  required: "Le numéro de téléphone est requis",
-                  pattern: {
-                    value: /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/,
-                    message: "Numéro de téléphone invalide"
-                  }
-                })}
-                className={errors.phoneNumber ? "border-red-500" : ""}
-              />
-              {errors.phoneNumber && <p className="text-red-500 text-xs mt-1">{errors.phoneNumber.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="address" className="flex items-center">
+                <span>{shop.phoneNumber}</span>
+              </div>
+              <div className="flex items-center text-gray-600">
                 <MapPin className="h-4 w-4 mr-2 text-bibocom-accent" />
-                Adresse <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <Textarea
-                id="address"
-                placeholder="Entrez l'adresse complète de votre boutique"
-                {...register('address', { required: "L'adresse est requise" })}
-                className={errors.address ? "border-red-500" : ""}
-              />
-              {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
+                <span>{shop.address}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Statistiques de la boutique */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Produits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <div className="bg-bibocom-accent/10 w-10 h-10 rounded-lg flex items-center justify-center">
+                <Package className="text-bibocom-accent" size={20} />
+              </div>
+              <div className="ml-4">
+                <p className="text-2xl font-bold">{products.length}</p>
+                <p className="text-xs text-gray-500">En catalogue</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Commandes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <div className="bg-green-100 w-10 h-10 rounded-lg flex items-center justify-center">
+                <ShoppingCart className="text-green-500" size={20} />
+              </div>
+              <div className="ml-4">
+                <p className="text-2xl font-bold">0</p>
+                <p className="text-xs text-gray-500">En attente</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Clients</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <div className="bg-purple-100 w-10 h-10 rounded-lg flex items-center justify-center">
+                <Users className="text-purple-500" size={20} />
+              </div>
+              <div className="ml-4">
+                <p className="text-2xl font-bold">0</p>
+                <p className="text-xs text-gray-500">Clients</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Actions rapides */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Actions rapides</CardTitle>
+          <CardDescription>Gérez efficacement votre boutique</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Action d'ajout de produit - Maintenant cliquable pour ouvrir le modal */}
+          <div 
+            className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            onClick={openCreateProductModal}
+          >
+            <div className="bg-bibocom-accent/10 w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+              <Package className="text-bibocom-accent" size={20} />
+            </div>
+            <div>
+              <h3 className="font-medium">Ajouter un produit</h3>
+              <p className="text-sm text-gray-500">Créez et publiez un nouveau produit</p>
             </div>
           </div>
           
-          <DialogFooter className="mt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={isLoading}
-            >
-              Annuler
-            </Button>
-            <Button 
-              type="submit"
-              className="bg-bibocom-accent hover:bg-bibocom-accent/90"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Création en cours...
-                </span>
-              ) : "Créer ma boutique"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="bg-green-100 w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+              <ShoppingCart className="text-green-500" size={20} />
+            </div>
+            <div>
+              <h3 className="font-medium">Gérer les commandes</h3>
+              <p className="text-sm text-gray-500">Voir et traiter les commandes</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="bg-blue-100 w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+              <Settings className="text-blue-500" size={20} />
+            </div>
+            <div>
+              <h3 className="font-medium">Paramètres boutique</h3>
+              <p className="text-sm text-gray-500">Personnalisez votre boutique</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="bg-purple-100 w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+              <Users className="text-purple-500" size={20} />
+            </div>
+            <div>
+              <h3 className="font-medium">Clients fidèles</h3>
+              <p className="text-sm text-gray-500">Gérez vos clients et fidélisez-les</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Liste des produits récents */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Produits récents</CardTitle>
+          <CardDescription>Les derniers produits ajoutés à votre boutique</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {products.slice(0, 3).map((product) => (
+                <div key={product.id} className="border rounded-lg overflow-hidden">
+                  <div className="h-40 bg-gray-200">
+                    {product.images && product.images.length > 0 ? (
+                      <img 
+                        src={product.images[0].url} 
+                        alt={product.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <Package size={48} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-medium">{product.name}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{product.description.substring(0, 60)}...</p>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-bold text-bibocom-accent">{product.price.toLocaleString()} FCFA</span>
+                      <span className="text-xs text-gray-500">Stock: {product.stock}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900">Aucun produit</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Vous n'avez pas encore ajouté de produits à votre boutique.
+              </p>
+              <div className="mt-6">
+                <Button 
+                  variant="outline" 
+                  className="text-bibocom-accent border-bibocom-accent"
+                  onClick={openCreateProductModal}
+                >
+                  Ajouter un produit
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+        {products.length > 0 && (
+          <CardFooter className="flex justify-center">
+            <Button variant="ghost">Voir tous les produits</Button>
+          </CardFooter>
+        )}
+      </Card>
+    </div>
   );
 };
 
-export default CreateShopDialog;
+export default ShopOverview;
