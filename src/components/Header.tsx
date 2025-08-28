@@ -25,9 +25,9 @@ const Header = () => {
   const navigationLinks = [
     { name: 'Accueil', href: '#' },
     { name: 'Catégories', href: '#', hasDropdown: true },
-    { name: 'Boutiques', href: '#' },
-    { name: 'À propos', href: '#' },
-    { name: 'Contact', href: '#' },
+    { name: 'Boutiques', href: '/boutique' },
+    { name: 'À propos', href: '/about' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   return (

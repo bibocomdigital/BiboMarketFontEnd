@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -12,7 +11,7 @@ import ForgotPasswordDialog from './ForgotPasswordDialog';
 import SocialLoginButton from './SocialLoginButton';
 import { LoginFormSchema } from './LoginFormTypes';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { login } from '@/services/authService';
 
 type LoginFormContentProps = {
@@ -24,8 +23,10 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [loginError, setLoginError] = useState<string | null>(null); // ✅ Nouvel état pour les erreurs
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const form = useForm<z.infer<typeof LoginFormSchema>>({
     resolver: zodResolver(LoginFormSchema),
@@ -41,6 +42,16 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
       form.setValue('email', initialEmail);
     }
   }, [initialEmail, form]);
+
+  // Effacer l'erreur quand l'utilisateur commence à retaper
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (loginError) {
+        setLoginError(null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, loginError]);
 
   const onSubmit = async (values: z.infer<typeof LoginFormSchema>) => {
     setIsSubmitting(true);
@@ -63,7 +74,7 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
       // Correction: normaliser le rôle reçu pour la comparaison
       const userRole = response.user.role.toUpperCase();
       
-      // Rediriger en fonction du rôle utilisateur
+      // TOUJOURS rediriger en fonction du rôle utilisateur, en ignorant le paramètre redirect
       if (userRole === 'MERCHANT' || userRole === 'COMMERCANT') {
         console.log('🔄 [LOGIN] Redirection vers le tableau de bord commerçant');
         navigate('/merchant-dashboard');
@@ -79,9 +90,14 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
         onClose();
       }
     } catch (error) {
+      console.error('❌ [LOGIN] Erreur de connexion:', error);
+      
+      // Afficher le vrai message d'erreur du serveur
+      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la connexion";
+      
       toast({
         title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect",
+        description: errorMessage, // ✅ Utiliser le vrai message d'erreur
         variant: "destructive"
       });
     } finally {
@@ -92,6 +108,56 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* 🔍 DEBUG - Affichage permanent pour test */}
+        <div style={{ 
+          backgroundColor: '#fee2e2', 
+          border: '1px solid #fecaca', 
+          padding: '12px', 
+          borderRadius: '6px',
+          color: '#dc2626'
+        }}>
+          <strong>DEBUG:</strong> loginError = "{loginError}" | Est null: {loginError === null ? 'OUI' : 'NON'}
+        </div>
+
+        {/* ✅ Affichage de l'erreur de connexion - Version simple */}
+        {loginError && (
+          <div 
+            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4"
+            style={{
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#b91c1c',
+              padding: '12px 16px',
+              borderRadius: '6px',
+              marginBottom: '16px'
+            }}
+          >
+            <div className="flex items-center">
+              <span className="text-red-500 mr-2">⚠️</span>
+              <span>{loginError}</span>
+            </div>
+          </div>
+        )}
+
+        {/* 🔍 Bouton de test pour forcer une erreur */}
+        <button 
+          type="button"
+          onClick={() => {
+            console.log('🔍 Test - Forçage d\'une erreur');
+            setLoginError('Test d\'erreur - cliquez sur connexion pour tester');
+          }}
+          style={{
+            backgroundColor: '#fbbf24',
+            color: '#92400e',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          🔍 TEST - Forcer une erreur
+        </button>
+
         <FormField
           control={form.control}
           name="email"

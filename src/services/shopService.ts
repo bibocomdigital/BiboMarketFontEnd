@@ -2,8 +2,8 @@
  * Service dédié à la gestion des boutiques côté frontend
  */
 
-// Obtenir l'URL du backend depuis l'environnement ou utiliser la valeur par défaut
-const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Importer les fonctions du service de configuration
+import { backendUrl, getAuthToken, getAuthHeaders, handleApiError } from './configService';
 
 // Définition des constantes pour les rôles utilisateur
 export enum UserRole {
@@ -26,6 +26,8 @@ export interface ShopProduct {
   price: number;
   stock: number;
   shopId: number;
+  videoUrl?: string;
+  category?: string; 
   createdAt: string;
   updatedAt: string;
   images: ShopImage[];
@@ -37,6 +39,7 @@ export interface Shop {
   description: string;
   phoneNumber: string;
   address: string;
+  
   logo: string | null;
   userId: number;
   createdAt: string;
@@ -46,6 +49,51 @@ export interface Shop {
 export interface ShopWithProducts extends Shop {
   products: ShopProduct[];
 }
+
+export interface MerchantDetails {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  photo: string | null;
+  createdAt: string;
+}
+
+export interface MerchantContactData {
+  subject: string;
+  message: string;
+}
+
+export interface ShopWithDetails extends Shop {
+  owner: MerchantDetails;
+  merchantStats: {
+    totalProducts: number;
+    memberSince: string;
+  };
+}
+
+/**
+ * Formate une URL d'image Cloudinary ou une URL locale
+ * @param {string|null} imageUrl L'URL de l'image
+ * @returns {string|null} L'URL formatée
+ */
+export const formatImageUrl = (imageUrl: string | null): string | null => {
+  if (!imageUrl) return null;
+  
+  // Si c'est déjà une URL Cloudinary, la retourner telle quelle
+  if (imageUrl.includes('cloudinary.com')) {
+    return imageUrl;
+  }
+  
+  // Si c'est une URL relative ou un chemin de fichier local, construire l'URL complète
+  if (!imageUrl.startsWith('http')) {
+    return `${backendUrl}/uploads/${imageUrl.split('/').pop()}`;
+  }
+  
+  // Sinon, retourner l'URL originale
+  return imageUrl;
+};
 
 /**
  * Vérifie si l'utilisateur actuellement connecté est un commerçant
@@ -78,18 +126,6 @@ export const isMerchant = (): boolean => {
 };
 
 /**
- * Récupère le token d'authentification stocké dans le localStorage
- * @returns {string|null} Le token d'authentification ou null s'il n'existe pas
- */
-const getAuthToken = (): string | null => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.error('❌ [SHOP] Aucun token d\'authentification trouvé');
-  }
-  return token;
-};
-
-/**
  * Récupère les informations de la boutique pour l'utilisateur connecté
  * @returns {Promise<ShopWithProducts>} Les informations de la boutique avec ses produits
  */
@@ -111,10 +147,7 @@ export const getMyShop = async (): Promise<ShopWithProducts> => {
     // Appeler l'API pour récupérer la boutique
     const response = await fetch(`${backendUrl}/api/shop/my-shop`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders()
     });
     
     // Vérifier si la réponse est au format texte ou JSON
@@ -235,7 +268,7 @@ export const updateShop = async (shopId: number, shopData: FormData): Promise<Sh
       throw new Error('Vous devez être connecté pour mettre à jour une boutique');
     }
     
-    // Appeler l'API pour mettre à jour la boutique (attention à l'URL: shop ou shops)
+    // Appeler l'API pour mettre à jour la boutique
     const response = await fetch(`${backendUrl}/api/shop/${shopId}`, {
       method: 'PUT',
       headers: {
@@ -247,7 +280,6 @@ export const updateShop = async (shopId: number, shopData: FormData): Promise<Sh
     
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ [SHOP] Erreur lors de la mise à jour de la boutique:', errorData.message);
       throw new Error(errorData.message || 'Erreur lors de la mise à jour de la boutique');
     }
     
@@ -270,12 +302,11 @@ export const getShopById = async (shopId: number): Promise<ShopWithProducts> => 
   try {
     console.log(`🔄 [SHOP] Récupération de la boutique ID ${shopId}`);
     
-    // Appeler l'API pour récupérer la boutique (attention à l'URL: shop ou shops)
+    // Appeler l'API pour récupérer la boutique
     const response = await fetch(`${backendUrl}/api/shop/${shopId}`);
     
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ [SHOP] Erreur lors de la récupération de la boutique:', errorData.message);
       throw new Error(errorData.message || 'Erreur lors de la récupération de la boutique');
     }
     
@@ -301,12 +332,11 @@ export const getShopProducts = async (shopId: number): Promise<ShopProduct[]> =>
   try {
     console.log(`🔄 [SHOP] Récupération des produits de la boutique ID ${shopId}`);
     
-    // Appeler l'API pour récupérer les produits de la boutique (attention à l'URL: shop ou shops)
+    // Appeler l'API pour récupérer les produits de la boutique
     const response = await fetch(`${backendUrl}/api/shop/${shopId}/products`);
     
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ [SHOP] Erreur lors de la récupération des produits:', errorData.message);
       throw new Error(errorData.message || 'Erreur lors de la récupération des produits');
     }
     
@@ -319,6 +349,7 @@ export const getShopProducts = async (shopId: number): Promise<ShopProduct[]> =>
     throw error;
   }
 };
+
 /**
  * Récupère toutes les boutiques disponibles
  * @returns {Promise<Shop[]>} La liste de toutes les boutiques
@@ -327,12 +358,11 @@ export const getAllShops = async (): Promise<Shop[]> => {
   try {
     console.log('🔄 [SHOP] Récupération de toutes les boutiques');
     
-    // Utiliser l'URL du backend définie précédemment
+    // Appeler l'API pour récupérer les boutiques
     const response = await fetch(`${backendUrl}/api/shop`);
     
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ [SHOP] Erreur lors de la récupération des boutiques:', errorData.message);
       throw new Error(errorData.message || 'Erreur lors de la récupération des boutiques');
     }
     
@@ -366,24 +396,183 @@ export const deleteShop = async (shopId: number): Promise<void> => {
       throw new Error('Vous devez être connecté pour supprimer une boutique');
     }
     
-    // Appeler l'API pour supprimer la boutique (attention à l'URL: shop ou shops)
+    // Appeler l'API pour supprimer la boutique
     const response = await fetch(`${backendUrl}/api/shop/${shopId}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ [SHOP] Erreur lors de la suppression de la boutique:', errorData.message);
       throw new Error(errorData.message || 'Erreur lors de la suppression de la boutique');
     }
     
     console.log('✅ [SHOP] Boutique supprimée avec succès');
   } catch (error) {
     console.error('❌ [SHOP] Erreur:', error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère les détails d'une boutique avec les informations du commerçant
+ * @param {number} shopId L'ID de la boutique
+ * @returns {Promise<ShopWithDetails>} Les détails de la boutique avec les informations du commerçant
+ */
+export const getShopWithMerchantDetails = async (shopId: number): Promise<ShopWithDetails> => {
+  try {
+    console.log(`🔄 [SHOP] Récupération des détails de la boutique ID ${shopId}`);
+    
+    // Appeler l'API pour récupérer les détails de la boutique
+    const response = await fetch(`${backendUrl}/api/shop/${shopId}/details`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erreur lors de la récupération des détails de la boutique');
+    }
+    
+    const data = await response.json();
+    console.log('✅ [SHOP] Détails de la boutique récupérés avec succès:', data.shop?.name);
+    
+    return {
+      ...data.shop,
+      owner: data.shop.owner,
+      merchantStats: data.merchantStats
+    };
+  } catch (error) {
+    console.error('❌ [SHOP] Erreur:', error);
+    throw error;
+  }
+};
+
+/**
+ * Envoie un message à un commerçant
+ * @param {number} shopId L'ID de la boutique
+ * @param {MerchantContactData} messageData Les données du message
+ * @returns {Promise<{success: boolean; message: string; contact?: {id: number; createdAt: string;}}>}
+ */
+export const contactMerchant = async (
+  shopId: number, 
+  messageData: MerchantContactData
+): Promise<{ success: boolean; message: string; contact?: { id: number; createdAt: string } }> => {
+  try {
+    console.log(`🔄 [SHOP] Envoi d'un message au marchand de la boutique ID ${shopId}`);
+    
+    // Récupérer le token d'authentification
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Vous devez être connecté pour contacter un marchand');
+    }
+    
+    // Vérifier que les champs obligatoires sont présents
+    const { subject, message } = messageData;
+    if (!subject || !message) {
+      throw new Error('Le sujet et le message sont obligatoires');
+    }
+    
+    // Appeler l'API pour envoyer le message
+    const response = await fetch(`${backendUrl}/api/shop/${shopId}/contact`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        subject,
+        message
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erreur lors de l\'envoi du message');
+    }
+    
+    const data = await response.json();
+    console.log('✅ [SHOP] Message envoyé avec succès');
+    
+    return {
+      success: data.success,
+      message: data.message,
+      contact: data.contact
+    };
+  } catch (error) {
+    console.error('❌ [SHOP] Erreur:', error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère tous les messages d'un utilisateur
+ * @returns {Promise<any>} Les messages de l'utilisateur
+ */
+export const getAllUserMessages = async () => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Vous devez être connecté');
+    }
+
+    const response = await fetch(`${backendUrl}/api/dashboard/messages`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erreur lors de la récupération des messages');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('❌ [SHOP] Erreur:', error);
+    throw error;
+  }
+};
+
+/**
+ * Répond à un message
+ * @param {number} contactId L'ID du contact
+ * @param {string} response La réponse au message
+ * @returns {Promise<{success: boolean; message: string; contact?: {id: number; createdAt: string; redirectUrl?: string;}}>}
+ */
+export const respondToMessage = async (
+  contactId: number, 
+  response: string
+): Promise<{ 
+  success: boolean; 
+  message: string; 
+  contact?: { 
+    id: number; 
+    createdAt: string;
+    redirectUrl?: string;
+  } 
+}> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Vous devez être connecté pour répondre à un message');
+    }
+
+    const apiResponse = await fetch(`${backendUrl}/api/contact/${contactId}/respond`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ response })
+    });
+
+    if (!apiResponse.ok) {
+      const errorData = await apiResponse.json();
+      throw new Error(errorData.message || 'Erreur lors de l\'envoi de la réponse');
+    }
+
+    const data = await apiResponse.json();
+    return {
+      ...data,
+      contact: {
+        ...data.contact,
+        redirectUrl: `/dashboard/messages/${contactId}`
+      }
+    };
+  } catch (error) {
+    console.error('❌ [SHOP] Erreur lors de la réponse:', error);
     throw error;
   }
 };

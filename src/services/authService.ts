@@ -1,5 +1,8 @@
 // Configuration de l'API
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const API_URL = import.meta.env.VITE_API_URL || "https://ecommerce-2-uy2x.onrender.com/api";
+
+// URL de base Cloudinary pour les images
+export const CLOUDINARY_BASE_URL = "https://res.cloudinary.com/yourdomain"; // À remplacer par votre domaine Cloudinary
 
 // Définition des rôles utilisateur
 export enum UserRole { 
@@ -54,6 +57,34 @@ export interface ProfileData {
   city?: string;
   country?: string;
 }
+
+/**
+ * Obtient l'URL complète d'une image stockée sur Cloudinary
+ * @param photoPath Chemin partiel de l'image depuis l'API
+ * @returns URL complète de l'image
+ */
+export const getPhotoUrl = (photoPath?: string): string => {
+  if (!photoPath) return '';
+  
+  // Si l'URL est déjà complète (commence par http ou https), la retourner telle quelle
+  if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+    return photoPath;
+  }
+  
+  // Si l'URL pointe vers Cloudinary
+  if (photoPath.includes('cloudinary')) {
+    // Si c'est une URL complète Cloudinary, la retourner telle quelle
+    if (photoPath.startsWith('https://res.cloudinary.com')) {
+      return photoPath;
+    }
+    
+    // Si c'est un chemin partiel Cloudinary, construire l'URL complète
+    return `${CLOUDINARY_BASE_URL}/${photoPath}`;
+  }
+  
+  // Pour les anciennes images non-Cloudinary (pour compatibilité)
+  return `${API_URL.replace('/api', '')}/uploads/${photoPath}`;
+};
 
 /**
  * Vérifie si un email existe déjà
@@ -371,7 +402,7 @@ export const getUserProfile = async (): Promise<ProfileData> => {
       throw new Error('Non authentifié');
     }
     
-    const response = await fetch(`${API_URL}/users/profile`, {
+    const response = await fetch(`${API_URL}/auth/profile`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { 
   User, 
   Settings, 
@@ -13,7 +12,10 @@ import {
   Edit,
   Save,
   X,
-  Loader2
+  Loader2,
+  UserPlus,
+  UserMinus,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
   getUserProfile, 
@@ -29,9 +32,16 @@ import {
   getUser,
   ProfileData
 } from '@/services/authService';
+import {
+  getUserFollowers,
+  getUserFollowing,
+  checkIfFollowing,
+  toggleFollow
+} from '@/services/subscriptionService';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { userId } = useParams(); // Récupère l'ID de l'utilisateur depuis l'URL si présent
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
@@ -39,65 +49,138 @@ const Profile = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  
+  // États pour les abonnements
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isLoadingFollow, setIsLoadingFollow] = useState(false);
+  const [isOwnProfile, setIsOwnProfile] = useState(true);
 
   const localUser = getUser();
   const [userInfo, setUserInfo] = useState({
+    id: localUser?.id || 0,
     firstName: localUser?.firstName || '',
     lastName: localUser?.lastName || '',
     email: localUser?.email || '',
     phone: localUser?.phoneNumber || '',
     address: `${localUser?.city || ''}, ${localUser?.country || ''}`,
-    bio: '', // Nous n'avons pas ce champ dans l'API
-    birthdate: '', // Nous n'avons pas ce champ dans l'API
+    bio: '', 
+    birthdate: '', 
     avatar: localUser?.photo || '',
+    role: localUser?.role || '',
   });
 
   const [editInfo, setEditInfo] = useState({ ...userInfo });
 
+  // Détermine si on consulte son propre profil ou celui d'un autre utilisateur
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        console.log('Chargement du profil utilisateur...');
-        setIsLoading(true);
+    if (userId && parseInt(userId) !== localUser?.id) {
+      setIsOwnProfile(false);
+    } else {
+      setIsOwnProfile(true);
+    }
+  }, [userId, localUser]);
+
+  // Fonction pour charger les données de profil
+  const fetchUserProfile = async () => {
+    try {
+      console.log('Chargement du profil utilisateur...');
+      
+      // Si c'est un profil autre que le sien (à implémenter dans votre API)
+      if (!isOwnProfile && userId) {
+        // Cette partie serait à adapter selon votre API backend
+        // const userData = await getOtherUserProfile(parseInt(userId));
+        // Pour le moment, on utilise le même service
         const userData = await getUserProfile();
-        console.log('Données de profil reçues:', userData);
+        setUserInfo({
+          id: userData.id || parseInt(userId),
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          email: userData.email || '',
+          phone: userData.phoneNumber || '',
+          address: `${userData.city || ''}, ${userData.country || ''}`,
+          bio: userData.bio || '', 
+          birthdate: userData.birthdate || '', 
+          avatar: userData.photo?.toString() || '',
+          role: userData.role || '',
+        });
+      } else {
+        // Profil de l'utilisateur connecté
+        const userData = await getUserProfile();
         
         if (userData) {
           setUserInfo({
+            id: userData.id || localUser?.id || 0,
             firstName: userData.firstName || '',
             lastName: userData.lastName || '',
             email: userData.email || '',
             phone: userData.phoneNumber || '',
             address: `${userData.city || ''}, ${userData.country || ''}`,
-            bio: '', // Pas dans l'API
-            birthdate: '', // Pas dans l'API
-            avatar: userData.photo?.toString() || '', // Convert to string if it's a File
+            bio: userData.bio || '', 
+            birthdate: userData.birthdate || '', 
+            avatar: userData.photo?.toString() || '',
+            role: userData.role || localUser?.role || '',
           });
           setEditInfo({
-            firstName: userData.firstName || '',
-            lastName: userData.lastName || '',
-            email: userData.email || '',
-            phone: userData.phoneNumber || '',
+            ...userData,
             address: `${userData.city || ''}, ${userData.country || ''}`,
-            bio: '', // Pas dans l'API
-            birthdate: '', // Pas dans l'API
-            avatar: userData.photo?.toString() || '', // Convert to string if it's a File
+            phone: userData.phoneNumber || '',
+            bio: userData.bio || '',
+            birthdate: userData.birthdate || '',
+            avatar: userData.photo?.toString() || '',
           });
         }
-      } catch (error: any) {
-        console.error('Erreur lors du chargement du profil:', error);
-        toast({
-          title: "Erreur de chargement",
-          description: error.message || "Impossible de charger votre profil",
-          variant: "destructive",
-        });
+      }
+    } catch (error: any) {
+      console.error('Erreur lors du chargement du profil:', error);
+      toast({
+        title: "Erreur de chargement",
+        description: error.message || "Impossible de charger le profil",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Fonction pour récupérer les statistiques d'abonnements
+  const fetchFollowStats = async () => {
+    try {
+      const profileId = !isOwnProfile && userId ? parseInt(userId) : userInfo.id;
+      
+      // Récupérer le nombre d'abonnés
+      const followersData = await getUserFollowers(profileId, 1, 1);
+      setFollowerCount(followersData.pagination.total);
+      
+      // Récupérer le nombre d'abonnements
+      const followingData = await getUserFollowing(profileId, 1, 1);
+      setFollowingCount(followingData.pagination.total);
+      
+      // Si ce n'est pas son propre profil, vérifier si l'utilisateur le suit
+      if (!isOwnProfile && userId) {
+        const followStatus = await checkIfFollowing(parseInt(userId));
+        setIsFollowing(followStatus.isFollowing);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des statistiques d\'abonnement:', error);
+    }
+  };
+
+  // Charger les données au chargement du composant
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await fetchUserProfile();
+        await fetchFollowStats();
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
       } finally {
         setIsLoading(false);
       }
     };
-
-    fetchUserProfile();
-  }, [toast]);
+    
+    loadData();
+  }, [userId, isOwnProfile]);
 
   const handleLogout = () => {
     logout();
@@ -127,6 +210,8 @@ const Profile = () => {
         lastName: editInfo.lastName,
         email: editInfo.email,
         phoneNumber: editInfo.phone,
+        city,
+        country,
       };
       
       if (avatarFile) {
@@ -139,7 +224,14 @@ const Profile = () => {
       console.log('Profil mis à jour avec succès:', updatedUser);
       
       setUserInfo({
-        ...editInfo,
+        ...userInfo,
+        firstName: editInfo.firstName,
+        lastName: editInfo.lastName,
+        email: editInfo.email,
+        phone: editInfo.phone,
+        address: editInfo.address,
+        bio: editInfo.bio,
+        birthdate: editInfo.birthdate,
         avatar: avatarPreview || editInfo.avatar,
       });
       
@@ -158,6 +250,33 @@ const Profile = () => {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!userId) return;
+    
+    try {
+      setIsLoadingFollow(true);
+      const response = await toggleFollow(parseInt(userId));
+      
+      // Mettre à jour l'état local
+      setIsFollowing(response.action === 'followed');
+      setFollowerCount(response.followerCount);
+      
+      toast({
+        title: response.action === 'followed' ? "Abonnement ajouté" : "Abonnement retiré",
+        description: response.message,
+      });
+    } catch (error: any) {
+      console.error('Erreur lors de la gestion de l\'abonnement:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingFollow(false);
     }
   };
 
@@ -220,58 +339,105 @@ const Profile = () => {
                           {userInfo.firstName.charAt(0)}{userInfo.lastName.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      {isEditing ? (
-                        <>
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleAvatarChange}
-                          />
+                      {isOwnProfile && (
+                        isEditing ? (
+                          <>
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              className="hidden"
+                              accept="image/*"
+                              onChange={handleAvatarChange}
+                            />
+                            <button 
+                              className="absolute bottom-0 right-0 bg-bibocom-primary rounded-full p-1.5 text-white shadow-md hover:bg-bibocom-accent transition-colors"
+                              onClick={triggerFileInput}
+                            >
+                              <Camera size={16} />
+                            </button>
+                          </>
+                        ) : (
                           <button 
                             className="absolute bottom-0 right-0 bg-bibocom-primary rounded-full p-1.5 text-white shadow-md hover:bg-bibocom-accent transition-colors"
-                            onClick={triggerFileInput}
+                            onClick={handleEdit}
                           >
                             <Camera size={16} />
                           </button>
-                        </>
-                      ) : (
-                        <button 
-                          className="absolute bottom-0 right-0 bg-bibocom-primary rounded-full p-1.5 text-white shadow-md hover:bg-bibocom-accent transition-colors"
-                          onClick={handleEdit}
-                        >
-                          <Camera size={16} />
-                        </button>
+                        )
                       )}
                     </div>
                     <h3 className="text-xl font-bold">{userInfo.firstName} {userInfo.lastName}</h3>
                     <p className="text-gray-500">{userInfo.email}</p>
+                    
+                    {userInfo.role && (
+                      <Badge variant="outline" className="mt-2 bg-bibocom-primary/10 text-bibocom-primary">
+                        {userInfo.role}
+                      </Badge>
+                    )}
+                    
+                    <div className="flex gap-8 mt-4">
+                      <div className="text-center">
+                        <p className="font-semibold text-lg">{followerCount}</p>
+                        <p className="text-sm text-gray-500">Abonnés</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-semibold text-lg">{followingCount}</p>
+                        <p className="text-sm text-gray-500">Abonnements</p>
+                      </div>
+                    </div>
+                    
+                    {/* Bouton Suivre/Ne plus suivre pour les profils des autres utilisateurs */}
+                    {!isOwnProfile && (
+                      <Button 
+                        variant={isFollowing ? "destructive" : "default"}
+                        className="mt-4 w-full gap-2"
+                        onClick={handleFollow}
+                        disabled={isLoadingFollow}
+                      >
+                        {isLoadingFollow ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isFollowing ? (
+                          <UserMinus size={16} />
+                        ) : (
+                          <UserPlus size={16} />
+                        )}
+                        {isFollowing ? "Ne plus suivre" : "Suivre"}
+                      </Button>
+                    )}
                   </div>
 
-                  <nav className="space-y-1">
-                    <button 
-                      onClick={() => setActiveTab('profile')}
-                      className={`flex items-center w-full p-3 rounded-lg transition-colors ${activeTab === 'profile' ? 'bg-bibocom-primary/10 text-bibocom-primary' : 'hover:bg-gray-100'}`}
-                    >
-                      <User className="mr-3" size={20} />
-                      <span>Mon profil</span>
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('settings')}
-                      className={`flex items-center w-full p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-bibocom-primary/10 text-bibocom-primary' : 'hover:bg-gray-100'}`}
-                    >
-                      <Settings className="mr-3" size={20} />
-                      <span>Paramètres</span>
-                    </button>
-                    <button 
-                      onClick={handleLogout}
-                      className="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 text-red-500 hover:text-red-600 transition-colors"
-                    >
-                      <LogOut className="mr-3" size={20} />
-                      <span>Déconnexion</span>
-                    </button>
-                  </nav>
+                  {isOwnProfile && (
+                    <nav className="space-y-1">
+                      <button 
+                        onClick={() => setActiveTab('profile')}
+                        className={`flex items-center w-full p-3 rounded-lg transition-colors ${activeTab === 'profile' ? 'bg-bibocom-primary/10 text-bibocom-primary' : 'hover:bg-gray-100'}`}
+                      >
+                        <User className="mr-3" size={20} />
+                        <span>Mon profil</span>
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('followers')}
+                        className={`flex items-center w-full p-3 rounded-lg transition-colors ${activeTab === 'followers' ? 'bg-bibocom-primary/10 text-bibocom-primary' : 'hover:bg-gray-100'}`}
+                      >
+                        <Users className="mr-3" size={20} />
+                        <span>Abonnés</span>
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('settings')}
+                        className={`flex items-center w-full p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-bibocom-primary/10 text-bibocom-primary' : 'hover:bg-gray-100'}`}
+                      >
+                        <Settings className="mr-3" size={20} />
+                        <span>Paramètres</span>
+                      </button>
+                      <button 
+                        onClick={handleLogout}
+                        className="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 text-red-500 hover:text-red-600 transition-colors"
+                      >
+                        <LogOut className="mr-3" size={20} />
+                        <span>Déconnexion</span>
+                      </button>
+                    </nav>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -281,10 +447,16 @@ const Profile = () => {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
-                      <CardTitle className="text-2xl">Mon profil</CardTitle>
-                      <CardDescription>Consultez et modifiez vos informations personnelles</CardDescription>
+                      <CardTitle className="text-2xl">
+                        {isOwnProfile ? "Mon profil" : `Profil de ${userInfo.firstName}`}
+                      </CardTitle>
+                      <CardDescription>
+                        {isOwnProfile 
+                          ? "Consultez et modifiez vos informations personnelles" 
+                          : `Informations du profil de ${userInfo.firstName} ${userInfo.lastName}`}
+                      </CardDescription>
                     </div>
-                    {!isEditing ? (
+                    {isOwnProfile && !isEditing ? (
                       <Button 
                         variant="outline" 
                         className="gap-1" 
@@ -293,7 +465,7 @@ const Profile = () => {
                         <Edit size={16} />
                         Modifier
                       </Button>
-                    ) : (
+                    ) : isOwnProfile && isEditing ? (
                       <div className="flex gap-2">
                         <Button 
                           variant="outline" 
@@ -322,7 +494,7 @@ const Profile = () => {
                           )}
                         </Button>
                       </div>
-                    )}
+                    ) : null}
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -424,7 +596,30 @@ const Profile = () => {
                 </Card>
               )}
 
-              {activeTab === 'settings' && (
+              {activeTab === 'followers' && isOwnProfile && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Mes abonnés</CardTitle>
+                    <CardDescription>Personnes qui vous suivent ({followerCount})</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Cette partie serait à compléter avec la liste des abonnés */}
+                    <div className="text-center py-8">
+                      <Users className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                      <p className="text-gray-500">
+                        {followerCount > 0 
+                          ? "Chargement de vos abonnés..." 
+                          : "Vous n'avez pas encore d'abonnés"}
+                      </p>
+                      {followerCount === 0 && (
+                        <p className="text-sm text-gray-400 mt-1">Partagez votre profil pour attirer des abonnés</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeTab === 'settings' && isOwnProfile && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-2xl">Paramètres</CardTitle>
@@ -456,6 +651,19 @@ const Profile = () => {
                             </div>
                             <div className="flex items-center justify-between border-b pb-2">
                               <div>
+                                <p className="font-medium">Nouveaux abonnés</p>
+                                <p className="text-sm text-gray-500">Recevoir des notifications quand quelqu'un vous suit</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input type="checkbox" id="follow-email" className="rounded text-bibocom-primary" checked readOnly />
+                                <label htmlFor="follow-email" className="text-sm">Email</label>
+                                
+                                <input type="checkbox" id="follow-sms" className="ml-4 rounded text-bibocom-primary" />
+                                <label htmlFor="follow-sms" className="text-sm">SMS</label>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between border-b pb-2">
+                              <div>
                                 <p className="font-medium">Promotions</p>
                                 <p className="text-sm text-gray-500">Recevoir des offres et promotions spéciales</p>
                               </div>
@@ -478,6 +686,8 @@ const Profile = () => {
                               </div>
                             </div>
                           </div>
+
+                          <Button className="mt-4">Enregistrer les préférences</Button>
                         </div>
                       </TabsContent>
                       <TabsContent value="security" className="space-y-6">
@@ -559,6 +769,40 @@ const Profile = () => {
                               </select>
                             </div>
                             <Button className="w-full sm:w-auto">Enregistrer les préférences</Button>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4 pt-6 border-t">
+                          <h3 className="text-lg font-medium">Préférences d'abonnement</h3>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Recevoir des notifications sur les nouveaux abonnés</p>
+                                <p className="text-sm text-gray-500">Être notifié quand quelqu'un commence à vous suivre</p>
+                              </div>
+                              <div className="flex items-center">
+                                <input type="checkbox" id="notify-followers" className="rounded text-bibocom-primary" checked readOnly />
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Afficher mes abonnements</p>
+                                <p className="text-sm text-gray-500">Permettre aux autres utilisateurs de voir qui vous suivez</p>
+                              </div>
+                              <div className="flex items-center">
+                                <input type="checkbox" id="show-following" className="rounded text-bibocom-primary" checked readOnly />
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Afficher mes abonnés</p>
+                                <p className="text-sm text-gray-500">Permettre aux autres utilisateurs de voir qui vous suit</p>
+                              </div>
+                              <div className="flex items-center">
+                                <input type="checkbox" id="show-followers" className="rounded text-bibocom-primary" checked readOnly />
+                              </div>
+                            </div>
+                            <Button className="mt-2">Enregistrer la visibilité</Button>
                           </div>
                         </div>
                       </TabsContent>

@@ -2,8 +2,8 @@
  * Service dédié à la gestion des produits côté frontend
  */
 
-// Obtenir l'URL du backend depuis l'environnement ou utiliser la valeur par défaut
-const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Importer les fonctions du service de configuration
+import { backendUrl, getAuthToken, getAuthHeaders, handleApiError } from './configService';
 
 // Définition des constantes pour les rôles utilisateur
 export enum UserRole {
@@ -61,6 +61,28 @@ export interface ProductsResponse {
 }
 
 /**
+ * Formate une URL d'image Cloudinary ou une URL locale
+ * @param {string|null} imageUrl L'URL de l'image
+ * @returns {string|null} L'URL formatée
+ */
+export const formatImageUrl = (imageUrl: string | null): string | null => {
+  if (!imageUrl) return null;
+  
+  // Si c'est déjà une URL Cloudinary, la retourner telle quelle
+  if (imageUrl.includes('cloudinary.com')) {
+    return imageUrl;
+  }
+  
+  // Si c'est une URL relative ou un chemin de fichier local, construire l'URL complète
+  if (!imageUrl.startsWith('http')) {
+    return `${backendUrl}/uploads/${imageUrl.split('/').pop()}`;
+  }
+  
+  // Sinon, retourner l'URL originale
+  return imageUrl;
+};
+
+/**
  * Vérifie si l'utilisateur actuellement connecté est un commerçant
  * @returns {boolean} true si l'utilisateur est un commerçant, sinon false
  */
@@ -113,18 +135,6 @@ export const isAuthenticated = (): boolean => {
 };
 
 /**
- * Récupère le token d'authentification stocké dans le localStorage
- * @returns {string|null} Le token d'authentification ou null s'il n'existe pas
- */
-const getAuthToken = (): string | null => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.error('❌ [PRODUCT] Aucun token d\'authentification trouvé');
-  }
-  return token;
-};
-
-/**
  * Récupère tous les produits disponibles (paginés)
  * @param {number} page Numéro de page pour la pagination
  * @param {number} limit Nombre de produits par page
@@ -134,8 +144,9 @@ const getAuthToken = (): string | null => {
 export const getAllProducts = async (
   page: number = 1,
   limit: number = 10,
-  filters: {
-    category?: string;
+  categoryId?: number | string,
+  searchTerm: string = '',
+  additionalFilters: {
     minPrice?: number;
     maxPrice?: number;
     sortBy?: string;
@@ -149,13 +160,20 @@ export const getAllProducts = async (
     // Construire l'URL avec les paramètres
     let url = `${backendUrl}/api/produit?page=${page}&limit=${limit}`;
     
-    // Ajouter les filtres s'ils sont fournis
-    if (filters.category) url += `&category=${filters.category}`;
-    if (filters.minPrice) url += `&minPrice=${filters.minPrice}`;
-    if (filters.maxPrice) url += `&maxPrice=${filters.maxPrice}`;
-    if (filters.sortBy) url += `&sortBy=${filters.sortBy}`;
-    if (filters.order) url += `&order=${filters.order}`;
-    if (filters.status) url += `&status=${filters.status}`;
+    // Ajouter la catégorie si elle est fournie
+    if (categoryId) url += `&category=${categoryId}`;
+    
+    // Ajouter le terme de recherche si fourni
+    if (searchTerm && searchTerm.trim() !== '') url += `&search=${encodeURIComponent(searchTerm.trim())}`;
+    
+    // Ajouter les filtres supplémentaires s'ils sont fournis
+    if (additionalFilters.minPrice) url += `&minPrice=${additionalFilters.minPrice}`;
+    if (additionalFilters.maxPrice) url += `&maxPrice=${additionalFilters.maxPrice}`;
+    if (additionalFilters.sortBy) url += `&sortBy=${additionalFilters.sortBy}`;
+    if (additionalFilters.order) url += `&order=${additionalFilters.order}`;
+    if (additionalFilters.status) url += `&status=${additionalFilters.status}`;
+    
+    console.log(`🔄 [PRODUCT] URL de requête: ${url}`);
     
     // Appeler l'API pour récupérer tous les produits
     const response = await fetch(url);
@@ -178,7 +196,6 @@ export const getAllProducts = async (
     throw error;
   }
 };
-
 /**
  * Récupère un produit spécifique par son ID
  * @param {number} productId L'ID du produit à récupérer
@@ -733,9 +750,6 @@ export const updateProductStatus = async (
   }
 };
 
-/**
- * Utilitaire pour déboguer les informations utilisateur et les erreurs d'autorisation
- */
 /**
  * Utilitaire pour déboguer les informations utilisateur et les erreurs d'autorisation
  */

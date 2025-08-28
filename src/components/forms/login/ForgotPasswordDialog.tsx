@@ -9,7 +9,7 @@ import { Loader, AlertCircle, Check } from 'lucide-react';
 import { z } from 'zod';
 
 // API URL configuration - matching the one in authService
-const API_URL = "http://localhost:3000/api";
+const API_URL = "https://ecommerce-2-uy2x.onrender.com/api";
 
 interface ForgotPasswordDialogProps {
   open: boolean;

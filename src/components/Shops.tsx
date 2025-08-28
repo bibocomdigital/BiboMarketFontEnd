@@ -6,14 +6,15 @@ import {
   CarouselNext,
   CarouselPrevious
 } from '@/components/ui/carousel';
-import { Store, MapPin, User, CheckCircle } from 'lucide-react';
-import { Shop, getAllShops } from '../services/shopService'; // Adjust import path as needed
-const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { Store, MapPin, Info } from 'lucide-react';
+import { Shop, getAllShops } from '../services/shopService';
+import { useNavigate } from 'react-router-dom';
 
 const Shops = () => {
   const [shops, setShops] = useState<Shop[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchShops = async () => {
@@ -30,6 +31,11 @@ const Shops = () => {
 
     fetchShops();
   }, []);
+
+  // Fonction pour naviguer vers les détails de la boutique
+  const handleShowShopDetails = (shopId: number) => {
+    navigate(`/boutique/${shopId}`);
+  };
 
   // Simplified animated text wrapper
   const AnimatedText = ({ children, delay }: { children: React.ReactNode, delay?: number }) => (
@@ -105,13 +111,22 @@ const Shops = () => {
               <CarouselContent className="py-4">
                 {shops.map((shop) => (
                   <CarouselItem key={shop.id} className="sm:basis-1/2 lg:basis-1/3 pl-4">
-                    <div className="h-full glass-card p-6 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 group">
+                    <div className="h-full glass-card p-6 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 group relative">
+                      {/* Bouton de détails de la boutique */}
+                      <button 
+                        onClick={() => handleShowShopDetails(shop.id)}
+                        className="absolute top-2 right-2 z-10 bg-bibocom-primary/10 hover:bg-bibocom-primary/20 p-2 rounded-full transition-colors"
+                        title="Voir les détails de la boutique"
+                      >
+                        <Info size={20} className="text-bibocom-primary" />
+                      </button>
+
                       {/* Shop Logo */}
                       <div className="flex items-center justify-center mb-4">
                         <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-bibocom-light shadow-md group-hover:scale-105 transition-transform duration-300">
                           {shop.logo ? (
                             <img 
-                            src={`${backendUrl}/uploads/${shop.logo.split('/').pop()}`} 
+                              src={shop.logo || '/placeholder-shop.jpg'} 
                               alt={`Logo de ${shop.name}`} 
                               className="w-full h-full object-cover" 
                             />

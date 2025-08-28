@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, User, Package, BarChart2, Users, PlusCircle, Settings, Menu, Store } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -8,10 +8,21 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NoShop from '@/components/shop/NoShop';
 import ShopOverview from '@/components/shop/ShopOverview';
 import EditShopDialog from '@/components/shop/EditShopDialog';
+import NotificationCenter from '@/components/notification/NotificationCenter ';// Importation du composant de notifications
+ // Importation du composant de messages
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { logout } from '@/services/authService';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import MessageCenter from '@/components/MessageCenter';
 
 const MerchantDashboard = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [showEditShop, setShowEditShop] = useState(false);
   
   // Requête pour récupérer les informations de la boutique
@@ -29,8 +40,15 @@ const MerchantDashboard = () => {
     refetchInterval: false,
   });
   
-  // Gestion de l'erreur si la boutique n'existe pas encore
-  const hasShop = !isError && shopData;
+  // Vérifier correctement si l'utilisateur a une boutique
+  // Modification ici pour s'assurer que hasShop est correctement évalué
+  const hasShop = !isError && shopData && shopData.id;
+  
+  // Pour débugger
+  useEffect(() => {
+    console.log('Shop data:', shopData);
+    console.log('Has shop?', hasShop);
+  }, [shopData, hasShop]);
   
   const handleShopCreated = () => {
     toast({
@@ -52,6 +70,21 @@ const MerchantDashboard = () => {
       refetch();
     }, 1000);
   };
+
+  const handleLogout = () => {
+    console.log('👋 [MERCHANT] Déconnexion de l\'utilisateur');
+    logout();
+    toast({
+      title: 'Déconnexion réussie',
+      description: 'Vous avez été déconnecté avec succès.'
+    });
+    navigate('/login');
+  };
+
+  // Fonction pour naviguer vers WhatsApp clone
+  const navigateToWhatsAppClone = () => {
+    navigate('/whatsapp'); // ou l'URL de votre WhatsApp clone
+  };
   
   // Log pour débugger
   useEffect(() => {
@@ -60,6 +93,8 @@ const MerchantDashboard = () => {
     }
     if (hasShop) {
       console.log('✅ [MERCHANT] Boutique trouvée:', shopData);
+    } else {
+      console.log('ℹ️ [MERCHANT] Aucune boutique trouvée pour ce marchand');
     }
   }, [isError, hasShop, shopData, error]);
   
@@ -78,35 +113,58 @@ const MerchantDashboard = () => {
           </div>
           
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/mes-produits" className="text-gray-600 hover:text-bibocom-accent transition-colors">
-              Mes Produits
-            </Link>
-            <Link to="/commandes-recues" className="text-gray-600 hover:text-bibocom-accent transition-colors">
-              Commandes
-            </Link>
-            <Link to="/fournisseurs" className="text-gray-600 hover:text-bibocom-accent transition-colors">
-              Fournisseurs
-            </Link>
-            <Link to="/statistiques" className="text-gray-600 hover:text-bibocom-accent transition-colors">
-              Statistiques
-            </Link>
+            {hasShop && (
+              <>
+                <Link to="/mes-produits" className="text-gray-600 hover:text-bibocom-accent transition-colors">
+                  Mes Produits
+                </Link>
+                <Link to="/commandes-recues" className="text-gray-600 hover:text-bibocom-accent transition-colors">
+                  Commandes
+                </Link>
+          
+                <Link to="/statistiques" className="text-gray-600 hover:text-bibocom-accent transition-colors">
+                  Statistiques
+                </Link>
+              </>
+            )}
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="relative cursor-pointer group">
-              <User size={20} className="text-gray-600 hidden md:block" />
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden group-hover:block">
-                <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Mon profil
-                </Link>
-                <Link to="/boutique-parametres" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Paramètres boutique
-                </Link>
-                <Link to="/login" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Se déconnecter
-                </Link>
-              </div>
-            </div>
+            {/* Centre de notifications */}
+            <NotificationCenter />
+            <div className="relative">
+  <MessageCenter onRedirect={navigateToWhatsAppClone} />
+  {/* Dropdown messages */}
+</div>
+            
+            {/* User dropdown menu (uses shadcn dropdown) */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100">
+                  <User size={20} className="text-gray-600" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 z-50">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Mon profil</span>
+                  </Link>
+                </DropdownMenuItem>
+                {hasShop && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/boutique-parametres" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Paramètres boutique</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={handleLogout} className="text-red-500 hover:text-red-600 cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Se déconnecter</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             {/* Menu mobile */}
             <Sheet>
@@ -125,22 +183,25 @@ const MerchantDashboard = () => {
                   </div>
                   
                   <nav className="flex-1 space-y-4 px-2">
-                    <Link to="/mes-produits" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
-                      <Package className="mr-3 h-5 w-5 text-bibocom-accent" />
-                      Mes Produits
-                    </Link>
-                    <Link to="/commandes-recues" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
-                      <Package className="mr-3 h-5 w-5 text-green-500" />
-                      Commandes
-                    </Link>
-                    <Link to="/fournisseurs" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
-                      <Users className="mr-3 h-5 w-5 text-blue-500" />
-                      Fournisseurs
-                    </Link>
-                    <Link to="/statistiques" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
-                      <BarChart2 className="mr-3 h-5 w-5 text-purple-500" />
-                      Statistiques
-                    </Link>
+                    {hasShop && (
+                      <>
+                        <Link to="/mes-produits" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
+                          <Package className="mr-3 h-5 w-5 text-bibocom-accent" />
+                          Mes Produits
+                        </Link>
+                        <Link to="/commandes-recues" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
+                          <Package className="mr-3 h-5 w-5 text-green-500" />
+                          Commandes
+                        </Link>
+                        <div className="px-4 py-2">
+                          <MessageCenter onRedirect={navigateToWhatsAppClone} />
+                        </div>
+                        <Link to="/statistiques" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
+                          <BarChart2 className="mr-3 h-5 w-5 text-purple-500" />
+                          Statistiques
+                        </Link>
+                      </>
+                    )}
                   </nav>
                   
                   <div className="border-t pt-4 mt-4 px-2">
@@ -148,14 +209,19 @@ const MerchantDashboard = () => {
                       <User className="mr-3 h-5 w-5" />
                       Mon profil
                     </Link>
-                    <Link to="/boutique-parametres" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
-                      <Settings className="mr-3 h-5 w-5" />
-                      Paramètres boutique
-                    </Link>
-                    <Link to="/login" className="flex items-center py-2 px-4 text-red-500 hover:bg-gray-100 rounded-md">
+                    {hasShop && (
+                      <Link to="/boutique-parametres" className="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md">
+                        <Settings className="mr-3 h-5 w-5" />
+                        Paramètres boutique
+                      </Link>
+                    )}
+                    <button 
+                      onClick={handleLogout}
+                      className="flex items-center w-full py-2 px-4 text-red-500 hover:bg-gray-100 rounded-md"
+                    >
                       <LogOut className="mr-3 h-5 w-5" />
                       Se déconnecter
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </SheetContent>
@@ -191,30 +257,30 @@ const MerchantDashboard = () => {
           
           {/* Affichage de la boutique ou du composant NoShop */}
           {!isLoading && (
-            <>
-              {hasShop ? (
-                <>
-                  <ShopOverview 
-                    shop={shopData}
-                    products={shopData.products || []}
-                    onEditClick={() => setShowEditShop(true)}
-                  />
-                  
-                  {/* Modal d'édition de la boutique */}
-                  {showEditShop && (
-                    <EditShopDialog
-                      shop={shopData}
-                      open={showEditShop}
-                      onOpenChange={setShowEditShop}
-                      onShopUpdated={handleShopUpdated}
-                    />
-                  )}
-                </>
-              ) : (
-                <NoShop onShopCreated={handleShopCreated} />
-              )}
-            </>
-          )}
+  <>
+    {hasShop ? (
+      <>
+        <ShopOverview 
+          shop={shopData}
+          products={shopData.products || []}
+          onEditClick={() => setShowEditShop(true)}
+        />
+        
+        {/* Modal d'édition de la boutique */}
+        {showEditShop && (
+          <EditShopDialog
+            shop={shopData}
+            open={showEditShop}
+            onOpenChange={setShowEditShop}
+            onShopUpdated={handleShopUpdated}
+          />
+        )}
+      </>
+    ) : (
+      <NoShop onShopCreated={handleShopCreated} />
+    )}
+  </>
+)}
         </div>
       </main>
       

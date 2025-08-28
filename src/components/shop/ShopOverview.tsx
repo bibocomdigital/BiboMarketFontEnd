@@ -7,19 +7,20 @@ import {
   ShoppingCart, 
   Users, 
   Settings,
-  Edit
+  Edit,
+  Search,
+  Filter
 } from 'lucide-react';
-import { Shop, ShopProduct } from '@/services/shopService';
+import { Shop, ShopProduct, formatImageUrl } from '@/services/shopService';
+import { getProductCategories } from '@/services/productService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Badge from '@/components/ui-custom/Badge';
 import CreateProductModal from './CreateProductModal';
-
-// Nous avons retiré l'import CreateShopDialog puisque nous allons utiliser onEditClick
-
-// URL de base du backend
-const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import ProductsGrid from '@/components/ProductsGrid';
 
 interface ShopOverviewProps {
   shop: Shop;
@@ -29,18 +30,17 @@ interface ShopOverviewProps {
 
 const ShopOverview: React.FC<ShopOverviewProps> = ({ 
   shop, 
-  products,
+  products: initialProducts,
   onEditClick 
 }) => {
-  console.log("ShopOverview rendered", { shopName: shop.name, productsCount: products.length });
+  console.log("ShopOverview rendered", { shopName: shop.name, productsCount: initialProducts.length });
   
   // État pour contrôler l'ouverture/fermeture du modal
   const [isCreateProductModalOpen, setIsCreateProductModalOpen] = useState(false);
-
-  // Debug modal state changes
-  useEffect(() => {
-    console.log("Modal state changed:", isCreateProductModalOpen);
-  }, [isCreateProductModalOpen]);
+  
+  // États pour le filtrage (à passer au ProductsGrid)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   // Fonction pour fermer le modal
   const closeCreateProductModal = () => {
@@ -50,7 +50,7 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
   
   return (
     <div className="space-y-6">
-      {/* Modal d'ajout de produit - Centré sur la page */}
+      {/* Modal d'ajout de produit */}
       <CreateProductModal 
         isOpen={isCreateProductModalOpen} 
         onClose={closeCreateProductModal} 
@@ -63,7 +63,7 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
             <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
               {shop.logo ? (
                 <AvatarImage 
-                  src={`${backendUrl}/uploads/${shop.logo.split('/').pop()}`}
+                  src={formatImageUrl(shop.logo)}
                   alt={shop.name} 
                 />
               ) : (
@@ -86,7 +86,6 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
                 </div>
               </div>
               
-              {/* Nous utilisons onEditClick pour ouvrir le modal depuis le composant parent */}
               {onEditClick && (
                 <Button 
                   onClick={onEditClick} 
@@ -127,7 +126,7 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
                 <Package className="text-bibocom-accent" size={20} />
               </div>
               <div className="ml-4">
-                <p className="text-2xl font-bold">{products.length}</p>
+                <p className="text-2xl font-bold">{initialProducts.length}</p>
                 <p className="text-xs text-gray-500">En catalogue</p>
               </div>
             </div>
@@ -176,7 +175,7 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
           <CardDescription>Gérez efficacement votre boutique</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Action d'ajout de produit - Maintenant cliquable pour ouvrir le modal */}
+          {/* Action d'ajout de produit */}
           <div 
             className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
             onClick={() => {
@@ -225,40 +224,40 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
         </CardContent>
       </Card>
       
-      {/* Liste des produits récents */}
+      {/* Liste des produits avec filtres */}
       <Card>
-        <CardHeader>
-          <CardTitle>Produits récents</CardTitle>
-          <CardDescription>Les derniers produits ajoutés à votre boutique</CardDescription>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Gestion des produits</CardTitle>
+              <CardDescription>Visualisez et gérez tous vos produits</CardDescription>
+            </div>
+            <Button 
+              onClick={() => {
+                setIsCreateProductModalOpen(true);
+              }}
+              className="flex items-center"
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Ajouter un produit
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
-          {products.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {products.slice(0, 3).map((product) => (
-                <div key={product.id} className="border rounded-lg overflow-hidden">
-                  <div className="h-40 bg-gray-200">
-                    {product.images && product.images.length > 0 ? (
-                      <img 
-                        src={product.images[0].url} 
-                        alt={product.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <Package size={48} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium">{product.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{product.description.substring(0, 60)}...</p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="font-bold text-bibocom-accent">{product.price.toLocaleString()} FCFA</span>
-                      <span className="text-xs text-gray-500">Stock: {product.stock}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+        
+        <CardContent className="pt-4">
+          {initialProducts.length > 0 ? (
+            <div className="shop-products-grid">
+              <ProductsGrid
+                shopId={shop.id}
+                isOwner={true}
+                customPagination={{ limit: 12 }}
+                filterOptions={{
+                  showSearch: true,
+                  showCategories: true,
+                  initialSearchTerm: searchTerm,
+                  initialCategory: selectedCategory
+                }}
+              />
             </div>
           ) : (
             <div className="text-center py-8">
@@ -269,10 +268,7 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
               </p>
               <div className="mt-6">
                 <Button 
-                  variant="outline" 
-                  className="text-bibocom-accent border-bibocom-accent"
                   onClick={() => {
-                    console.log("Add product button clicked");
                     setIsCreateProductModalOpen(true);
                   }}
                 >
@@ -282,11 +278,6 @@ const ShopOverview: React.FC<ShopOverviewProps> = ({
             </div>
           )}
         </CardContent>
-        {products.length > 0 && (
-          <CardFooter className="flex justify-center">
-            <Button variant="ghost">Voir tous les produits</Button>
-          </CardFooter>
-        )}
       </Card>
     </div>
   );
