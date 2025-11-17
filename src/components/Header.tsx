@@ -75,6 +75,16 @@ const Header = () => {
                     <a href="#" className="block px-4 py-2 text-sm text-bibocom-primary hover:bg-bibocom-primary/10 transition-colors duration-200">
                       Beauté
                     </a>
+
+                    {/* 🔹 Nouveau lien : Show Room */}
+                    <a href="#" className="block px-4 py-2 text-sm text-bibocom-primary hover:bg-bibocom-primary/10 transition-colors duration-200">
+                      Show Room
+                    </a>
+
+                    {/* 🔹 Nouveau lien : Immobilier */}
+                    <a href="#" className="block px-4 py-2 text-sm text-bibocom-primary hover:bg-bibocom-primary/10 transition-colors duration-200">
+                      Immobilier
+                    </a>
                   </div>
                 )}
               </div>
