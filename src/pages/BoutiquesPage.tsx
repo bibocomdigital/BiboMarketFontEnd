@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 const BoutiquesPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
-      
+      <Header />
       <main className="flex-grow">
         <Shops />
       </main>

@@ -15,7 +15,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>((props, r
       </div>
       <Input
         type={showPassword ? 'text' : 'password'}
-        className="pl-10 pr-10"
+        className="pl-10 pr-10 z-0"
         placeholder="Mot de passe"
         ref={ref}
         {...props}

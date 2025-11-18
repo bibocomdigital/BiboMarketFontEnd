@@ -19,7 +19,7 @@ export const initiateGoogleLogin = (): void => {
     localStorage.setItem('auth_redirect_url', redirectUrl);
     
     // Build Google auth URL
-    const authUrl = `${backendUrl}/api/auth/google`;
+    const authUrl = `${backendUrl}/auth/google`;
     console.log(`🔄 [SOCIAL-AUTH] Redirecting to Google authentication: ${authUrl}`);
     
     // Redirect to Google auth
@@ -43,7 +43,7 @@ export const initiateFacebookLogin = (): void => {
     localStorage.setItem('auth_redirect_url', redirectUrl);
     
     // Build Facebook auth URL
-    const authUrl = `${backendUrl}/api/auth/facebook`;
+    const authUrl = `${backendUrl}/auth/facebook`;
     console.log(`🔄 [SOCIAL-AUTH] Redirecting to Facebook authentication: ${authUrl}`);
     
     // Redirect to Facebook auth

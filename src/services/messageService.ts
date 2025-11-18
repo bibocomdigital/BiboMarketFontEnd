@@ -108,7 +108,7 @@ export const sendMessage = async (
     }
     
     // Appeler l'API pour envoyer le message
-    const response = await fetch(`${backendUrl}/api/messages/send`, {
+    const response = await fetch(`${backendUrl}/messages/send`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -148,7 +148,7 @@ export const getConversations = async (): Promise<ConversationsResponse> => {
     
     // Appeler l'API pour récupérer les conversations
     const response = await fetch(
-      `${backendUrl}/api/messages/conversations`,
+      `${backendUrl}/messages/conversations`,
       {
         headers: getAuthHeaders()
       }
@@ -186,7 +186,7 @@ export const getMessages = async (partnerId: number): Promise<MessagesResponse> 
     
     // Appeler l'API pour récupérer les messages
     const response = await fetch(
-      `${backendUrl}/api/messages/with/${partnerId}`,
+      `${backendUrl}/messages/with/${partnerId}`,
       {
         headers: getAuthHeaders()
       }
@@ -224,7 +224,7 @@ export const updateMessage = async (messageId: number, content: string): Promise
     }
     
     // Appeler l'API pour mettre à jour le message
-    const response = await fetch(`${backendUrl}/api/messages/${messageId}`, {
+    const response = await fetch(`${backendUrl}/messages/${messageId}`, {
       method: 'PUT',
       headers: {
         ...getAuthHeaders(),
@@ -266,8 +266,8 @@ export const deleteMessage = async (messageId: number, forEveryone: boolean = fa
     
     // Appeler l'API pour supprimer le message
     const url = forEveryone 
-      ? `${backendUrl}/api/messages/${messageId}?forEveryone=true` 
-      : `${backendUrl}/api/messages/${messageId}`;
+      ? `${backendUrl}/messages/${messageId}?forEveryone=true` 
+      : `${backendUrl}/messages/${messageId}`;
     
     const response = await fetch(url, {
       method: 'DELETE',
@@ -305,7 +305,7 @@ export const markAsRead = async (messageId: number): Promise<MarkAsReadResponse>
     }
     
     // Appeler l'API pour marquer le message comme lu
-    const response = await fetch(`${backendUrl}/api/messages/${messageId}/read`, {
+    const response = await fetch(`${backendUrl}/messages/${messageId}/read`, {
       method: 'PATCH',
       headers: getAuthHeaders()
     });
@@ -341,7 +341,7 @@ export const markAllAsRead = async (partnerId: number): Promise<MarkAsReadRespon
     }
     
     // Appeler l'API pour marquer tous les messages comme lus
-    const response = await fetch(`${backendUrl}/api/messages/read/all/${partnerId}`, {
+    const response = await fetch(`${backendUrl}/messages/read/all/${partnerId}`, {
       method: 'PATCH',
       headers: getAuthHeaders()
     });
@@ -377,7 +377,7 @@ export const getUnreadCount = async (): Promise<UnreadCountResponse> => {
     
     // Appeler l'API pour récupérer le nombre de messages non lus
     const response = await fetch(
-      `${backendUrl}/api/messages/unread/count`,
+      `${backendUrl}/messages/unread/count`,
       {
         headers: getAuthHeaders()
       }
@@ -415,7 +415,7 @@ export const searchMessages = async (query: string): Promise<SearchMessagesRespo
     
     // Appeler l'API pour rechercher des messages
     const response = await fetch(
-      `${backendUrl}/api/messages/search?query=${encodeURIComponent(query)}`,
+      `${backendUrl}/messages/search?query=${encodeURIComponent(query)}`,
       {
         headers: getAuthHeaders()
       }

@@ -158,7 +158,7 @@ export const getAllProducts = async (
     console.log(`🔄 [PRODUCT] Récupération de tous les produits (page ${page}, limit ${limit})`);
     
     // Construire l'URL avec les paramètres
-    let url = `${backendUrl}/api/produit?page=${page}&limit=${limit}`;
+    let url = `${backendUrl}/produit?page=${page}&limit=${limit}`;
     
     // Ajouter la catégorie si elle est fournie
     if (categoryId) url += `&category=${categoryId}`;
@@ -206,7 +206,7 @@ export const getProductById = async (productId: number): Promise<Product> => {
     console.log(`🔄 [PRODUCT] Récupération du produit ID ${productId}`);
     
     // Appeler l'API pour récupérer le produit
-    const response = await fetch(`${backendUrl}/api/produit/${productId}`);
+    const response = await fetch(`${backendUrl}/produit/${productId}`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -251,7 +251,7 @@ export const createProduct = async (productData: FormData): Promise<Product> => 
     });
     
     // Appeler l'API pour créer le produit
-    const response = await fetch(`${backendUrl}/api/produit`, {
+    const response = await fetch(`${backendUrl}/produit`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -301,7 +301,7 @@ export const updateProduct = async (productId: number, productData: FormData): P
     }
     
     // Appeler l'API pour mettre à jour le produit
-    const response = await fetch(`${backendUrl}/api/produit/${productId}`, {
+    const response = await fetch(`${backendUrl}/produit/${productId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -348,7 +348,7 @@ export const updateProductStock = async (productId: number, newStock: number): P
     }
     
     // Appeler l'API pour mettre à jour le stock
-    const response = await fetch(`${backendUrl}/api/produit/${productId}/stock`, {
+    const response = await fetch(`${backendUrl}/produit/${productId}/stock`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -394,7 +394,7 @@ export const deleteProduct = async (productId: number): Promise<void> => {
     }
     
     // Appeler l'API pour supprimer le produit
-    const response = await fetch(`${backendUrl}/api/produit/${productId}`, {
+    const response = await fetch(`${backendUrl}/produit/${productId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -437,7 +437,7 @@ export const searchProducts = async (
     }
     
     // Construire l'URL avec les paramètres
-    let url = `${backendUrl}/api/produit/search?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`;
+    let url = `${backendUrl}/produit/search?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`;
     
     // Ajouter la catégorie si elle est fournie
     if (category) {
@@ -482,7 +482,7 @@ export const getProductsByCategory = async (
     console.log(`🔄 [PRODUCT] Récupération des produits de la catégorie "${category}"`);
     
     // Appeler l'API pour récupérer les produits de la catégorie
-    const response = await fetch(`${backendUrl}/api/produit/category/${encodeURIComponent(category)}?page=${page}&limit=${limit}`);
+    const response = await fetch(`${backendUrl}/produit/category/${encodeURIComponent(category)}?page=${page}&limit=${limit}`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -513,7 +513,7 @@ export const getLatestProducts = async (limit: number = 10): Promise<Product[]> 
     console.log(`🔄 [PRODUCT] Récupération des ${limit} derniers produits`);
     
     // Appeler l'API pour récupérer les derniers produits
-    const response = await fetch(`${backendUrl}/api/produit/latest?limit=${limit}`);
+    const response = await fetch(`${backendUrl}/produit/latest?limit=${limit}`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -541,7 +541,7 @@ export const getFeaturedProducts = async (limit: number = 10): Promise<Product[]
     console.log(`🔄 [PRODUCT] Récupération des ${limit} produits en vedette`);
     
     // Appeler l'API pour récupérer les produits en vedette
-    const response = await fetch(`${backendUrl}/api/produit/featured?limit=${limit}`);
+    const response = await fetch(`${backendUrl}/produit/featured?limit=${limit}`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -568,7 +568,7 @@ export const getProductCategories = async (): Promise<string[]> => {
     console.log('🔄 [PRODUCT] Récupération des catégories de produits');
     
     // Appeler l'API pour récupérer les catégories
-    const response = await fetch(`${backendUrl}/api/produit/categories`);
+    const response = await fetch(`${backendUrl}/produit/categories`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -602,7 +602,7 @@ export const getMerchantProducts = async (
     console.log(`🔄 [PRODUCT] Récupération des produits du commerçant ID ${merchantId}`);
     
     // Appeler l'API pour récupérer les produits du commerçant
-    const response = await fetch(`${backendUrl}/api/produit/merchant/${merchantId}?page=${page}&limit=${limit}`);
+    const response = await fetch(`${backendUrl}/produit/merchant/${merchantId}?page=${page}&limit=${limit}`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -634,7 +634,7 @@ export const getRelatedProducts = async (productId: number, limit: number = 5): 
     console.log(`🔄 [PRODUCT] Récupération des produits associés au produit ID ${productId}`);
     
     // Appeler l'API pour récupérer les produits associés
-    const response = await fetch(`${backendUrl}/api/produit/${productId}/related?limit=${limit}`);
+    const response = await fetch(`${backendUrl}/produit/${productId}/related?limit=${limit}`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -677,7 +677,7 @@ export const getProductStats = async (): Promise<{
     }
     
     // Appeler l'API pour récupérer les statistiques
-    const response = await fetch(`${backendUrl}/api/produit/stats`, {
+    const response = await fetch(`${backendUrl}/produit/stats`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -725,7 +725,7 @@ export const updateProductStatus = async (
     }
     
     // Appeler l'API pour mettre à jour le statut
-    const response = await fetch(`${backendUrl}/api/produit/${productId}/status`, {
+    const response = await fetch(`${backendUrl}/produit/${productId}/status`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,

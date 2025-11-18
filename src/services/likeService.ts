@@ -101,7 +101,7 @@ export const toggleProductLike = async (productId: number): Promise<ToggleLikeRe
     }
     
     // Appeler l'API pour liker/unliker le produit
-    const response = await fetch(`${backendUrl}/api/products/${productId}/like`, {
+    const response = await fetch(`${backendUrl}/products/${productId}/like`, {
       method: 'POST',
       headers: getAuthHeaders()
     });
@@ -165,7 +165,7 @@ export const toggleProductDislike = async (productId: number): Promise<ToggleDis
     }
     
     // Appeler l'API pour disliker/undisliker le produit
-    const response = await fetch(`${backendUrl}/api/products/${productId}/dislike`, {
+    const response = await fetch(`${backendUrl}/products/${productId}/dislike`, {
       method: 'POST',
       headers: getAuthHeaders()
     });
@@ -218,7 +218,7 @@ export const getProductLikesCount = async (productId: number): Promise<LikesCoun
     console.log('📦 [LIKES] ID du produit:', productId);
     
     // Appeler l'API pour récupérer les likes
-    const response = await fetch(`${backendUrl}/api/products/${productId}/likes`);
+    const response = await fetch(`${backendUrl}/products/${productId}/likes`);
     
     console.log('📊 [LIKES] Statut de la réponse de récupération des likes:', response.status);
     
@@ -291,7 +291,7 @@ export const getUserProductReaction = async (productId: number): Promise<UserRea
     }
     
     // Appeler l'API pour vérifier la réaction de l'utilisateur
-    const response = await fetch(`${backendUrl}/api/products/${productId}/user-reaction`, {
+    const response = await fetch(`${backendUrl}/products/${productId}/user-reaction`, {
       method: 'GET',
       headers: getAuthHeaders()
     });

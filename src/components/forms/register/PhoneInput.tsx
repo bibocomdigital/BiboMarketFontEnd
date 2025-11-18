@@ -2,66 +2,150 @@
 import { useState, useEffect } from 'react';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Phone } from 'lucide-react';
+import { ChevronDown, Phone } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
-import { Country, getDefaultCountry } from '@/data/countries';
+import { countries, Country, getDefaultCountry } from '@/data/countries';
+import CountrySelect from './CountrySelect';
 
-// Extended to accommodate CompleteProfileFormValues as well
 interface PhoneInputProps {
-  form: UseFormReturn<any>; // Accept any form type
+  form: any;
+  field: any; // Nouvelle prop pour recevoir le field de react-hook-form
   selectedCountry?: Country;
+  onCountryChange?: (country: Country) => void;
 }
 
-const PhoneInput = ({ form, selectedCountry = getDefaultCountry() }: PhoneInputProps) => {
+const PhoneInput = ({ 
+  form, 
+  field, 
+  selectedCountry = getDefaultCountry(), 
+  onCountryChange 
+}: PhoneInputProps) => {
   const [phoneWithoutCode, setPhoneWithoutCode] = useState('');
-  
-  console.log('📱 [REGISTER] PhoneInput initialized with country:', selectedCountry.name);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [currentCountry, setCurrentCountry] = useState<Country>(selectedCountry);
 
-  // Update when country changes
+  // Update when selectedCountry prop changes
   useEffect(() => {
     if (selectedCountry) {
-      console.log('📱 [REGISTER] Country changed to:', selectedCountry.name);
-      
-      // Update the full phone number in the form
-      updateFullPhoneNumber(phoneWithoutCode);
+      setCurrentCountry(selectedCountry);
     }
   }, [selectedCountry]);
 
+  // Initialize phone number from field value if it exists
+  useEffect(() => {
+    if (field.value && field.value.includes('+')) {
+      // Extraire le code pays et le numéro si une valeur existe déjà
+      const dialCode = field.value.match(/^\+\d+/)?.[0];
+      const country = countries.find(c => c.dialCode === dialCode);
+      if (country) {
+        setCurrentCountry(country);
+        const phoneNumber = field.value.replace(dialCode, '').trim();
+        setPhoneWithoutCode(phoneNumber);
+      }
+    }
+  }, [field.value]);
+
+  // Update when country changes
+  useEffect(() => {
+    if (currentCountry) {
+      updateFullPhoneNumber(phoneWithoutCode);
+    }
+  }, [currentCountry]);
+
   const updateFullPhoneNumber = (phoneNumber: string) => {
-    // We only register the number without the prefix
-    console.log('📱 [REGISTER] Setting phone number:', phoneNumber);
-    form.setValue('phoneNumber', phoneNumber);
+    const fullNumber = `${currentCountry.dialCode}${phoneNumber}`;
+    // Met à jour à la fois le form et le field
+    form.setValue('login', fullNumber);
+    field.onChange(fullNumber);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    console.log('📱 [REGISTER] Phone number changed:', value);
+    const value = e.target.value.replace(/\D/g, ''); // Garder seulement les chiffres
     setPhoneWithoutCode(value);
     updateFullPhoneNumber(value);
   };
 
+  const handleCountrySelect = (country: Country) => {
+    setCurrentCountry(country);
+    setIsCountryDropdownOpen(false);
+    if (onCountryChange) {
+      onCountryChange(country);
+    }
+    updateFullPhoneNumber(phoneWithoutCode); // Mettre à jour avec le nouveau code pays
+  };
+
+  // Fermer le dropdown quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setIsCountryDropdownOpen(false);
+    };
+
+    if (isCountryDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isCountryDropdownOpen]);
+
   return (
-    <FormField
-      control={form.control}
-      name="phoneNumber"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Téléphone</FormLabel>
-          <FormControl>
-            <div className="relative">
-              <Input 
-                placeholder="Votre numéro de téléphone" 
-                onChange={handlePhoneChange}
-                value={phoneWithoutCode}
-              />
-              <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+    <div className="relative">
+      {/* Sélecteur de pays */}
+      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10">
+        <div className="relative">
+          <button
+            type="button"
+            className="flex items-center space-x-1 bg-transparent hover:bg-gray-100 rounded px-2 py-1 transition-colors border border-gray-300"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsCountryDropdownOpen(!isCountryDropdownOpen);
+            }}
+          >
+            <span className="text-base">{currentCountry?.flag}</span>
+            <span className="text-gray-600 text-sm font-medium">
+              {currentCountry?.dialCode}
+            </span>
+            <ChevronDown size={14} className="text-gray-400" />
+          </button>
+
+          {/* Dropdown des pays */}
+          {isCountryDropdownOpen && (
+            <div 
+              className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 w-64 overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {countries.map((country) => (
+                <button
+                  key={country.code}
+                  type="button"
+                  className="flex items-center space-x-3 w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors"
+                  onClick={() => handleCountrySelect(country)}
+                >
+                  <span className="text-base">{country.flag}</span>
+                  <span className="text-gray-600 text-sm font-medium">
+                    {country.dialCode}
+                  </span>
+                  <span className="text-gray-700 text-sm flex-1">{country.name}</span>
+                </button>
+              ))}
             </div>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+          )}
+        </div>
+      </div>
+      
+      <Input 
+        {...field}
+        placeholder="Votre numéro de téléphone" 
+        onChange={handlePhoneChange}
+        value={phoneWithoutCode}
+        className="pl-32" // Ajusté pour l'espace du sélecteur de pays
+        type="tel"
+      />
+      <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+    </div>
   );
 };
+
 
 export default PhoneInput;

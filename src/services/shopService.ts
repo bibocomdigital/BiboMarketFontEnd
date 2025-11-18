@@ -145,7 +145,7 @@ export const getMyShop = async (): Promise<ShopWithProducts> => {
     }
     
     // Appeler l'API pour récupérer la boutique
-    const response = await fetch(`${backendUrl}/api/shop/my-shop`, {
+    const response = await fetch(`${backendUrl}/shop/my-shop`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
@@ -207,7 +207,7 @@ export const createShop = async (shopData: FormData): Promise<Shop> => {
     });
     
     // Appeler l'API pour créer la boutique
-    const response = await fetch(`${backendUrl}/api/shop`, {
+    const response = await fetch(`${backendUrl}/shop`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -269,7 +269,7 @@ export const updateShop = async (shopId: number, shopData: FormData): Promise<Sh
     }
     
     // Appeler l'API pour mettre à jour la boutique
-    const response = await fetch(`${backendUrl}/api/shop/${shopId}`, {
+    const response = await fetch(`${backendUrl}/shop/${shopId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -303,7 +303,7 @@ export const getShopById = async (shopId: number): Promise<ShopWithProducts> => 
     console.log(`🔄 [SHOP] Récupération de la boutique ID ${shopId}`);
     
     // Appeler l'API pour récupérer la boutique
-    const response = await fetch(`${backendUrl}/api/shop/${shopId}`);
+    const response = await fetch(`${backendUrl}/shop/${shopId}`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -333,7 +333,7 @@ export const getShopProducts = async (shopId: number): Promise<ShopProduct[]> =>
     console.log(`🔄 [SHOP] Récupération des produits de la boutique ID ${shopId}`);
     
     // Appeler l'API pour récupérer les produits de la boutique
-    const response = await fetch(`${backendUrl}/api/shop/${shopId}/products`);
+    const response = await fetch(`${backendUrl}/shop/${shopId}/products`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -359,7 +359,7 @@ export const getAllShops = async (): Promise<Shop[]> => {
     console.log('🔄 [SHOP] Récupération de toutes les boutiques');
     
     // Appeler l'API pour récupérer les boutiques
-    const response = await fetch(`${backendUrl}/api/shop`);
+    const response = await fetch(`${backendUrl}/shop`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -397,7 +397,7 @@ export const deleteShop = async (shopId: number): Promise<void> => {
     }
     
     // Appeler l'API pour supprimer la boutique
-    const response = await fetch(`${backendUrl}/api/shop/${shopId}`, {
+    const response = await fetch(`${backendUrl}/shop/${shopId}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
     });
@@ -424,7 +424,7 @@ export const getShopWithMerchantDetails = async (shopId: number): Promise<ShopWi
     console.log(`🔄 [SHOP] Récupération des détails de la boutique ID ${shopId}`);
     
     // Appeler l'API pour récupérer les détails de la boutique
-    const response = await fetch(`${backendUrl}/api/shop/${shopId}/details`);
+    const response = await fetch(`${backendUrl}/shop/${shopId}/details`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -471,7 +471,7 @@ export const contactMerchant = async (
     }
     
     // Appeler l'API pour envoyer le message
-    const response = await fetch(`${backendUrl}/api/shop/${shopId}/contact`, {
+    const response = await fetch(`${backendUrl}/shop/${shopId}/contact`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
@@ -510,7 +510,7 @@ export const getAllUserMessages = async () => {
       throw new Error('Vous devez être connecté');
     }
 
-    const response = await fetch(`${backendUrl}/api/dashboard/messages`, {
+    const response = await fetch(`${backendUrl}/dashboard/messages`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
@@ -552,7 +552,7 @@ export const respondToMessage = async (
       throw new Error('Vous devez être connecté pour répondre à un message');
     }
 
-    const apiResponse = await fetch(`${backendUrl}/api/contact/${contactId}/respond`, {
+    const apiResponse = await fetch(`${backendUrl}/contact/${contactId}/respond`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ response })

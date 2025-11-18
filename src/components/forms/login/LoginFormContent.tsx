@@ -1,29 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import EmailInput from './EmailInput';
-import PasswordInput from './PasswordInput';
-import ForgotPasswordDialog from './ForgotPasswordDialog';
-import SocialLoginButton from './SocialLoginButton';
-import { LoginFormSchema } from './LoginFormTypes';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { login } from '@/services/authService';
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import EmailInput from "./EmailInput";
+import PasswordInput from "./PasswordInput";
+import ForgotPasswordDialog from "./ForgotPasswordDialog";
+import SocialLoginButton from "./SocialLoginButton";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate, useLocation } from "react-router-dom";
+import { login } from "@/services/authService";
+import { Input } from "@/components/ui/input";
+import { Mail } from "lucide-react";
+import PhoneInput from "../register/PhoneInput";
 
 type LoginFormContentProps = {
   initialEmail?: string;
   onClose?: () => void;
 };
 
-const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', onClose }) => {
+// Schéma de validation pour email ou téléphone
+const LoginFormSchema = z.object({
+  login: z.string().min(1, "L'email ou le téléphone est requis"),
+  password: z.string().min(1, "Le mot de passe est requis"),
+  rememberMe: z.boolean().default(true),
+});
+
+const LoginFormContent: React.FC<LoginFormContentProps> = ({
+  initialEmail = "",
+  onClose,
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [loginError, setLoginError] = useState<string | null>(null); // ✅ Nouvel état pour les erreurs
+  const [resetEmail, setResetEmail] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginType, setLoginType] = useState<"email" | "phone">("email");
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,15 +51,20 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
   const form = useForm<z.infer<typeof LoginFormSchema>>({
     resolver: zodResolver(LoginFormSchema),
     defaultValues: {
-      email: initialEmail,
-      password: '',
+      login: initialEmail,
+      password: "",
       rememberMe: true,
     },
   });
 
   useEffect(() => {
     if (initialEmail) {
-      form.setValue('email', initialEmail);
+      form.setValue("login", initialEmail);
+      // Déterminer le type en fonction de l'input initial
+      const isPhone = /^[\+]?[1-9][\d]{0,15}$/.test(
+        initialEmail.replace(/\D/g, "")
+      );
+      setLoginType(isPhone ? "phone" : "email");
     }
   }, [initialEmail, form]);
 
@@ -53,52 +78,73 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
     return () => subscription.unsubscribe();
   }, [form, loginError]);
 
+  const toggleLoginType = () => {
+    setLoginType(loginType === "email" ? "phone" : "email");
+    form.setValue("login", ""); // Réinitialiser la valeur quand on change le type
+  };
+
   const onSubmit = async (values: z.infer<typeof LoginFormSchema>) => {
     setIsSubmitting(true);
-    
+
     try {
-      const response = await login({
-        email: values.email,
-        password: values.password
-      });
-      
+      // Préparer les données selon le format attendu par le backend
+      const loginData = {
+        password: values.password,
+        email: "",
+        phoneNumber: "",
+      };
+
+      // Ajouter email OU phoneNumber selon le type de connexion
+      if (loginType === "email") {
+        loginData.email = values.login;
+        loginData.phoneNumber = undefined;
+      } else {
+        loginData.phoneNumber = values.login; // Déjà formaté avec le code pays par PhoneInput
+        loginData.email = undefined;
+      }
+
+      console.log("📤 [LOGIN] Données envoyées:", loginData);
+
+      const response = await login(loginData);
+
+
       toast({
         title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté"
+        description: "Vous êtes maintenant connecté",
       });
-      
-      // Débogage - Affichons le rôle reçu pour le tracer
-      console.log('👤 [LOGIN] Rôle de l\'utilisateur:', response.user.role);
-      console.log('👤 [LOGIN] Type du rôle reçu:', typeof response.user.role);
-      
-      // Correction: normaliser le rôle reçu pour la comparaison
+
       const userRole = response.user.role.toUpperCase();
-      
-      // TOUJOURS rediriger en fonction du rôle utilisateur, en ignorant le paramètre redirect
-      if (userRole === 'MERCHANT' || userRole === 'COMMERCANT') {
-        console.log('🔄 [LOGIN] Redirection vers le tableau de bord commerçant');
-        navigate('/merchant-dashboard');
-      } else if (userRole === 'SUPPLIER' || userRole === 'FOURNISSEUR') {
-        console.log('🔄 [LOGIN] Redirection vers le tableau de bord fournisseur');
-        navigate('/supplier-dashboard');
+
+      if (userRole === "MERCHANT" || userRole === "COMMERCANT") {
+        console.log(
+          "🔄 [LOGIN] Redirection vers le tableau de bord commerçant"
+        );
+        navigate("/merchant-dashboard");
+      } else if (userRole === "SUPPLIER" || userRole === "FOURNISSEUR") {
+        console.log(
+          "🔄 [LOGIN] Redirection vers le tableau de bord fournisseur"
+        );
+        navigate("/supplier-dashboard");
       } else {
-        console.log('🔄 [LOGIN] Redirection vers le tableau de bord client');
-        navigate('/client-dashboard');
+        console.log("🔄 [LOGIN] Redirection vers le tableau de bord client");
+        navigate("/client-dashboard");
       }
-      
+
       if (onClose) {
         onClose();
       }
     } catch (error) {
-      console.error('❌ [LOGIN] Erreur de connexion:', error);
-      
-      // Afficher le vrai message d'erreur du serveur
-      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la connexion";
-      
+      console.error("❌ [LOGIN] Erreur de connexion:", error);
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Une erreur est survenue lors de la connexion";
+
       toast({
         title: "Erreur de connexion",
-        description: errorMessage, // ✅ Utiliser le vrai message d'erreur
-        variant: "destructive"
+        description: errorMessage,
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -108,69 +154,56 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* 🔍 DEBUG - Affichage permanent pour test */}
-        <div style={{ 
-          backgroundColor: '#fee2e2', 
-          border: '1px solid #fecaca', 
-          padding: '12px', 
-          borderRadius: '6px',
-          color: '#dc2626'
-        }}>
-          <strong>DEBUG:</strong> loginError = "{loginError}" | Est null: {loginError === null ? 'OUI' : 'NON'}
-        </div>
-
-        {/* ✅ Affichage de l'erreur de connexion - Version simple */}
-        {loginError && (
-          <div 
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4"
-            style={{
-              backgroundColor: '#fef2f2',
-              border: '1px solid #fecaca',
-              color: '#b91c1c',
-              padding: '12px 16px',
-              borderRadius: '6px',
-              marginBottom: '16px'
-            }}
-          >
-            <div className="flex items-center">
-              <span className="text-red-500 mr-2">⚠️</span>
-              <span>{loginError}</span>
-            </div>
-          </div>
-        )}
-
-        {/* 🔍 Bouton de test pour forcer une erreur */}
-        <button 
-          type="button"
-          onClick={() => {
-            console.log('🔍 Test - Forçage d\'une erreur');
-            setLoginError('Test d\'erreur - cliquez sur connexion pour tester');
-          }}
-          style={{
-            backgroundColor: '#fbbf24',
-            color: '#92400e',
-            padding: '8px 16px',
-            borderRadius: '4px',
-            border: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          🔍 TEST - Forcer une erreur
-        </button>
-
+        {/* Champ de connexion dynamique */}
         <FormField
           control={form.control}
-          name="email"
+          name="login" // Champ unique pour email ou téléphone
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>
+                {loginType === "email" ? "Email" : "Téléphone"}
+              </FormLabel>
               <FormControl>
-                <EmailInput {...field} />
+                <div className="relative">
+                  {loginType === "phone" ? (
+                    // PhoneInput avec sélecteur de pays
+                    <PhoneInput
+                      form={form}
+                      field={field} // Passe le field ici
+                    />
+                  ) : (
+                    // Input email standard
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="votre@email.com"
+                        className="pl-10"
+                      />
+                      <Mail
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={16}
+                      />
+                    </div>
+                  )}
+
+                  {/* Bouton pour changer le type de connexion */}
+                  <button
+                    type="button"
+                    onClick={toggleLoginType}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-bibocom-accent hover:text-bibocom-primary text-sm font-medium"
+                  >
+                    {loginType === "email"
+                      ? "Utiliser le téléphone"
+                      : "Utiliser l'email"}
+                  </button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="password"
@@ -184,6 +217,7 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
             </FormItem>
           )}
         />
+
         <div className="flex items-center justify-between">
           <FormField
             control={form.control}
@@ -196,7 +230,9 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <FormLabel className="text-sm font-normal">Se souvenir de moi</FormLabel>
+                <FormLabel className="text-sm font-normal">
+                  Se souvenir de moi
+                </FormLabel>
               </FormItem>
             )}
           />
@@ -204,19 +240,26 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
             type="button"
             className="text-sm text-bibocom-accent hover:underline"
             onClick={() => {
-              setResetEmail(form.getValues().email);
+              const currentLogin = form.getValues().login;
+              // Si c'est un email valide, l'utiliser pour la réinitialisation
+              if (currentLogin.includes("@")) {
+                setResetEmail(currentLogin);
+              } else {
+                setResetEmail(""); // Réinitialiser si c'est un téléphone
+              }
               setShowForgotPassword(true);
             }}
           >
             Mot de passe oublié?
           </button>
         </div>
+
         <Button
           type="submit"
           className="w-full bg-bibocom-primary text-white"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
+          {isSubmitting ? "Connexion en cours..." : "Se connecter"}
         </Button>
 
         <div className="relative">
@@ -224,19 +267,20 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({ initialEmail = '', 
             <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Ou connectez-vous avec</span>
+            <span className="px-2 bg-white text-gray-500">
+              Ou connectez-vous avec
+            </span>
           </div>
         </div>
         <SocialLoginButton provider="google" />
       </form>
-      <ForgotPasswordDialog 
-        open={showForgotPassword} 
-        onOpenChange={setShowForgotPassword} 
+      <ForgotPasswordDialog
+        open={showForgotPassword}
+        onOpenChange={setShowForgotPassword}
         resetEmail={resetEmail}
         setResetEmail={setResetEmail}
       />
     </Form>
   );
 };
-
 export default LoginFormContent;

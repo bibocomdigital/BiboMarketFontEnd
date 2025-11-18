@@ -66,7 +66,7 @@ export const toggleFollow = async (userId: number): Promise<FollowResponse> => {
     }
     
     // Appeler l'API pour basculer le suivi
-    const response = await fetch(`${backendUrl}/api/users/${userId}/toggle-follow`, {
+    const response = await fetch(`${backendUrl}/users/${userId}/toggle-follow`, {
       method: 'POST',
       headers: getAuthHeaders(),
     });
@@ -103,7 +103,7 @@ export const getUserFollowers = async (
     
     // Appeler l'API pour récupérer les abonnés
     const response = await fetch(
-      `${backendUrl}/api/users/${userId}/followers?page=${page}&limit=${limit}`
+      `${backendUrl}/users/${userId}/followers?page=${page}&limit=${limit}`
     );
     
     if (!response.ok) {
@@ -138,7 +138,7 @@ export const getUserFollowing = async (
     
     // Appeler l'API pour récupérer les abonnements
     const response = await fetch(
-      `${backendUrl}/api/users/${userId}/following?page=${page}&limit=${limit}`
+      `${backendUrl}/users/${userId}/following?page=${page}&limit=${limit}`
     );
     
     if (!response.ok) {
@@ -172,7 +172,7 @@ export const checkIfFollowing = async (userId: number): Promise<IsFollowingRespo
     }
     
     // Appeler l'API pour vérifier le suivi
-    const response = await fetch(`${backendUrl}/api/users/${userId}/isFollowing`, {
+    const response = await fetch(`${backendUrl}/users/${userId}/isFollowing`, {
       headers: getAuthHeaders(),
     });
     
@@ -207,7 +207,7 @@ export const getSuggestedUsers = async (limit: number = 10): Promise<SuggestedUs
     }
     
     // Appeler l'API pour récupérer les suggestions
-    const response = await fetch(`${backendUrl}/api/users/suggestions?limit=${limit}`, {
+    const response = await fetch(`${backendUrl}/users/suggestions?limit=${limit}`, {
       headers: getAuthHeaders(),
     });
     
