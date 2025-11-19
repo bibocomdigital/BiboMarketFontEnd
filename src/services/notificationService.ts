@@ -112,7 +112,7 @@ export const getUserNotifications = async (): Promise<Notification[]> => {
     }
     
     // Appeler l'API pour récupérer les notifications
-    const response = await fetch(`${backendUrl}/api/notifications`, {
+    const response = await fetch(`${backendUrl}/notifications`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
@@ -154,7 +154,7 @@ export const markNotificationAsRead = async (notificationId: number): Promise<No
     }
     
     // Appeler l'API pour marquer la notification comme lue
-    const response = await fetch(`${backendUrl}/api/notifications/${notificationId}`, {
+    const response = await fetch(`${backendUrl}/notifications/${notificationId}`, {
       method: 'PATCH',
       headers: getAuthHeaders()
     });
@@ -192,7 +192,7 @@ export const markAllNotificationsAsRead = async (): Promise<MarkAsReadResponse> 
     }
     
     // Appeler l'API pour marquer toutes les notifications comme lues
-    const response = await fetch(`${backendUrl}/api/notifications`, {
+    const response = await fetch(`${backendUrl}/notifications`, {
       method: 'PATCH',
       headers: getAuthHeaders()
     });
@@ -232,7 +232,7 @@ export const deleteNotification = async (notificationId: number): Promise<Delete
     }
     
     // Appeler l'API pour supprimer la notification
-    const response = await fetch(`${backendUrl}/api/notifications/${notificationId}`, {
+    const response = await fetch(`${backendUrl}/notifications/${notificationId}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
     });
@@ -270,7 +270,7 @@ export const deleteAllNotifications = async (): Promise<DeleteNotificationRespon
     }
     
     // Appeler l'API pour supprimer toutes les notifications
-    const response = await fetch(`${backendUrl}/api/notifications`, {
+    const response = await fetch(`${backendUrl}/notifications`, {
       method: 'DELETE',
       headers: getAuthHeaders()
     });

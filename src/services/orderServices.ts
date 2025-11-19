@@ -99,7 +99,7 @@ export const getOrders = async (): Promise<Order[]> => {
       throw new Error('Vous devez être connecté pour accéder à vos commandes');
     }
 
-    const response = await fetch(`${backendUrl}/api/orders`, {
+    const response = await fetch(`${backendUrl}/orders`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -126,7 +126,7 @@ export const getOrderById = async (orderId: number): Promise<Order> => {
       throw new Error('Vous devez être connecté pour accéder aux détails de la commande');
     }
 
-    const response = await fetch(`${backendUrl}/api/orders/${orderId}`, {
+    const response = await fetch(`${backendUrl}/orders/${orderId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -153,7 +153,7 @@ export const checkOrderConfirmation = async (orderId: number): Promise<Confirmat
       throw new Error('Vous devez être connecté pour vérifier le statut de la commande');
     }
 
-    const response = await fetch(`${backendUrl}/api/orders/${orderId}/check-confirmation`, {
+    const response = await fetch(`${backendUrl}/orders/${orderId}/check-confirmation`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -180,7 +180,7 @@ export const requestMerchantFeedback = async (orderId: number): Promise<Feedback
       throw new Error('Vous devez être connecté pour demander un feedback');
     }
 
-    const response = await fetch(`${backendUrl}/api/orders/${orderId}/request-feedback`, {
+    const response = await fetch(`${backendUrl}/orders/${orderId}/request-feedback`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -206,7 +206,7 @@ export const getMerchantOrders = async (): Promise<Order[]> => {
       throw new Error('Vous devez être connecté comme marchand pour accéder à ces commandes');
     }
 
-    const response = await fetch(`${backendUrl}/api/merchant/orders`, {
+    const response = await fetch(`${backendUrl}/merchant/orders`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -247,7 +247,7 @@ export const getOrderDetails = async (orderId: number): Promise<DetailedOrder> =
       // Pour les commerçants, récupérer toutes leurs commandes et trouver celle demandée
       console.log('🔄 [ORDER] Récupération en tant que commerçant via merchant/orders');
       
-      const merchantOrdersResponse = await fetch(`${backendUrl}/api/merchant/orders`, {
+      const merchantOrdersResponse = await fetch(`${backendUrl}/merchant/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -280,7 +280,7 @@ export const getOrderDetails = async (orderId: number): Promise<DetailedOrder> =
       // Pour les clients, utiliser la route normale
       console.log('🔄 [ORDER] Récupération en tant que client');
       
-      const response = await fetch(`${backendUrl}/api/orders/${orderId}`, {
+      const response = await fetch(`${backendUrl}/orders/${orderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -325,7 +325,7 @@ export const cancelOrder = async (orderId: number): Promise<DetailedOrder> => {
     }
     
     // Appeler l'API pour annuler la commande
-    const response = await fetch(`${backendUrl}/api/orders/${orderId}/status`, {
+    const response = await fetch(`${backendUrl}/orders/${orderId}/status`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -367,7 +367,7 @@ export const updateOrderStatus = async (orderId: number, newStatus: string): Pro
     }
     
     // Appeler l'API pour mettre à jour le statut (AVEC NOTIFICATIONS PERSONNALISÉES)
-    const response = await fetch(`${backendUrl}/api/orders/${orderId}/status`, {
+    const response = await fetch(`${backendUrl}/orders/${orderId}/status`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -407,7 +407,7 @@ export const autoConfirmDeliveries = async (): Promise<AutoConfirmResponse> => {
     }
     
     // Appeler l'API pour auto-confirmer les livraisons
-    const response = await fetch(`${backendUrl}/api/orders/auto-confirm-deliveries`, {
+    const response = await fetch(`${backendUrl}/orders/auto-confirm-deliveries`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

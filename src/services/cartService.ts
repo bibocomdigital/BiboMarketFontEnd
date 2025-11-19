@@ -129,7 +129,7 @@ export const addToCart = async (productId: number, quantity: number = 1): Promis
     }
     
     // Appeler l'API pour ajouter au panier
-    const response = await fetch(`${backendUrl}/api/cart`, {
+    const response = await fetch(`${backendUrl}/cart`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ productId, quantity }),
@@ -171,7 +171,7 @@ export const getCart = async (): Promise<Cart> => {
     }
     
     // Appeler l'API pour récupérer le panier
-    const response = await fetch(`${backendUrl}/api/cart`, {
+    const response = await fetch(`${backendUrl}/cart`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -214,7 +214,7 @@ export const updateCartItem = async (itemId: number, quantity: number): Promise<
     }
     
     // Appeler l'API pour mettre à jour l'article
-    const response = await fetch(`${backendUrl}/api/cart/items/${itemId}`, {
+    const response = await fetch(`${backendUrl}/cart/items/${itemId}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({ quantity }),
@@ -257,7 +257,7 @@ export const removeFromCart = async (itemId: number): Promise<RemoveFromCartResp
     }
     
     // Appeler l'API pour supprimer l'article
-    const response = await fetch(`${backendUrl}/api/cart/items/${itemId}`, {
+    const response = await fetch(`${backendUrl}/cart/items/${itemId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -297,7 +297,7 @@ export const clearCart = async (): Promise<ClearCartResponse> => {
     }
     
     // Appeler l'API pour vider le panier
-    const response = await fetch(`${backendUrl}/api/cart`, {
+    const response = await fetch(`${backendUrl}/cart`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -339,7 +339,7 @@ export const shareCartViaWhatsApp = async (message: string = ''): Promise<ShareC
     }
     
     // Appeler l'API pour partager le panier
-    const response = await fetch(`${backendUrl}/api/cart/share/whatsapp`, {
+    const response = await fetch(`${backendUrl}/cart/share/whatsapp`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ message }),
@@ -388,7 +388,7 @@ export const createOrderFromCart = async (message: string = ''): Promise<OrderRe
     }
     
     // Appeler l'API pour créer la commande
-    const response = await fetch(`${backendUrl}/api/cart/order`, {
+    const response = await fetch(`${backendUrl}/cart/order`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ message }),

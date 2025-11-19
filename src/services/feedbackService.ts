@@ -22,7 +22,7 @@ export const submitMerchantFeedback = async (
       throw new Error('Vous devez être connecté pour soumettre des évaluations');
     }
 
-    const response = await fetch(`${backendUrl}/api/orders/${orderId}/request-feedback`, {
+    const response = await fetch(`${backendUrl}/orders/${orderId}/request-feedback`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ feedbackItems }),
@@ -49,7 +49,7 @@ export const getUserFeedbackHistory = async (): Promise<FeedbackItem[]> => {
       throw new Error('Vous devez être connecté pour accéder à votre historique d\'évaluations');
     }
 
-    const response = await fetch(`${backendUrl}/api/user/feedback`, {
+    const response = await fetch(`${backendUrl}/user/feedback`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
