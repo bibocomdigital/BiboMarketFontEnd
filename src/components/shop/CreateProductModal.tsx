@@ -231,7 +231,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({ isOpen, onClose
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       
       // Appeler l'API pour créer le produit
-      const response = await fetch(`${backendUrl}/api/produit`, {
+      const response = await fetch(`${backendUrl}/products`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -277,7 +277,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({ isOpen, onClose
         toast({
           title: "Produit créé avec succès",
           description: `${formData.name} a été ajouté à votre catalogue`,
-          variant: "success"
+          variant: "default"
         });
       } else {
         alert(`Produit "${formData.name}" créé avec succès`);

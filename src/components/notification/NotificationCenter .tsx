@@ -59,7 +59,7 @@ const NotificationCenter = () => {
       toast({
         title: "Notification marquée comme lue",
         description: "La notification a été marquée comme lue avec succès.",
-        variant: "success",
+        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     } catch (error) {
@@ -78,7 +78,7 @@ const NotificationCenter = () => {
       toast({
         title: "Toutes les notifications marquées comme lues",
         description: "Toutes vos notifications ont été marquées comme lues.",
-        variant: "success",
+        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     } catch (error) {
@@ -98,7 +98,7 @@ const NotificationCenter = () => {
       toast({
         title: "Notification supprimée",
         description: "La notification a été supprimée avec succès.",
-        variant: "success",
+        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     } catch (error) {
@@ -117,7 +117,7 @@ const NotificationCenter = () => {
       toast({
         title: "Notifications supprimées",
         description: "Toutes vos notifications ont été supprimées.",
-        variant: "success",
+        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     } catch (error) {

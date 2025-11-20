@@ -145,7 +145,7 @@ export const getMyShop = async (): Promise<ShopWithProducts> => {
     }
     
     // Appeler l'API pour récupérer la boutique
-    const response = await fetch(`${backendUrl}/shop/my-shop`, {
+    const response = await fetch(`${backendUrl}/shop/mine`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
@@ -510,7 +510,7 @@ export const getAllUserMessages = async () => {
       throw new Error('Vous devez être connecté');
     }
 
-    const response = await fetch(`${backendUrl}/dashboard/messages`, {
+    const response = await fetch(`${backendUrl}/messages/conversations`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
@@ -520,7 +520,7 @@ export const getAllUserMessages = async () => {
       throw new Error(errorData.message || 'Erreur lors de la récupération des messages');
     }
 
-    const data = await response.json();
+    const data = await response.json();    
     return data;
   } catch (error) {
     console.error('❌ [SHOP] Erreur:', error);

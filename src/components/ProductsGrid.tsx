@@ -75,7 +75,7 @@ const ProductsGrid = () => {
   
   // États pour le filtrage
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [showFilters, setShowFilters] = useState(false);
   
   // États pour la modal et le produit sélectionné
@@ -203,7 +203,7 @@ const ProductsGrid = () => {
         // Filtrer par catégorie si sélectionnée
         if (selectedCategory) {
           filteredProducts = filteredProducts.filter(product => 
-            product.category && product.category.id === selectedCategory
+            product.category && product.category === selectedCategory
           );
           console.log('Filtered by category:', filteredProducts.length);
         }
@@ -417,7 +417,7 @@ const ProductsGrid = () => {
   };
 
   // Fonction pour appliquer le filtre de catégorie
-  const handleCategoryFilter = (categoryId: number | undefined) => {
+  const handleCategoryFilter = (categoryId: string | undefined) => {
     setSelectedCategory(categoryId);
     setPagination(prev => ({ ...prev, page: 1, category: categoryId }));
   };
@@ -884,16 +884,17 @@ const ProductsGrid = () => {
                 <label className="text-sm font-medium text-gray-700">Catégorie:</label>
                 <select
                   value={selectedCategory || ''}
-                  onChange={(e) => handleCategoryFilter(e.target.value ? parseInt(e.target.value) : undefined)}
+                  onChange={(e) => handleCategoryFilter(e.target.value ? String(e.target.value) : undefined)}
                   className="border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[200px]"
                 >
                   <option value="">Toutes les catégories</option>
                   {categories.map((category, index) => (
                     <option 
-                      key={category.id ? `category-${category.id}` : `category-unknown-${index}`} 
-                      value={category.id}
+                      key={category} 
+                      value={category}
+                      className='color-black'
                     >
-                      {category.name}
+                      {category}
                     </option>
                   ))}
                 </select>

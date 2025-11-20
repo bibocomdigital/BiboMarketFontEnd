@@ -11,7 +11,7 @@ const DashboardMessages = () => {
     const fetchMessages = async () => {
       try {
         const data = await getAllUserMessages();
-        setMessages(data.messages);
+        setMessages(data.data);
         setLoading(false);
       } catch (err) {
         setError(err.message);

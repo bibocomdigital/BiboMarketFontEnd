@@ -30,6 +30,7 @@ import MerchantOrdersPage from './pages/MerchantOrdersPage';
 import ShopsListingPage from './pages/ShopsListingPage';
 import ContactPage from './pages/ContactPage';
 import AboutPage from './pages/AboutPage';
+import ShopSettings from './pages/ShopSettings';
 
 
 const queryClient = new QueryClient();
@@ -69,6 +70,7 @@ const App = () => (
           <Route path="/commandes/:orderId" element={<OrderDetailsPage />} />
           <Route path="/commandes-recues" element={<MerchantOrdersPage />} />
           <Route path="/boutique" element={<ShopsListingPage />} />
+          <Route path="/boutique-parametres" element={<ShopSettings />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
       
