@@ -3,7 +3,7 @@
  */
 
 // URL de l'API backend
-export const backendUrl = import.meta.env.VITE_API_URL || 'https://ecommerce-2-uy2x.onrender.com';
+export const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
 
 // Interface pour les erreurs d'API
 export interface ApiError {

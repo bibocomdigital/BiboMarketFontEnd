@@ -68,7 +68,7 @@ const ShopsListingPage = () => {
     const fetchShops = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${backendUrl}/api/shop/`);
+        const response = await fetch(`${backendUrl}/shop/`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         setShops(data.shops); // IMPORTANT : ton API renvoie { shops: [...] }

@@ -1,5 +1,5 @@
 // Configuration de l'API
-const API_URL = import.meta.env.VITE_API_URL || "https://ecommerce-2-uy2x.onrender.com/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8001/api";
 
 // URL de base Cloudinary pour les images
 export const CLOUDINARY_BASE_URL = "https://res.cloudinary.com/yourdomain"; // À remplacer par votre domaine Cloudinary
