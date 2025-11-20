@@ -14,7 +14,7 @@ import {
   X
 } from 'lucide-react';
 
-const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+const backendUrl = import.meta.env.VITE_API_URL || 'https://bibomarketbackend-1.onrender.com/api/shop';
 
 interface Shop {
   id: number;
